@@ -1625,6 +1625,14 @@ class Traceroute
 	// <td>'.$trIdData[0][8].'</td>
 	{
 		$trResultsData = array();
+		$html = '<table id="traceroutes-table" class="ui tablesorter selectable celled compact table">
+        <thead>
+        	<tr>
+	            <th>Origin</th>
+	            <th>Destination</th>
+	            <th>TR ID</th>
+        	</tr>
+    	</thead><tbody>';
 /*
 		$html = '
 		<div id="tr-list-ids" class="map-info-containers-- tr-list-result">
@@ -1648,7 +1656,7 @@ class Traceroute
             </tr>
 */
 		$c=0;
-		$html ="";
+		
 		foreach($data as $trId => $trIdData)
 		{
 			$c++;
@@ -1675,12 +1683,17 @@ class Traceroute
 			} else {
 				$originStr = $trIdData[0][11];
 			}
-			// strimwidth to ellipsisize anything over 20 chars
+			
+			$flagIcon = "";
+			if($trIdData[0][11]!=""){
+				$flagIcon = '<i class="'.strtolower($trIdData[0][11]).' flag"></i> ';
+			}
+
 			$html .='
             <tr>
-                <td><i class="'.strtolower($trIdData[0][11]).' flag"></i>'.$trIdData[0][10].'</td>
+                <td>'.$flagIcon.$trIdData[0][11].' '.$trIdData[0][10].'</td>
                 <td>'.$trIdData[0][7].'</td>
-                <td><a id="tr-a-'.$trId.'" class="tr-list-ids-item centered-table-cell '.$active.'" href="'.$onClick.'" '.$onMouseOver.'>'.$trId.'</a></td>
+                <td><a id="tr-a-'.$trId.'" class="link'.$active.'" href="'.$onClick.'" '.$onMouseOver.'>'.$trId.'</a></td>
             </tr>
             ';
 
@@ -1701,8 +1714,9 @@ class Traceroute
 				"date"=>$trIdData[0][12]
 				);
 
-		}
+		} // end foreach
 
+		$html .='</tbody></table>';
 		///return $trResultsData;
 		return $html;
 
