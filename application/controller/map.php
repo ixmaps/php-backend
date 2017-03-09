@@ -8,8 +8,8 @@ include('../model/IXmapsMaxMind.php');
 
 /* MM: needed for search log */
 $mm = new IXmapsMaxMind();
-//$myIp = $_SERVER['REMOTE_ADDR'];
-$myIp = "186.108.108.134";
+$myIp = $_SERVER['REMOTE_ADDR']; // Get user IP for search log
+//$myIp = "186.108.108.134";
 $geoIp = $mm->getGeoIp($myIp);
 
 //print_r($geoIp);
