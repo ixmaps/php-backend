@@ -14,8 +14,15 @@ $geoIp = $mm->getGeoIp($myIp);
 
 //print_r($geoIp);
 
-$myCity = $geoIp['geoip']['city'];
-$myCountry = $geoIp['geoip']['country_code'];
+$myCity = "";
+$myCountry = "";
+if(isset($geoIp['geoip']['city'])){
+	$myCity = $geoIp['geoip']['city'];
+}
+if(isset($geoIp['geoip']['country_code'])){
+	$myCountry = $geoIp['geoip']['country_code'];
+}
+
 
 /* TODO: Refine search of geodata location based on proximity to major city. Reuse other functions  */
 
