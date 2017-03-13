@@ -13,7 +13,7 @@ $geoIp = $mm->getGeoIp($myIp);
 $_POST['submitter_ip'] = $myIp;
 
 if(!isset($_POST['city']) && isset($geoIp['geoip']['city'])){
-	$_POST['city'] = $geoIp['geoip']['city'];	
+	$_POST['city'] = $geoIp['geoip']['city'];
 } else if (!isset($_POST['city'])) {
 	$_POST['city'] = "";
 }

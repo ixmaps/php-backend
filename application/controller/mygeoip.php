@@ -48,6 +48,7 @@ if($myCity==""){
 }
 
 $result = array(
+	"myIp" => $myIp,
 	"myCountry" => $myCountry,
 	"myCity" => $myCity,
 	"myAsn" => $myAsn,

@@ -50,7 +50,7 @@ class IXmapsMaxMind
 			$asn_isp = $this->extractAsn($ipAsn);
 			$r['asn'] = $asn_isp[0];
 			$r['isp'] = $asn_isp[1];
-		}
+		}		
 		return $r;
 	}
 	
@@ -85,51 +85,17 @@ class IXmapsMaxMind
 	}
 
 	/**
-	* Update IP address information: geo data, asn, and hostname
-	*/
-	public function updateIpAddrInfo($data, $ip)
+	 * Get Closest Geo Data using mm world_cities DB Based on city population and radius
+	 */
+	public function getGeoDataByPopulationRadius($currentMmData, $limit=1, $radius=50000) 
 	{
 		global $dbconn;
-		print_r($data);
-		
-		$sql = "UPDATE ip_addr_info SET ";
-		
-		if (isset($data['latitude']) && isset($data['longitude'])){
-			$sql.="mm_lat=".$data['latitude'].", lat=".$data['latitude'].", mm_long=".$data['longitude'].", long=".$data['longitude'];
-		}
-		if ($data['country_code']!=""){
-			$sql.=", mm_country='".$data['country_code']."'";
 
-		}
-		if ($data['region']!=""){
-			$sql.=", mm_region='".$data['region']."'";
-		}
-		if ($data['city']!=""){
-			$sql.=", mm_city='".$data['city']."'";
-
-		}
-		if ($data['postal_code']!=""){
-			$sql.=", mm_postal='".$data['postal_code']."'";
-
-		}
-		if ($data['area_code']!=""){
-			$sql.=", mm_area_code=".$data['area_code']."";
-
-		}
-		if ($data['dma_code']!=""){
-			$sql.=", mm_dma_code=".$data['dma_code']."";
-
-		}
-		// set hostname
-		$sql.=", hostname='".$data['hostname']."'";
-
-		$sql.=" WHERE ip_addr = '".$ip."' AND gl_override is NULL";
-
-		echo "\n".$sql;
-		$result = pg_query($dbconn, $sql) or die('updateIpAddrInfo: Query failed'.pg_last_error());
-		//$dataA = pg_fetch_all($result);
-		//pg_free_result($result);
-		//return $dataA;
+		// Get closest geodata for lat/long
+		$sql = "SELECT country, name, admin1, population, latitude, longitude FROM geoname WHERE population is not null and ST_DWithin(the_geom, ST_SetSRID(ST_MakePoint(".$currentMmData['geoip']['longitude'].",".$currentMmData['geoip']['latitude']."), 4326), $radius) and country = '".$currentMmData['geoip']['country_code']."' ORDER BY population DESC limit $limit;";
+		$result = pg_query($dbconn, $sql) or die('getGeoDataRadius failed'.pg_last_error());
+		$geodata = pg_fetch_all($result);
+		return $geodata;
 	}
 }
 ?>

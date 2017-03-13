@@ -1,14 +1,16 @@
 <?php
+header("Access-Control-Allow-Origin: *");
 ini_set( "display_errors", 1); // force show errors for debug
-
 /* include files */
 include('../config.php');
 include('../model/Traceroute.php');
 include('../model/IXmapsMaxMind.php'); 
 
+$myIp = $_SERVER['REMOTE_ADDR'];
+
 /* MM: needed for search log */
 $mm = new IXmapsMaxMind();
-$myIp = $_SERVER['REMOTE_ADDR']; // Get user IP for search log
+//$myIp = $_SERVER['REMOTE_ADDR']; // Get user IP for search log
 //$myIp = "186.108.108.134";
 $geoIp = $mm->getGeoIp($myIp);
 
@@ -16,13 +18,13 @@ $geoIp = $mm->getGeoIp($myIp);
 
 $myCity = "";
 $myCountry = "";
+
 if(isset($geoIp['geoip']['city'])){
 	$myCity = $geoIp['geoip']['city'];
 }
 if(isset($geoIp['geoip']['country_code'])){
 	$myCountry = $geoIp['geoip']['country_code'];
 }
-
 
 /* TODO: Refine search of geodata location based on proximity to major city. Reuse other functions  */
 
