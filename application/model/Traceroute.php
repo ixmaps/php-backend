@@ -331,11 +331,204 @@ class Traceroute
 		return $trArr;
 	}
 
+
 	/**
 	Key Function!
 	Get TR data for set of constraints
 	*/
 	public static function getTraceRoute($data)
+	{
+		global $dbconn, $dbQueryHtml, $dbQuerySummary;
+		$result = array();
+		$trSets = array();
+		$conn = 0;
+		$limit1 = 4500;
+		$limit2 = 5000;
+		$offset = 0;
+		$doesNotChk = false;
+
+		// loop constraints
+		foreach($data as $constraint)
+		{
+			$dbQuerySummary .= '<br><b>'.$constraint['constraint1'].' : '.$constraint['constraint2'].' : '.$constraint['constraint3'].' : '.$constraint['constraint4'].' : '.$constraint['constraint5'].'</b>';
+
+			$w = '';
+			$wParams = array();
+
+			$sql = "SELECT as_users.num, tr_item.traceroute_id, traceroute.id, ip_addr_info.mm_city, ip_addr_info.ip_addr, ip_addr_info.asnum FROM as_users, tr_item, traceroute, ip_addr_info WHERE (tr_item.traceroute_id=traceroute.id) AND (ip_addr_info.ip_addr=tr_item.ip_addr) AND (as_users.num=ip_addr_info.asnum)";
+
+			$sqlOrder = ' order by tr_item.traceroute_id, tr_item.hop, tr_item.attempt';
+
+			$aa = 0;
+			// adding exception for doesnot cases
+			if($constraint['constraint1']=='doesNot' && $constraint['constraint2']!='originate' && $constraint['constraint2']!='terminate')
+			{
+				//echo "IF: doesNot && !=originate && terminate";
+
+ 				$oppositeSet = array();
+ 				$positiveSet = array();
+
+				//$w.=''.Traceroute::buildWhere($constraint);
+				$wParams = Traceroute::buildWhere($constraint);
+
+				$sqlTemp = $sql;
+
+				//$sqlTemp.=$w.$sqlOrder;
+				$sqlTemp.=$wParams[0].$sqlOrder;
+				$positiveSet = Traceroute::getTrSet($sqlTemp, $wParams[1]);
+
+				// getting oposite set for diff comparison
+					/*$sqlOposite = $sql;
+					$sqlOposite .= Traceroute::buildWhere($constraint,$doesNotChk);
+					$sqlOposite .= $sqlOrder;
+					$oppositeSet = Traceroute::getTrSet($sqlOposite);*/
+
+				$doesNotChk = true;
+
+				$sqlOposite = $sql;
+
+				$wParams = Traceroute::buildWhere($constraint, $doesNotChk);
+				//$sqlOposite .= Traceroute::buildWhere($constraint,$doesNotChk);
+				$sqlOposite .= $wParams[0].$sqlOrder;
+
+				//$oppositeSet = Traceroute::getTrSet($sqlOposite);
+				$oppositeSet = Traceroute::getTrSet($sqlOposite, $wParams[1]);
+
+				//echo '<br/><i>'.$sqlOposite.'</i>';
+				//echo '<br/>Opposite Set: '.count($oppositeSet);
+
+				$trSets[$conn] = array_diff($positiveSet,$oppositeSet);
+				//echo '<hr/>'.count($trSets[$conn]);
+
+				$doesNotChk = false;
+ 				unset($oppositeSet);
+ 				unset($positiveSet);
+ 				//unset($diff);
+
+ 			// adding an exception for "terminate": This option is now querying tr_last_hops reference table
+ 			} else if($constraint['constraint2']=='terminate') {
+
+ 				//echo "IF: terminate";
+
+ 				$tApproach = 1;
+
+ 				if($tApproach==0){
+ 				// old approach: using dest_ip
+
+					$sql = "SELECT as_users.num, tr_item.traceroute_id, traceroute.id, ip_addr_info.mm_city, ip_addr_info.ip_addr, ip_addr_info.asnum FROM as_users, tr_item, traceroute, ip_addr_info WHERE (tr_item.traceroute_id=traceroute.id) AND (ip_addr_info.ip_addr=tr_item.ip_addr) AND (as_users.num=ip_addr_info.asnum)";
+
+					$sqlOrder = ' order by tr_item.traceroute_id, tr_item.hop, tr_item.attempt';
+
+ 					$w.=" AND (traceroute.dest_ip=ip_addr_info.ip_addr) AND tr_item.attempt = 1 AND tr_item.hop > 1";
+
+ 					//$w.=''.Traceroute::buildWhere($constraint);
+ 					$wParams = Traceroute::buildWhere($constraint);
+ 					$w.=''.$wParams[0];
+
+ 					//$dbQuerySummary.='<BR/>CASE B:';
+
+ 				} else if($tApproach==1){
+
+	 				// new approach: using tr_last_hops
+	 				$sql = "SELECT as_users.num, tr_last_hops.traceroute_id_lh, tr_last_hops.reached, traceroute.id, ip_addr_info.mm_city, ip_addr_info.ip_addr, ip_addr_info.asnum FROM tr_last_hops, as_users, traceroute, ip_addr_info WHERE (as_users.num=ip_addr_info.asnum) AND (traceroute.id=tr_last_hops.traceroute_id_lh) AND (ip_addr_info.ip_addr=tr_last_hops.ip_addr_lh) ";
+
+	 				$sqlOrder = ' order by traceroute.id';
+
+	 				// this is doing nothing I believe, as all the sql is not created here
+	 				//$w.=''.Traceroute::buildWhere($constraint);
+	 				$wParams = Traceroute::buildWhere($constraint);
+ 					$w.=''.$wParams[0];
+
+	 				//$dbQuerySummary.='<BR/>CASE A:';
+	 			}
+
+				$sql .=$w.$sqlOrder;
+				//	echo "<hr/>".$sql;
+
+				$trSets[$conn] = Traceroute::getTrSet($sql, $wParams[1]);
+				$operands[$conn]=$constraint['constraint5'];
+
+
+			} else {
+
+				//echo "IF: all the other cases";
+
+				//$w.=''.Traceroute::buildWhere($constraint);
+
+				$wParams = Traceroute::buildWhere($constraint);
+ 				$w.=''.$wParams[0];
+
+				$sql .=$w.$sqlOrder;
+
+				//echo '<br/><i>'.$sql.'</i>';
+				$trSets[$conn] = Traceroute::getTrSet($sql, $wParams[1]);
+
+				$operands[$conn]=$constraint['constraint5'];
+
+			}
+
+			//echo '<br/><i>'.$sql.'</i>';
+
+			// add SQL to log file
+			//$dbQuerySummary.='<br/>'.$sql;
+
+			$conn++;
+
+		} // end for each
+
+		$trSetResult = array();
+
+		for($i=0;$i<$conn;$i++)
+		{
+			$trSetResultTemp = array();
+			// only one constraint
+			if($i==0)
+			{
+				//$trSetResult=$trSets[0];
+				$trSetResult = array_merge($trSetResult, $trSets[0]);
+
+			// all in between
+			} else if ($i>0){
+				if($data[$i-1]['constraint5']=='OR')
+				{
+					$trSetResultTemp = array_merge($trSetResult,$trSets[$i]);
+					//$trSetResultTemp = array_merge($trSets[$i-1],$trSets[$i]);
+					$trSetResultTemp = array_unique($trSetResultTemp);
+
+					//echo '<br/>ToT trSetResultTemp: '.count($trSetResultTemp);
+					$trSetResult =  array_merge($trSetResult, $trSetResultTemp);
+
+				} else {
+					$trSetResultTemp = array_intersect($trSetResult,$trSets[$i]);
+				}
+
+				$trSetResult =  array();
+				$empty = array();
+				$trSetResult = array_merge($empty, $trSetResultTemp);
+			}
+
+			//$dbQuerySummary .='<hr/>'.$sql;
+		} // end for
+			$trSetResultLast =  array_unique($trSetResult);
+
+		// FIXME: move this to the client. make this count based on the # of TR resulting in the set
+		// It's already done. need to fix UI loading of data
+		$dbQuerySummary .= '<br/>Total traceroutes : <b>'.count($trSetResultLast)."</b><br />";
+
+		//echo '<hr/>getTraceRoute: '.memory_get_usage();
+		unset($trSetResult);
+		unset($trSetResultTemp);
+		unset($trSets);
+		//echo '<hr/>getTraceRoute: '.memory_get_usage();
+
+		return $trSetResultLast;
+	}
+
+	/**
+	Key Function!
+	Get TR data for set of constraints
+	*/
+	public static function getTraceRouteOLD($data)
 	{
 		global $dbconn, $dbQueryHtml, $dbQuerySummary;
 		$result = array();
@@ -558,6 +751,95 @@ class Traceroute
 	*/
 
 	public static function getIxMapsData($data)
+	{
+		global $dbconn, $trNumLimit, $dbQueryHtml, $dbQuerySummary;
+		$result = array();
+		$totTrs = count($data);
+		//echo '<br/>Tot: '.$totTrs;
+
+		// set index increase if total traceroutes is > $trNumLimit
+		if($totTrs>$trNumLimit)
+		{
+			$indexJump = $totTrs/$trNumLimit;
+			$indexJump = intval($indexJump)+1;
+		} else {
+			$indexJump = 1;
+		}
+		//echo '<br/>indexJump: '.$indexJump;
+		//echo '<br/>Displaying the following traceroutes IDs: <br/>';
+
+		$longLatArray = array();
+
+		$wTrs = '';
+		$trCoordinates = '';
+		$trCollected = array();
+
+		$c=0;
+		// build SQL where for the given TR set
+		//foreach ($data as $trId)
+		for ($i=0; $i<$totTrs; $i+=$indexJump)
+		// as $trId)
+		{
+			$trCollected[]=$data[$i];
+			//echo ''.$data[$i].' | ';
+			if($c==0)
+			{
+				$wTrs.=' traceroute.id='.$data[$i];
+
+			} else {
+				$wTrs.=' OR traceroute.id='.$data[$i];
+			}
+			$c++;
+		}
+
+		if($totTrs>$trNumLimit){
+			$dbQueryHtml .= "<span title='The search produced more routes than can be easily mapped. Every nth route is presented to keep the number mapped to no more than 100.'>Displaying <span id='tr-count'>1</span> of ".$c." sampled results (".$totTrs." total)</span>";
+			$dbQuerySummary .= "<span title='The search produced more routes than can be easily mapped. Every nth route is presented to keep the number mapped to no more than 100.'>Displaying <span id='tr-count'>1</span> of ".$c." sampled results (".$totTrs." total)</span>";
+		} else {
+			$dbQueryHtml .= "Displaying <span id='tr-count'>1</span> of ".$c." results";
+		}
+
+		if($totTrs>$trNumLimit){
+			$dbQuerySummary .= '<p style="color:red;">
+			Showing a sample of <b>'.$c.' traceroutes</b>.</p>';
+		}
+		// free some memory
+		unset($data);
+
+		$sql = "SELECT
+		tr_item.traceroute_id, tr_item.hop, tr_item.rtt_ms,
+
+		traceroute.id, traceroute.dest, traceroute.dest_ip, traceroute.submitter, traceroute.sub_time,
+
+		ip_addr_info.ip_addr, ip_addr_info.hostname, ip_addr_info.lat, ip_addr_info.long, ip_addr_info.mm_country, ip_addr_info.mm_city, ip_addr_info.gl_override,
+
+		as_users.num, as_users.name,
+
+		ip_addr_info.flagged
+
+		FROM tr_item, traceroute, ip_addr_info, as_users WHERE (tr_item.traceroute_id=traceroute.id) AND (ip_addr_info.ip_addr=tr_item.ip_addr) AND (as_users.num=ip_addr_info.asnum) AND tr_item.attempt = 1";
+		$sql.=" AND (".$wTrs.")";
+		$sql.=" order by tr_item.traceroute_id, tr_item.hop, tr_item.attempt";
+
+		//echo '<textarea>'.$sql.'</textarea>';
+		//echo '<hr/>'.$sql;
+		// free some memory
+		$wTrs='';
+
+		$result = pg_query($dbconn, $sql) or die('Query failed: ' . pg_last_error());
+		//$tot = pg_num_rows($result);
+		// get all data in a single array
+		$trArr = pg_fetch_all($result);
+
+		return $trArr;
+	}
+
+
+	/**
+		Get geographic data for a tr set
+	*/
+
+	public static function getIxMapsDataOld($data)
 	{
 		global $dbconn, $trNumLimit, $dbQueryHtml, $dbQuerySummary;
 		$result = array();
