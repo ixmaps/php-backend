@@ -1,6 +1,6 @@
 <?php
 header("Access-Control-Allow-Origin: *");
-ini_set( "display_errors", 1); // force show errors for debug
+ini_set( "display_errors", 0); // force show errors for debug
 /* include files */
 include('../config.php');
 include('../model/Traceroute.php');
@@ -49,6 +49,8 @@ if(!isset($_POST) || count($_POST)==0)
 
 	$dbQueryHtml = "";
 	$trHtmlTable = "";
+	$dbQuerySummary = "";
+	$totTrFound = 0;
 
 	$totFilters = count($_POST);
 	$dataArray = array();
@@ -103,6 +105,8 @@ if(!isset($_POST) || count($_POST)==0)
 
 		// add server side renerated table;
 		$ixMapsDataStats['trsTable']=$trHtmlTable;
+		$ixMapsDataStats['totTrsFound']=$totTrFound;
+		
 
 		//print_r($ixMapsDataStats);
 

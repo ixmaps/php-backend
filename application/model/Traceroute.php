@@ -350,7 +350,10 @@ class Traceroute
 		// loop constraints
 		foreach($data as $constraint)
 		{
-			$dbQuerySummary .= '<br><b>'.$constraint['constraint1'].' : '.$constraint['constraint2'].' : '.$constraint['constraint3'].' : '.$constraint['constraint4'].' : '.$constraint['constraint5'].'</b>';
+			if($conn>0){
+				$dbQuerySummary .= '<br>';
+			}
+			$dbQuerySummary .= '<b>'.$constraint['constraint1'].' : '.$constraint['constraint2'].' : '.$constraint['constraint3'].' : '.$constraint['constraint4'].' : '.$constraint['constraint5'].'</b>';
 
 			$w = '';
 			$wParams = array();
@@ -513,7 +516,10 @@ class Traceroute
 
 		// FIXME: move this to the client. make this count based on the # of TR resulting in the set
 		// It's already done. need to fix UI loading of data
-		$dbQuerySummary .= '<br/>Total traceroutes : <b>'.count($trSetResultLast)."</b><br />";
+		
+		//$dbQuerySummary .= '<br/>Total traceroutes : <b>'.count($trSetResultLast)."</b><br />";
+
+		$dbQuerySummary .= "<br/>";
 
 		//echo '<hr/>getTraceRoute: '.memory_get_usage();
 		unset($trSetResult);
@@ -727,15 +733,15 @@ class Traceroute
 		$sql = "SELECT as_users.num, tr_item.traceroute_id, traceroute.id, ip_addr_info.mm_city, ip_addr_info.ip_addr, ip_addr_info.asnum FROM as_users, tr_item, traceroute, ip_addr_info WHERE (tr_item.traceroute_id=traceroute.id) AND (ip_addr_info.ip_addr=tr_item.ip_addr) AND (as_users.num=ip_addr_info.asnum)";
 
 		if ($qlArray[0]['constraint2']=="lastSubmission") {
-			//$dbQueryHtml .= "Displaying <span id='tr-count'>1</span> of 1 results";
-			$dbQuerySummary .= "Displaying <span id='tr-count'>1</span> of 1 results";
+			//$dbQueryHtml .= "Displaying <span id='tr-count-db'>1</span> of 1 results";
+			//$dbQuerySummary .= "Displaying <span id='tr-count-db'>1</span> of 1 results";
 			//will get you the id of the last traceroute submitted
 			$sql = "select id from traceroute order by sub_time desc limit 1";
 			//echo '<hr/>'.$qlArray[0]['constraint2'].'<br/>SQL: '.$sql;
 			return Traceroute::getTrSet($sql, "");
 		} else if ($qlArray[0]['constraint2']=="recentRoutes") {
-			//$dbQueryHtml .= "Displaying <span id='tr-count'>1</span> of 50 results";
-			$dbQuerySummary .= "Displaying <span id='tr-count'>1</span> of 50 results";
+			//$dbQueryHtml .= "Displaying <span id='tr-count-db'>1</span> of 50 results";
+			//$dbQuerySummary .= "Displaying <span id='tr-count-db'>1</span> of 50 results";
 			$sql = 'select id from traceroute order by id desc limit 50';
 
 			//echo '<hr/>'.$qlArray[0]['constraint2'].'<br/>SQL: '.$sql;
@@ -752,9 +758,10 @@ class Traceroute
 
 	public static function getIxMapsData($data)
 	{
-		global $dbconn, $trNumLimit, $dbQueryHtml, $dbQuerySummary;
+		global $dbconn, $trNumLimit, $dbQueryHtml, $dbQuerySummary, $totTrFound;
 		$result = array();
 		$totTrs = count($data);
+		$totTrFound = $totTrs;
 		//echo '<br/>Tot: '.$totTrs;
 
 		// set index increase if total traceroutes is > $trNumLimit
@@ -793,15 +800,15 @@ class Traceroute
 		}
 
 		if($totTrs>$trNumLimit){
-			$dbQueryHtml .= "<span title='The search produced more routes than can be easily mapped. Every nth route is presented to keep the number mapped to no more than 100.'>Displaying <span id='tr-count'>1</span> of ".$c." sampled results (".$totTrs." total)</span>";
-			$dbQuerySummary .= "<span title='The search produced more routes than can be easily mapped. Every nth route is presented to keep the number mapped to no more than 100.'>Displaying <span id='tr-count'>1</span> of ".$c." sampled results (".$totTrs." total)</span>";
+			//$dbQueryHtml .= "<span title='The search produced more routes than can be easily mapped. Every nth route is presented to keep the number mapped to no more than 100.'>Displaying <span id='tr-count-db'>1</span> of ".$c." sampled results (".$totTrs." total)</span>";
+			//$dbQuerySummary .= "<span title='The search produced more routes than can be easily mapped. Every nth route is presented to keep the number mapped to no more than 100.'>Displaying <span id='tr-count-db'>1</span> of ".$c." sampled results (".$totTrs." total)</span>";
 		} else {
-			$dbQueryHtml .= "Displaying <span id='tr-count'>1</span> of ".$c." results";
+			//$dbQueryHtml .= "Displaying <span id='tr-count-db'>1</span> of ".$c." results";
 		}
 
+
 		if($totTrs>$trNumLimit){
-			$dbQuerySummary .= '<p style="color:red;">
-			Showing a sample of <b>'.$c.' traceroutes</b>.</p>';
+			//$dbQuerySummary .= '<p style="color:red;">Showing a sample of <b>'.$c.' traceroutes</b>.</p>';
 		}
 		// free some memory
 		unset($data);
@@ -882,10 +889,10 @@ class Traceroute
 		}
 
 		if($totTrs>$trNumLimit){
-			$dbQueryHtml .= "<span title='The search produced more routes than can be easily mapped. Every nth route is presented to keep the number mapped to no more than 100.'>Displaying <span id='tr-count'>1</span> of ".$c." sampled results (".$totTrs." total)</span>";
-			$dbQuerySummary .= "<span title='The search produced more routes than can be easily mapped. Every nth route is presented to keep the number mapped to no more than 100.'>Displaying <span id='tr-count'>1</span> of ".$c." sampled results (".$totTrs." total)</span>";
+			$dbQueryHtml .= "<span title='The search produced more routes than can be easily mapped. Every nth route is presented to keep the number mapped to no more than 100.'>Displaying <span id='tr-count-db'>1</span> of ".$c." sampled results (".$totTrs." total)</span>";
+			$dbQuerySummary .= "<span title='The search produced more routes than can be easily mapped. Every nth route is presented to keep the number mapped to no more than 100.'>Displaying <span id='tr-count-db'>1</span> of ".$c." sampled results (".$totTrs." total)</span>";
 		} else {
-			$dbQueryHtml .= "Displaying <span id='tr-count'>1</span> of ".$c." results";
+			$dbQueryHtml .= "Displaying <span id='tr-count-db'>1</span> of ".$c." results";
 		}
 
 		if($totTrs>$trNumLimit){

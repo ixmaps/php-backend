@@ -1,4 +1,5 @@
 <?php
+header("Access-Control-Allow-Origin: *");
 include('../config.php');
 include('../model/IXmapsMaxMind.php');
 
