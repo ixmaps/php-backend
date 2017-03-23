@@ -4,7 +4,7 @@ class MapSearch
 {
 
 	/**
-		Quick search for Map Page
+		TODO: separete this function
 	*/
 	public static function countTrsIntersect($data)
 	{
@@ -18,13 +18,11 @@ class MapSearch
 	public static function countTrs($data)
 	{
 		global $dbconn;
-
-		//$sql = "SELECT as_users.num, tr_item.traceroute_id, traceroute.id, ip_addr_info.mm_city, ip_addr_info.ip_addr, ip_addr_info.asnum FROM as_users, tr_item, traceroute, ip_addr_info WHERE (tr_item.traceroute_id=traceroute.id) AND (ip_addr_info.ip_addr=tr_item.ip_addr) AND (as_users.num=ip_addr_info.asnum)";
-
-		//SELECT COUNT(*) FROM (SELECT DISTINCT column_name FROM table_name) AS temp;
 		
+		// independent constraint
 		$sql = "SELECT COUNT(DISTINCT traceroute.id) FROM as_users, tr_item, traceroute, ip_addr_info WHERE (tr_item.traceroute_id=traceroute.id) AND (ip_addr_info.ip_addr=tr_item.ip_addr) AND (as_users.num=ip_addr_info.asnum)";
 
+		// intersect
 		$sql1 = "SELECT DISTINCT traceroute.id FROM as_users, tr_item, traceroute, ip_addr_info WHERE (tr_item.traceroute_id=traceroute.id) AND (ip_addr_info.ip_addr=tr_item.ip_addr) AND (as_users.num=ip_addr_info.asnum)";
 
 		//$sqlLimit = " LIMIT 100";
@@ -97,19 +95,6 @@ class MapSearch
 		} else {
 			$totIntersect = 0;
 		}
-
-
-		//echo "\n".$sql;
-		//print_r($sqlParamsArray);
-
-		/*$result = pg_query_params($dbconn, $sql, array($wParam)) or die('Query failed: incorrect parameters');
-		$trArr = pg_fetch_all($result);
-		print_r($trArr);
-		pg_free_result($result);*/
-		
-		/*print_r($sqlIntersectArray);
-		print_r($sqlParamsArray);
-		print_r($filterResults);*/
 
 		return array(
 			"results"=>$filterResults,
