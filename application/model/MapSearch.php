@@ -49,11 +49,6 @@ class MapSearch
 
 			$params = Traceroute::buildWhere($constraint);
 
-			//print_r($params);
-
-
-			//$params = Traceroute::buildWhere($constraint);
-
 			$sqlRun = $sql.$params[0];
 			$sqlParamsArray[] = $params[1];
 			$sqlIntersectArray[]= $sql1 . $params1[0];
@@ -65,9 +60,10 @@ class MapSearch
 			$trArr = pg_fetch_all($result);
 			//print_r($trArr);
 
-			$filterResults['filter-results-'.$paramsCounter] = $trArr[0]['count'];
-
-			//$filterResults['filter-results-'.$paramsCounter] = count($trArr);			
+			$filterResults[''.$paramsCounter] = array(
+				"total"=>$trArr[0]['count'],
+				"constraint"=>$constraint
+				);
 
 		} // end for each
 
@@ -116,8 +112,8 @@ class MapSearch
 		print_r($filterResults);*/
 
 		return array(
-			"filter-results"=>$filterResults,
-			"total-routes"=>$totIntersect,
+			"results"=>$filterResults,
+			"total"=>$totIntersect,
 		);
 	}
 }
