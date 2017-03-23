@@ -18,14 +18,20 @@ $geoIp = $mm->getGeoIp($myIp);
 $mm->closeDatFiles();
 
 $myCountry = "";
+$myCountryName = "";
 $myCity = "";
 $myAsn = "";
 $myIsp = "";
 $myLat = "";
 $myLong = "";
 
+print_r($geoIp);
+
 if(isset($geoIp['geoip']['country_code'])){
     $myCountry = $geoIp['geoip']['country_code'];
+}
+if(isset($geoIp['geoip']['country_name'])){
+    $myCountryName = $geoIp['geoip']['country_name'];
 }
 if(isset($geoIp['geoip']['city'])){
     $myCity = $geoIp['geoip']['city'];
@@ -51,6 +57,7 @@ if($myCity==""){
 $result = array(
 	"myIp" => $myIp,
 	"myCountry" => $myCountry,
+	"myCountryName" => $myCountryName,
 	"myCity" => $myCity,
 	"myAsn" => $myAsn,
 	"myIsp" => $myIsp,
