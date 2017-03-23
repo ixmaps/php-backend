@@ -44,7 +44,7 @@ class Traceroute
 	/**
 		Key function !! creates a where SQL based on explore submitted constraints
 	*/
-	public static function buildWhere($c,$doesNotChk=false)
+	public static function buildWhere($c,$doesNotChk=false, $paramNum = 1)
 	{
 
 		global $dbconn, $ixmaps_debug_mode;
@@ -170,10 +170,10 @@ class Traceroute
 			// Using pg_query_params
 			if (($field=='asnum') || ($field=='id') || ($field=='ip_addr'))
 			{
-				$w.=" AND $table.$field $selector_i $1";
+				$w.=" AND $table.$field $selector_i $".$paramNum;
 				//$w.="  $selector $table.$field $operand_i $constraint_value";
 			} else {
-				$w.=" AND $table.$field $selector_s $1";
+				$w.=" AND $table.$field $selector_s $".$paramNum;
 				$constraint_value = "%".$constraint_value."%";
 			}
 			$rParams = array($w, $constraint_value);
@@ -492,6 +492,7 @@ class Traceroute
 
 			// all in between
 			} else if ($i>0){
+				// OR cases
 				if($data[$i-1]['constraint5']=='OR')
 				{
 					$trSetResultTemp = array_merge($trSetResult,$trSets[$i]);
@@ -501,6 +502,7 @@ class Traceroute
 					//echo '<br/>ToT trSetResultTemp: '.count($trSetResultTemp);
 					$trSetResult =  array_merge($trSetResult, $trSetResultTemp);
 
+				// AND cases
 				} else {
 					$trSetResultTemp = array_intersect($trSetResult,$trSets[$i]);
 				}
