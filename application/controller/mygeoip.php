@@ -25,7 +25,7 @@ $myIsp = "";
 $myLat = "";
 $myLong = "";
 
-print_r($geoIp);
+//print_r($geoIp);
 
 if(isset($geoIp['geoip']['country_code'])){
     $myCountry = $geoIp['geoip']['country_code'];
