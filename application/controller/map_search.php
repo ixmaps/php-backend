@@ -6,6 +6,8 @@ include('../config.php');
 include('../model/MapSearch.php');
 include('../model/Traceroute.php');
 
+$debugTrSearch = true;
+
 //print_r($_POST);
 
 $testArray = array(
@@ -14,25 +16,25 @@ $testArray = array(
             "constraint1" => "does",
             "constraint2" => "originate",
             "constraint3" => "country",
-            "constraint4" => "CA",
+            "constraint4" => "AR",
             "constraint5" => "and"
         ),
 
     "filter-constraint2" => array
         (
             "constraint1" => "does",
-            "constraint2" => "goVia",
-            "constraint3" => "country",
-            "constraint4" => "CO",
+            "constraint2" => "originate",
+            "constraint3" => "city",
+            "constraint4" => "Buenos Aires",
             "constraint5" => "and"
         ),
 
     "filter-constraint3" => array
         (
             "constraint1" => "does",
-            "constraint2" => "contain",
-            "constraint3" => "destHostName",
-            "constraint4" => "javeriana.edu.co",
+            "constraint2" => "originate",
+            "constraint3" => "asnum",
+            "constraint4" => "7303",
             "constraint5" => "and"
         )
 	);
@@ -42,7 +44,6 @@ $testArray = array(
 $testArray = $_POST;
 
 $r = MapSearch::countTrs($testArray);
-$rI = MapSearch::countTrsIntersect($testArray);
 
 echo json_encode($r);
 
