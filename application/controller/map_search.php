@@ -6,7 +6,7 @@ include('../config.php');
 include('../model/MapSearch.php');
 include('../model/Traceroute.php');
 
-$debugTrSearch = true;
+$debugTrSearch = false;
 
 //print_r($_POST);
 
