@@ -738,7 +738,7 @@ class Traceroute
 			//$dbQueryHtml .= "Displaying <span id='tr-count-db'>1</span> of 1 results";
 			//$dbQuerySummary .= "Displaying <span id='tr-count-db'>1</span> of 1 results";
 			//will get you the id of the last traceroute submitted
-			$sql = "select id from traceroute order by sub_time desc limit 1";
+			$sql = "select id from traceroute order by sub_time desc limit 20";
 			//echo '<hr/>'.$qlArray[0]['constraint2'].'<br/>SQL: '.$sql;
 			return Traceroute::getTrSet($sql, "");
 		} else if ($qlArray[0]['constraint2']=="recentRoutes") {
