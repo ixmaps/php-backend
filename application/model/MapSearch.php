@@ -117,7 +117,12 @@ class MapSearch
 
 			} else {
 				// only one constraint
-				$totIntersect = $trArr[0]['count'];
+				//$totIntersect = $trArr[0]['count']; 
+				foreach ($filterResults as $key2 => $res) {
+					if($res['total']!=0){
+						$totIntersect = $res['total'];
+					}
+				}
 			}
 
 
