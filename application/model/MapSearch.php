@@ -108,12 +108,15 @@ class MapSearch
 				//echo "\nSQL intersect: ".$sqlIntersect;
 
 				$result1 = pg_query_params($dbconn, $sqlIntersect, $sqlParamsArray) or die('countTrResults: Query failed: incorrect parameters');
+
 				$trArrIntersect = pg_fetch_all($result1);
 
 				//print_r($trArrIntersect);
-
-				$totIntersect = count($trArrIntersect);
-
+				if(isset($trArrIntersect[0]['id'])){
+					$totIntersect = count($trArrIntersect);	
+				} else {
+					$totIntersect = 0;
+				}
 
 			} else {
 				// only one constraint
