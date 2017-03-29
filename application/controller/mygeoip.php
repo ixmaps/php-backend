@@ -6,9 +6,10 @@ include('../model/IXmapsMaxMind.php');
 $myIp = $_SERVER['REMOTE_ADDR'];
 //$myIp = "186.108.108.134"; // Buenos Aires: TEST
 //$myIp = "200.3.149.136"; // Bogota
-//$myIp = "128.100.72.189"; // Toronto: TEST
+$myIp = "128.100.72.189"; // Toronto: TEST
 //$myIp = "66.163.72.177"; // Toronto
 //$myIp = "4.15.136.14"; // Wichita
+//$myIp = "183.89.98.35"; // Wichita
 
 $mm = new IXmapsMaxMind();
 $geoIp = $mm->getGeoIp($myIp);
