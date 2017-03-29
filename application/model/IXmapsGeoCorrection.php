@@ -26,7 +26,7 @@ class IXmapsGeoCorrection
 		
 		// select geo-corrected ips
 		} else if($type==1){
-			$sql1 = "SELECT ip_addr, hostname, gl_override, p_status, asnum, lat, long, mm_country, mm_region, mm_city FROM ip_addr_info WHERE p_status='G' LIMIT $limit;";
+			$sql1 = "SELECT ip_addr, asnum, hostname, lat, long, mm_country, mm_region, mm_city FROM ip_addr_info WHERE p_status='G' LIMIT $limit;";
 		
 		// select an ip 
 		} else if($type==2){
@@ -39,103 +39,12 @@ class IXmapsGeoCorrection
 		// select ips by asn
 		} else if($type==4){
 			$sql1 = "SELECT ip_addr, gl_override, p_status, asnum, hostname, lat, long, mm_country, mm_region, mm_city FROM ip_addr_info WHERE mm_city = '' and p_status<>'F' and p_status<>'G' and p_status<>'U' and lat <> 0 and gl_override is null and asn=$asn order by ip_addr OFFSET $offset LIMIT $limit;";
-
-		// select ip p_status = 'R' (re-view)
-		} else if($type==5){
-			$sql1 = "SELECT ip_addr, gl_override, p_status, asnum, hostname, lat, long, mm_country, mm_region, mm_city FROM ip_addr_info WHERE p_status = 'R' order by ip_addr OFFSET $offset LIMIT $limit;";
-		
-		// select from ip_addr_info sample of ips not geocorrected
-		} else if($type==6){
-			$sql1 = "SELECT ip_addr, gl_override, p_status, asnum, hostname, lat, long, mm_country, mm_region, mm_city FROM ip_addr_info
-			WHERE gl_override is null 
-				and mm_country = 'US'
-				and p_status <> 'U'
-				and p_status <> 'T'
-				and p_status <> 'F'
-				and p_status <> 'G'
-
-				and lat <> 0 
-				and lat is not null 
-				order by ip_addr OFFSET $offset LIMIT $limit;";
-
-		// select by US and CA major carriers
-		} else if($type==7){
-			$sql1 = "SELECT ip_addr_info.ip_addr, ip_addr_info.gl_override, ip_addr_info.p_status, ip_addr_info.asnum, ip_addr_info.hostname, ip_addr_info.lat, ip_addr_info.long, ip_addr_info.mm_country, ip_addr_info.mm_region, ip_addr_info.mm_city, as_users.asn, as_users.name, as_users.num FROM ip_addr_info, as_users
-			WHERE 
-				ip_addr_info.asnum = as_users.num
-				and as_users.
-				and gl_override is null 
-				and p_status <> 'U'
-				and p_status <> 'T'
-				and p_status <> 'F'
-				and p_status <> 'G'
-				and lat <> 0 
-				and lat is not null 
-				order by ip_addr OFFSET $offset LIMIT $limit;";
-
 		}
 
 		$result1 = pg_query($dbconn, $sql1);
 		$ipAddrInfo = pg_fetch_all($result1);
 		//print_r($ipAddrInfo);
 		return $ipAddrInfo;
-	}
-
-
-
-	/**
-	* Update as_users 
-		This function looks for recently added ASN and updates 
-		as_users table if they do not yet exist.
-		Uses MaxMind ip to asn 
-	*/
-	public static function asUsersCheckExist($asn)
-	{
-		global $dbconn;
-		$sql = "SELECT count(num) FROM as_users WHERE num = $asn";
-		$result = pg_query($dbconn, $sql);
-		$ipAddrInfo = pg_fetch_all($result);
-		return $ipAddrInfo[0]['count'];
-	}
-
-	public static function asUsersInsert($num, $name)
-	{
-		global $dbconn;
-		$sql = "INSERT INTO as_users (num, name) VALUES ();";
-		$sqlParams = array($num, $name);
-		$result = pg_query_params($dbconn, $sql, $sqlParams) or die('asUsersInsert failed'.pg_last_error());
-
-	}
-
-
-	/**
-	* Update as_users 
-		This function looks for recently added AS Numbers and insert into  
-		as_users table if they do not yet exist.
-		Uses MaxMind ip to asn 
-	*/
-	public static function asUsersGetNew()
-	{
-		global $dbconn;
-		$sql = "SELECT asnum, ip_addr, mm_country FROM ip_addr_info WHERE  asnum NOT IN (SELECT DISTINCT num FROM as_users) order by asnum LIMIT 10;";
-		$result = pg_query($dbconn, $sql);
-		$ipAddrInfo = pg_fetch_all($result);
-		
-		$mm = new IXmapsMaxMind();
-		
-		$asnActive = "";
-		foreach ($ipAddrInfo as $key => $ipData) {
-			
-			if($asnActive!=$ipData['asnum']){
-				$geoIp = $mm->getGeoIp($ipData['ip_addr']);	
-				print_r($geoIp);
-				IXmapsGeoCorrection::asUserInsert($ipData['asnum'], $ipData['isp']);
-			}
-			$asnActive = $ipData['asnum'];
-		}
-		$mm->closeDatFiles();
-		//print_r($ipAddrInfo);
-		//return $ipAddrInfo;
 	}
 
 
@@ -206,38 +115,6 @@ class IXmapsGeoCorrection
 	}
 
 	/**
-	 * Get Closest Geo Data using mm world cities DB including  city population. 
-	 */
-	public static function getGeoDataRadius($currentIpData, $mmDataBestMatch, $limit=1, $radius=50000) 
-	{
-		global $dbconn;
-
-		// Get closest geodata for lat/long
-		$sql = "SELECT country, city, accent_city, region, population, latitude, longitude FROM world_cities WHERE population is not null and ST_DWithin(location, ST_SetSRID(ST_MakePoint(".$currentIpData['long'].",".$currentIpData['lat']."), 4326), $radius) and country = '".$mmDataBestMatch['country']."' ORDER BY population DESC limit $limit;";
-		$result = pg_query($dbconn, $sql) or die('getGeoDataRadius failed'.pg_last_error());
-		$geodata = pg_fetch_all($result);
-		return $geodata;
-	}
-
-	/**
-	 * Get Closest Geo Data using mm geonames DB Based on city population and radius
-	 */
-	public static function getGeoDataByPopulationRadius(
-		$geoData, $limit=1, $radius=50000) 
-	{
-		global $dbconn;
-
-		// Get closest geodata for lat/long
-		//$sql = "SELECT country, name, asciiname, admin1, population, latitude, longitude FROM geoname WHERE population is not null and ST_DWithin(the_geom, ST_SetSRID(ST_MakePoint(".$geoData['longitude'].",".$geoData['latitude']."), 4326), $radius) and country = '".$geoData['country']."' ORDER BY population DESC limit $limit;";
-		$sql = "SELECT country, name, asciiname, admin1, population, latitude, longitude FROM geoname WHERE population is not null and ST_DWithin(the_geom, ST_SetSRID(ST_MakePoint(".$geoData['longitude'].",".$geoData['latitude']."), 4326), $radius) ORDER BY population DESC limit $limit;";
-
-		$result = pg_query($dbconn, $sql) or die('getGeoDataByPopulationRadius failed'.pg_last_error());
-		$geodata = pg_fetch_all($result);
-		return $geodata;
-	}
-}
-
-	/**
 	 * Get Closest Geo Data for a given pair of coordinates
 	 */
 	public static function getClosestGeoData($ipData, $limit=5) 
@@ -246,7 +123,7 @@ class IXmapsGeoCorrection
 
 		// Get closest geodata for lat/long
 		$sql = "SELECT country, region, city, latitude, longitude FROM geolite_city_location ORDER BY location <-> st_setsrid(st_makepoint(".$ipData['long'].",".$ipData['lat']."),4326) LIMIT $limit;";
-		$result = pg_query($dbconn, $sql) or die('getClosestGeoData failed'.pg_last_error());
+		$result = pg_query($dbconn, $sql) or die('analyzeClosestGeoData failed'.pg_last_error());
 		$geodata = pg_fetch_all($result);
 		return $geodata;
 	}
@@ -295,7 +172,7 @@ class IXmapsGeoCorrection
 		$bestMatch = array(
 			"country"=>key($bestMatchCountry),
 			"region"=>key($bestMatchRegion),
-			"city"=>key($bestMatchCity),
+			"ciity"=>key($bestMatchCity),
 			);
 		return $bestMatch;
 	}
