@@ -1,5 +1,6 @@
 <?php
-include('../config.php');
+//include('../config.php');
+include('/var/www/php-backend/application/config.php');
 
 //createLastHopsTb();
 
