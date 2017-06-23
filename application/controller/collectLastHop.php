@@ -33,7 +33,7 @@ function collectLastHop($trIdLast)
 	//$sql="SELECT traceroute.id FROM traceroute WHERE traceroute.id between ".$trId1. " AND "." $trId2 order by traceroute.id";
 
 	// production approach
-	$sql="SELECT traceroute.id FROM traceroute WHERE traceroute.id > ".$trIdLast." order by traceroute.id LIMIT 100";
+	$sql="SELECT traceroute.id FROM traceroute WHERE traceroute.id > ".$trIdLast." order by traceroute.id LIMIT 200";
 
 	//echo $sql;
 	$result = pg_query($dbconn, $sql) or die('Query failed: ' . pg_last_error());
