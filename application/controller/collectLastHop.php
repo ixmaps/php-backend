@@ -2,6 +2,7 @@
 //include('../config.php');
 include('/var/www/php-backend/application/config.php');
 
+
 //createLastHopsTb();
 
 //echo getLastTrIdGen();
@@ -19,7 +20,9 @@ collectLastHop($lastTrId);
 function collectLastHop($trIdLast)
 {
 	global $dbconn, $dbQueryHtml, $savePath;
-
+	
+	$start = microtime(true);
+	
 	// initialize writing file
 	$sqlCo='';
 		//$sqlFile = $trId1."-".$trId2.".sql";
@@ -97,11 +100,14 @@ function collectLastHop($trIdLast)
 
 	//echo "<hr/>From : ".$trId1." to: ".$trId2."<br/><b>". $conn. "</b> : TRs never reached its destination.";
 
+	$time_elapsed_secs = microtime(true) - $start;
+
 	if($connGen==0){
 		echo '<hr/>Nothing to do for now. ';
 	} else {
 
-		echo "<hr/>Starting at : ".$trIdLast.". <br/><b>". $connGen. "</b> TRs last hop generated.";
+		echo "\nStarting at : ".$trIdLast.". \n". $connGen. " TRs last hop generated. 
+		\nDuration: ".$time_elapsed_secs;
 	}
 
 	pg_free_result($result);
