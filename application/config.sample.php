@@ -11,12 +11,12 @@ $dbport		= '5432';
 
 try {
 	// Connecting, selecting database
-	$dbconn = pg_connect("host=localhost dbname=$dbname user=$dbuser password=$dbpassword")
+    $dbconn = pg_connect("host=localhost dbname=$dbname user=$dbuser password=$dbpassword")
 	    or die('Could not connect to DB: ' . pg_last_error());
 }
 catch(PDOException $e)
 {
-      echo $e->getMessage();
+    echo $e->getMessage();
 }
 
 #### URL and app directory
@@ -36,7 +36,7 @@ $ixmaps_hands_off_config = array();
 
 //////////////////////////////////////////////////////////
 $coordExclude = array(
-	'60,-95',
-	'38,-97'
-	);
+    '60,-95',
+    '38,-97'
+);
 ?>
