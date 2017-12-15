@@ -38,7 +38,7 @@ geoip_close($giIx);
     <meta charset="utf-8">
     <title>Locate IP</title>
     <!-- <link href="google-maps.css" rel="stylesheet"> -->
-    
+
     <STYLE type="text/css">
 		#map_canvas {
 		/*  position: absolute;
@@ -48,12 +48,12 @@ geoip_close($giIx);
 		  width: 680px;
 		}
  	</STYLE>
-    
-    <script src="https://maps.googleapis.com/maps/api/js?sensor=false"></script>
+
+    <script src="http://maps.googleapis.com/maps/api/js?sensor=false"></script>
     <script language="JavaScript">
 
       function initialize() {
-      	<?php 
+      	<?php
       	if($ip!='')
       	{
       	?>
@@ -64,16 +64,14 @@ geoip_close($giIx);
           mapTypeId: google.maps.MapTypeId.ROADMAP
         };
         var map = new google.maps.Map(document.getElementById('map_canvas'), mapOptions);
-		var ip_IXmaps = new google.maps.LatLng(<?php echo $lat.','.$long;?>)
-		var marker_IXmaps = new google.maps.Marker({
-	      position: ip_IXmaps,
-	      map: map,
-	      title:'<?php echo $ip;?>'
-			});
-		//marker_IXmaps.setIcon('http://localhost/mywebapps/ixmaps.ca/dev.ixmaps.ca/images/hop1.png');
-
-	<?php } ?>
-
+		    var ip_IXmaps = new google.maps.LatLng(<?php echo $lat.','.$long;?>);
+		    var marker_IXmaps = new google.maps.Marker({
+	        position: ip_IXmaps,
+	        map: map,
+          title:'<?php echo $ip;?>'
+        });
+		  //marker_IXmaps.setIcon('http://localhost/mywebapps/ixmaps.ca/dev.ixmaps.ca/images/hop1.png');
+	    <?php } ?>
       }
     </script>
   </head>
@@ -83,7 +81,7 @@ geoip_close($giIx);
 		IP: <input name="ip" type"text" value="<?php echo $ip;?>"/> <input type="submit" value="Geocode"/>
 		</form>
 <?php
-if($ip!='') 
+if($ip!='')
 {
 	echo '<hr/>'.$ip.' ('.$lat.' , '.$long.')';
 	echo '<hr/><b>Using GeoIP.dat</b><br/>';
@@ -99,7 +97,7 @@ if($ip!='')
 	$giasn = geoip_open($MM_dat_dir."/GeoIPASNum.dat", GEOIP_STANDARD);
 	$asn = geoip_name_by_addr($giasn, $ip);
 	echo "<br/>ASN: ".$asn;
-	geoip_close($giasn);	
+	geoip_close($giasn);
 
 	echo '<hr/><b>Using GeoLiteCityv6.dat</b><br/>';
 	$gi = geoip_open($MM_dat_dir."/GeoLiteCityv6.dat",GEOIP_STANDARD);

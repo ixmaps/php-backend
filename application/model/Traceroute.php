@@ -518,7 +518,7 @@ class Traceroute
 
 		// FIXME: move this to the client. make this count based on the # of TR resulting in the set
 		// It's already done. need to fix UI loading of data
-		
+
 		//$dbQuerySummary .= '<br/>Total traceroutes : <b>'.count($trSetResultLast)."</b><br />";
 
 		$dbQuerySummary .= "<br/>";
@@ -1048,21 +1048,21 @@ class Traceroute
 	{
 
 		global $coordExclude, $webUrl, $savePath, $as_num_color;
-		
+
 		$trDataToJson = array();
 
-		// loop1: TRids 
+		// loop 1: TRids
 		$totTrs = 0;
 		foreach($data as $trId => $hops)
 		{
 			$totTrs++;
-			// Loop 2: hops in a TRid
+			// loop 2: hops in a TRid
 			$totHopsAll = 0;
 			for($r=0;$r<count($hops);$r++)
 			{
 				$totHopsAll++;
 
-				// new approach: use for loopinging in a way that previous hops' data can be accessed easily
+				// new approach: use for looping in a way that previous hops' data can be accessed easily
 
 				// minimal data for map generation
 				$ip = $hops[$r][0];
@@ -1947,7 +1947,7 @@ class Traceroute
             </tr>
 */
 		$c=0;
-		
+
 		foreach($data as $trId => $trIdData)
 		{
 			$c++;
@@ -1974,7 +1974,7 @@ class Traceroute
 			} else {
 				$originStr = $trIdData[0][11];
 			}
-			
+
 			$flagIcon = "";
 			if($trIdData[0][11]!=""){
 				$flagIcon = '<i class="'.strtolower($trIdData[0][11]).' flag"></i> ';

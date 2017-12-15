@@ -11,11 +11,18 @@ $myIp = $_SERVER['REMOTE_ADDR'];
 //$myIp = "4.15.136.14"; // Wichita
 //$myIp = "183.89.98.35"; // Wichita
 
+// yikes. If myIp is null the returned JSON is malformed. Adding some error handling, but defaulting to random IP in Toronto still isn't great - open to suggestions
+if(ip2long($myIp) === false) {
+  $myIp = "66.163.72.177";
+}
+
+
 $mm = new IXmapsMaxMind();
 $geoIp = $mm->getGeoIp($myIp);
 //print_r($geoIp);
 //$geoIpByRadidu = $mm->getGeoDataByPopulationRadius($geoIp);
 //print_r($geoIpByRadidu);
+
 
 $mm->closeDatFiles();
 
@@ -65,7 +72,7 @@ $result = array(
 	"myIsp" => $myIsp,
 	"myLat" => $myLat,
 	"myLong" => $myLong
-	);
+);
 
 echo json_encode($result);
 ?>
