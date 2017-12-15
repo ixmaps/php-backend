@@ -6,25 +6,25 @@ class IXmapsMaxMind
 	private $giasn;
 	private $gi1;
 	/**
-	 * 
+	 *
 	 */
 	function __construct(){
 		global $MM_dat_dir, $MM_geoip_dir;
 		$this->MM_dat_dir = $MM_dat_dir;
 		$this->MM_geoip_dir = $MM_geoip_dir;
-		$this->loadGeoIpIncFiles();		
+		$this->loadGeoIpIncFiles();
 		$this->giasn = geoip_open($this->MM_dat_dir."/GeoIPASNum.dat", GEOIP_STANDARD);
 		$this->gi1 = geoip_open($this->MM_dat_dir."/GeoLiteCity.dat",GEOIP_STANDARD);
 	}
 
 	public function loadGeoIpIncFiles() {
-		// load MM dat files		
+		// load MM dat files
 		include($this->MM_geoip_dir."/geoip.inc");
 		include($this->MM_geoip_dir."/geoipcity.inc");
-		include($this->MM_geoip_dir."/geoipregionvars.php");		
+		include($this->MM_geoip_dir."/geoipregionvars.php");
 	}
-	
-	/** 
+
+	/**
 	 * Get Geo IP and ASN data from MaxMind local files
 	 * @param string $ip
 	 */
@@ -42,7 +42,7 @@ class IXmapsMaxMind
 			"asn"=>NULL,
 			"isp"=>NULL,
 			"hostname"=>gethostbyaddr($ip)
-		);	
+		);
 		$ipAsn = geoip_name_by_addr($this->giasn, $ip);
 		/*echo "\n geoip_name_by_addr:\n";
 		var_dump($ipAsn);*/
@@ -50,21 +50,21 @@ class IXmapsMaxMind
 			$asn_isp = $this->extractAsn($ipAsn);
 			$r['asn'] = $asn_isp[0];
 			$r['isp'] = $asn_isp[1];
-		}		
+		}
 		return $r;
 	}
-	
+
 	/**
-	 * Close MM dat files. Use this after all transactions are completed 
-	 */
+	 	Close MM dat files. Use this after all transactions are completed
+	*/
 	public function closeDatFiles(){
 		geoip_close($this->gi1);
 		geoip_close($this->giasn);
 	}
 
 	/**
-	 * Parse asn and isp from MM data string
-	 */
+	  Parse asn and isp from MM data string
+	*/
 	private function extractAsn($asnString) {
 		$asnArray = explode(' ', $asnString);
 		if(isset($asnArray[0])){
@@ -72,9 +72,9 @@ class IXmapsMaxMind
 			$asn = substr($asn, 2);
 			$isp = "";
 
-			for ($i=1; $i < count($asnArray); $i++) { 
+			for ($i=1; $i < count($asnArray); $i++) {
 				$isp .= $asnArray[$i]." ";
-		
+
 			}
 			$isp = trim($isp);
 		} else {
@@ -85,9 +85,9 @@ class IXmapsMaxMind
 	}
 
 	/**
-	 * Get Closest Geo Data using mm world_cities DB Based on city population and radius
-	 */
-	public function getGeoDataByPopulationRadius($currentMmData, $limit=1, $radius=50000) 
+	  Get Closest Geo Data using mm world_cities DB Based on city population and radius
+	*/
+	public function getGeoDataByPopulationRadius($currentMmData, $limit=1, $radius=50000)
 	{
 		global $dbconn;
 

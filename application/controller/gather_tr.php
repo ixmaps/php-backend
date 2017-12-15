@@ -30,7 +30,7 @@ $_POST['cl_version'] = "";
 
 /*
   TODO: add exhaustive check for consistency and completeness of the TR data
-  Requires discussion with tests on the IXmapsClient client
+  Requires discussion with tests on the IXmapsClient
 */
 if(isset($_POST['dest_ip']) && $_POST['dest_ip']!="")
 {
