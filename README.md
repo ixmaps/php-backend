@@ -4,8 +4,6 @@ These scripts are used by the IXmaps backend to:
 - 
 More documentation coming soon...
 
-<img src="https://drive.google.com/open?id=11hiAaan9wgYxCKuCADXTT_EgPuIaj15z">
-
 ## License
 Copyright (C) 2016 IXmaps.
 This code and repository [github.com/ixmaps/php-backend](https://github.com/ixmaps/php-backend) are licensed under a GNU AGPL v3.0 license. This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, version 3 of the License.
