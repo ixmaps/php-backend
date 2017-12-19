@@ -46,6 +46,8 @@ $ptrJsonStructureStr = '{
 }';
 $ptrJsonStructure = json_decode($ptrJsonStructureStr, TRUE);
 
+$hopData = json_decode($_POST["hop_data"], TRUE);
+
 // status starts as 201 (success) and can be modified
 $statusCode = 201;
 // $statusCode of 401 = missing key
@@ -92,18 +94,13 @@ $mm = new IXmapsMaxMind();
 $passNum = 1; // NB: passNum is not pass_num from the data structure, it relates to the index of the hop_data array
 //$trByHop = GatherTr::analyzeIfInconsistentPasses($trData); maybe?
 
-// START HERE: broken
-//There was an error parsing JSON data
-//Unexpected end of JSON input
-//$hopCount = countHops($_POST["hop_data"][$passNum-1]);
-
-
 // construct the header type stuff for GEO-JSON return
 $geoJson = array(
   "request_id" => $_POST["request_id"],
   "ixmaps_id" => 0,
-  "hop_count" => $hopCount
+  "hop_count" => countHops($hopData, $passNum)
 );
+//var_dump($geoJson);
 // calculate the other values to put in the header
 // hop_count value
 
@@ -130,7 +127,7 @@ $mm->closeDatFiles();
 $geoJson['status'] = appendSuccessStatus($statusCode);
 // think about destroying the geoJson object here is status is not 201, just returning status json?
 header('Content-type: application/json');
-//echo json_encode($geoJson);
+echo json_encode($geoJson);
 
 
 
@@ -164,25 +161,8 @@ function appendSuccessStatus($statusCode) {
   return $statusJson;
 }
 
-function countHops($passObj) {
-  $myVar = $passObj->hops;
-  // {
-  //   "pass_num": 1,
-  //   "terminate": false,
-  //   "hops": [
-  //     {
-  //       "hop_num": 1,
-  //       "ip": "70.67.160.1",
-  //       "rtt": "9.65"
-  //     },
-  //     {
-  //       "hop_num": 2,
-  //       "ip": "70.67.160.1",
-  //       "rtt": "9.65"
-  //     }
-  //   ]
-  // }
-  return $myVar;
+function countHops($hopData, $pass) {
+  return count($hopData[$pass-1]["hops"]);
 }
 
 
