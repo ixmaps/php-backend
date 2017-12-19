@@ -85,7 +85,8 @@ if(isset($_POST['dest_ip']) && $_POST['dest_ip']!="")
     "TRid"=>$trId,
     "tr_c_id"=>$tr_c_id,
     "message"=> $trGatherMessage,
-    "tr_flag"=>$trData['tr_flag']);
+    "tr_flag"=>$trData['tr_flag']
+  );
 
   //close MaxMind files
   $mm->closeDatFiles();
