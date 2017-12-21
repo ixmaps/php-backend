@@ -101,7 +101,6 @@ $mm = new IXmapsMaxMind();
 // $trByHop = GatherTr::analyzeIfInconsistentPasses($trData); maybe? And others
 $chosenPass = $hopData[0];
 $hops = $chosenPass["hops"];
-//var_dump($hops); die;
 
 // construct the header type stuff for GEO-JSON return
 $geoJson = array(
@@ -109,7 +108,7 @@ $geoJson = array(
   "ixmaps_id" => 0,
   "hop_count" => count($hops),
   "terminate" => $chosenPass["terminate"],
-  "boomerang" => checkIfBoomerang($hops)
+  "boomerang" => checkIfBoomerang($hops, $mm)
 );
 
 // add the lat/long data to each hop of GEO-JSON
@@ -124,7 +123,7 @@ foreach ($hops as $hop) {
   $attributeObj = array(
     "asnum" => $ipData["asn"],
     "asname" => $ipData["isp"],
-    "country" => $ipData['geoip']['country_code'],
+    "country" => $ipData["geoip"]["country_code"],
     "nsa" => "TODO",
     "georeliability" => "TBD"
   );
@@ -194,9 +193,33 @@ function appendSuccessStatus($statusCode) {
   return $statusJson;
 }
 
-// MOST LIKELY MODEL: ? (something general) ?
-function checkIfBoomerang($hops) {
-  return true;
+// MOST LIKELY MODEL: ? (something general) ? Probably want to remove the mm param at that point
+function checkIfBoomerang($hops, $mm) {
+  $originateCA = false;
+  $viaUS = false;
+  $terminateCA = false;
+
+  if ($mm->getGeoIp($hops[0]["ip"])["geoip"]["country_code"] == 'CA') {
+    $originateCA = true;
+  }
+
+  foreach ($hops as $key => $hop) {
+    $hopCountry = $mm->getGeoIp($hop["ip"])["geoip"]["country_code"];
+
+    if ($hopCountry == 'US') {
+      $viaUs = true;
+    }
+
+    if ($key == sizeof($hops) && $hopCountry == 'CA') {
+      $terminateCA = true;
+    }
+  }
+
+  if ($originateCA == true && $viaUS == true && $terminateCA == true) {
+    return true;
+  } else {
+    return false;
+  }
 }
 
 ?>
