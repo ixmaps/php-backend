@@ -889,7 +889,7 @@ class GatherTr
           return array(
             "tr_by_hop"=>$TrByHop,
             "tr_flag"=>3 // different #  of hops in at least two passes
-            );
+          );
 
         } else {
           $trByHopCase1 = GatherTr::formatTrData($data);
@@ -897,8 +897,8 @@ class GatherTr
           return array(
             "tr_by_hop"=>$trByHopCase1,
             "tr_flag"=>2 // same # of hops in all passes
-            );
-        }// end if !hasEqualNumOfHops
+          );
+        } // end if !hasEqualNumOfHops
       } // end if json contribution
     } // end loop contributions
   }

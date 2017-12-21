@@ -44,8 +44,10 @@ $ptrJsonStructureStr = '{
     }
   ]
 }';
+// the archetypal json structure for input
 $ptrJsonStructure = json_decode($ptrJsonStructureStr, TRUE);
 
+// received json
 $hopData = json_decode($_POST["hop_data"], TRUE);
 
 // status starts as 201 (success) and can be modified
@@ -53,14 +55,13 @@ $statusCode = 201;
 // $statusCode of 401 = missing key
 // $statusCode of 402 = missing value
 
-/*
- * validate the received JSON (eventually put this as a modal class in model CIRAsomename)
- */
+/***
+ *** validate the received JSON (eventually put this as a modal class in model CIRAsomename)
+ ***/
 
 // 1. confirm that all required keys are present in the submission
 $missingKey = '';
 foreach ($ptrJsonStructure as $key => $value) {
-  //echo "{$key} => {$value} \n";
   if (is_null($_POST[$key])) {
     $missingKey = $key;
     $statusCode = 401;
@@ -74,56 +75,83 @@ foreach ($_POST as $key => $value) {
     $statusCode = 402;
   }
 }
+// TODO - we want to move this out to validateInputPTR($ptrJsonStructure)
+// but if so:
+// - is there a hierarchy of error codes? if no, it has to be an obj / array
+// - remember that this needs to also accom the 'message' value
+// - perhaps this wants to be combined with the appendSuccessStatus function
 
 
-/*
- * send the json to ingest_tr_cira (phase 2)
- */
+
+/***
+ *** send the json to ingest_tr_cira (phase 2)
+ ***/
 
 
 
-/*
- * construct the basic GEO-JSON return
- * again, this will all be moved into a model at some point
- */
+/***
+ *** construct the basic GEO-JSON return
+ ***/
 
 // create the mm object
 $mm = new IXmapsMaxMind();
 
-// figure out which pass we want to use, *now just using pass 1*
-$passNum = 1; // NB: passNum is not pass_num from the data structure, it relates to the index of the hop_data array
-//$trByHop = GatherTr::analyzeIfInconsistentPasses($trData); maybe?
+// figure out which pass we want to use, *now just using first pass*.
+// we cannot necessarily assume the hop_data array is ordered (eg pass1 != hopdata[0])
+// $trByHop = GatherTr::analyzeIfInconsistentPasses($trData); maybe? And others
+$chosenPass = $hopData[0];
+$hops = $chosenPass["hops"];
+//var_dump($hops); die;
 
 // construct the header type stuff for GEO-JSON return
 $geoJson = array(
   "request_id" => $_POST["request_id"],
   "ixmaps_id" => 0,
-  "hop_count" => countHops($hopData, $passNum)
+  "hop_count" => count($hops),
+  "terminate" => $chosenPass["terminate"],
+  "boomerang" => checkIfBoomerang($hops)
 );
-//var_dump($geoJson);
-// calculate the other values to put in the header
-// hop_count value
 
-// terminate value
-
-// boomerang value
-
-// add the lat/long data to each hop of GEO-JSON (limit to one attempt/pass)
-
-// 1. see if we have the IP it in the DB
+// add the lat/long data to each hop of GEO-JSON
+// I assume we can do this with GatherTr.php, so just some dummy data here
+// 1. see if we have the IP in the DB
 
 // 2. see if Maxmind has the IP
+$overlayData = array();
+foreach ($hops as $hop) {
+  $ipData = $mm->getGeoIp($hop["ip"]);
 
-// 3 some kind of default
+  $attributeObj = array(
+    "asnum" => $ipData["asn"],
+    "asname" => $ipData["isp"],
+    "country" => $ipData['geoip']['country_code'],
+    "nsa" => "TODO",
+    "georeliability" => "TBD"
+  );
+  $overlayHop = array(
+    "hop" => $hop["hop_num"],
+    "lat" => $ipData["geoip"]["latitude"],
+    "long" => $ipData["geoip"]["longitude"],
+    "attributes" => $attributeObj
+  );
+  array_push($overlayData, $overlayHop);
+}
+$geoJson["overlay_data"] = $overlayData;
+
+// 3 some kind of default if MM doesn't have it
+
+
+
+// add boomerang value to the obj
 
 
 // close MaxMind files
 $mm->closeDatFiles();
 
 
-/*
- * return the GEO-JSON (or error code) to CIRA
- */
+/***
+ *** return the GEO-JSON (or error code) to CIRA
+ ***/
 $geoJson['status'] = appendSuccessStatus($statusCode);
 // think about destroying the geoJson object here is status is not 201, just returning status json?
 header('Content-type: application/json');
@@ -131,14 +159,19 @@ echo json_encode($geoJson);
 
 
 
-
 /*************************************************************************************/
 /*************************************************************************************/
 /*************************************************************************************/
 
 
-/* to be moved to model at some point */
+/* move these all to the model - but which model? Probably at least two, CIRA and some kind of general purpose model */
 
+// MOST LIKELY MODEL: CIRA
+// function validateInputPTR($ptrJsonStructure) {
+
+// }
+
+// MOST LIKELY MODEL: ? (something general) ?
 function appendSuccessStatus($statusCode) {
   $message = '';
 
@@ -161,10 +194,10 @@ function appendSuccessStatus($statusCode) {
   return $statusJson;
 }
 
-function countHops($hopData, $pass) {
-  return count($hopData[$pass-1]["hops"]);
+// MOST LIKELY MODEL: ? (something general) ?
+function checkIfBoomerang($hops) {
+  return true;
 }
-
 
 ?>
 
