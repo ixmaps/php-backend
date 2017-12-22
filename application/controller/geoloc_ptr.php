@@ -6,49 +6,8 @@ include('../model/IXmapsMaxMind.php');
 include('../model/GeolocPtr.php');
 include('../model/TracerouteUtility.php');
 
-$ptrJsonStructureStr = '{
-  "request_id": 123456789,
-  "ipt_timestamp": "2017-12-31 23:59:59",
-  "timeout": 750,
-  "queries": 4,
-  "ipt_client_ip": "321.321.321.321",
-  "ipt_client_postal_code": "Saanichton",
-  "ipt_client_asn": 32123,
-  "submitter": "CIRA IPT",
-  "submitter_ip": "162.219.50.11",
-  "ipt_server_city": "Calgary",
-  "ipt_server_postal_code": "T1U2V3",
-  "maxhops": 24,
-  "os": "Darwin",
-  "protocol": "ICMB",
-  "hop_data": [
-    {
-      "pass_num": 1,
-      "terminate": false,
-      "hops": [
-        {
-          "hop_num": 1,
-          "ip": "70.67.160.1",
-          "rtt": "9.65"
-        },
-        {
-          "hop_num": 2,
-          "ip": "70.67.160.1",
-          "rtt": "9.65"
-        }
-      ]
-    },
-    {
-      "pass_num": 2,
-      "terminate": true,
-      "hops": []
-    }
-  ]
-}';
-// the archetypal json structure for input
-// move this structure to... somewhere. DB? config?
-$ptrJsonStructure = json_decode($ptrJsonStructureStr, TRUE);
-// received json
+
+// do some utility parsing of the received json
 $hopData = json_decode($_POST["hop_data"], TRUE);
 
 /***
@@ -59,12 +18,15 @@ $geoJson = array();
 
 /***
  *** validate the received JSON, if invalid immediately return with error code
- ***/
-// status of each validate function is an array of structure:
-// statusCode: 123,
-// statusMsg: 'abc'
-// success status are 2xx. Only current success status is 201
-$statusObj = GeolocPtr::validateInputPtr($ptrJsonStructure);
+***/
+/**  returned status of each validate function is an array of structure:
+  * {
+  *   statusCode: 123,
+  *   statusMsg: 'abc'
+  * }
+  * success status are 2xx. Only current success status is 201
+  */
+$statusObj = GeolocPtr::validateInputPtr();
 if ($statusObj["code"] != 201) {        // TODO make 2xx
   GeolocPtr::returnGeoJson($geoJson, $statusObj);
 }

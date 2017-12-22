@@ -1,7 +1,6 @@
 <?php
 class GeolocPtr
 {
-
   /** Return the completed GeoJson to the requester
     *
     * @param geoJson to return to requester, $statusObj to append to geoJson
@@ -20,16 +19,19 @@ class GeolocPtr
 
   /** Validate the incoming PTR JSON
     *
-    * @param $ptrJsonStructure for now, perhaps moving the ptrJsonStruc into this file (or elsewhere)
+    * @params none
     *
     * @return statusObj
     *         {
     *           code: 123,
     *           message: 'abc'
     *         }
+    *
     */
-  public static function validateInputPtr($ptrJsonStructure)
+  public static function validateInputPtr()
   {
+    $ptrJsonStructure = json_decode($ptrJsonStructureString, TRUE);
+
     $code = 201;
     $kind = '';
 
@@ -58,7 +60,6 @@ class GeolocPtr
   }
 
 
-
   /** Generate any error / success code objects for requests
     * (this may want to move into a more general class at some point, if we have more API reqs)
     *
@@ -73,6 +74,7 @@ class GeolocPtr
     *           code: 123,
     *           message: 'abc'
     *         }
+    *
     */
   public static function generateStatusObj($statusObj)
   {
@@ -96,6 +98,49 @@ class GeolocPtr
     return $statusJson;
   }
 
+
+  /** The archetypal JSON structure for PTR input
+    *
+    */
+  private static $ptrJsonStructureString = '{
+    "request_id": 123456789,
+    "ipt_timestamp": "2017-12-31 23:59:59",
+    "timeout": 750,
+    "queries": 4,
+    "ipt_client_ip": "321.321.321.321",
+    "ipt_client_postal_code": "Saanichton",
+    "ipt_client_asn": 32123,
+    "submitter": "CIRA IPT",
+    "submitter_ip": "162.219.50.11",
+    "ipt_server_city": "Calgary",
+    "ipt_server_postal_code": "T1U2V3",
+    "maxhops": 24,
+    "os": "Darwin",
+    "protocol": "ICMB",
+    "hop_data": [
+      {
+        "pass_num": 1,
+        "terminate": false,
+        "hops": [
+          {
+            "hop_num": 1,
+            "ip": "70.67.160.1",
+            "rtt": "9.65"
+          },
+          {
+            "hop_num": 2,
+            "ip": "70.67.160.1",
+            "rtt": "9.65"
+          }
+        ]
+      },
+      {
+        "pass_num": 2,
+        "terminate": true,
+        "hops": []
+      }
+    ]
+  }';
 
 }  // end of class
 ?>

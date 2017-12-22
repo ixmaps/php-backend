@@ -1,7 +1,4 @@
 <?php
-//header('Access-Control-Allow-Origin: *');
-//include('./IXmapsMaxMind.php');
-
 class TracerouteUtility
 {
   /** Check if a set of hops is a CA-US-CA boomerang routes
