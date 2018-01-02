@@ -4,7 +4,7 @@ class MapSearch
 {
 
 	/**
-		TODO: separete this function
+		TODO: separate this function
 	*/
 	public static function countTrsIntersect($data)
 	{
@@ -67,8 +67,8 @@ class MapSearch
 					$params1 = Traceroute::buildWhere($constraint, $doesNotChk, $paramsCounter);
 
 					$sqlIntersectArray[]= $sql1 . $params1[0]; // add sql where
-					$sqlParamsArray[] = $params[1]; // colect params array
-					
+					$sqlParamsArray[] = $params[1]; // collect params array
+
 				}
 
 				if($debugTrSearch){
@@ -113,14 +113,14 @@ class MapSearch
 
 				//print_r($trArrIntersect);
 				if(isset($trArrIntersect[0]['id'])){
-					$totIntersect = count($trArrIntersect);	
+					$totIntersect = count($trArrIntersect);
 				} else {
 					$totIntersect = 0;
 				}
 
 			} else {
 				// only one constraint
-				//$totIntersect = $trArr[0]['count']; 
+				//$totIntersect = $trArr[0]['count'];
 				foreach ($filterResults as $key2 => $res) {
 					if($res['total']!=0){
 						$totIntersect = $res['total'];
@@ -146,9 +146,6 @@ class MapSearch
 		}
 
 		return $resultA;
-
-
-
 	}
 }
 

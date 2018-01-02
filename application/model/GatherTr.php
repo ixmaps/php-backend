@@ -533,7 +533,7 @@ class GatherTr
             $status="r";
           }
 
-          /*Colect TR items for insert*/
+          /*Collect TR items for insert*/
           $trInsertData["trItems"][$hopCount][]=array(
             "ip"=>$hop['winIp'],
             "status"=>$status,

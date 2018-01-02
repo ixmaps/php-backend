@@ -19,7 +19,7 @@ class GeolocPtr
 
   /** Validate the incoming PTR JSON
     *
-    * @params none
+    * @param none
     *
     * @return statusObj
     *         {
@@ -32,31 +32,20 @@ class GeolocPtr
   {
     $ptrJsonStructure = json_decode($ptrJsonStructureString, TRUE);
 
-    $code = 201;
-    $kind = '';
-
-    // note the implied hierarchy here, 401 will be shown first (this might be too implicit)
-    // 2. confirm that all keys are not blank (TODO: do we want to include this error check?)
-    foreach ($_POST as $key => $value) {
-      if (empty($_POST[$key])) {
-        $kind = $key;
-        $code = 402;
-      }
-    }
     // 1. confirm that all required keys are present in the submission
     foreach ($ptrJsonStructure as $key => $value) {
       if (is_null($_POST[$key])) {
-        $kind = $key;
-        $code = 401;
+        return new ResponseCode(401, $key);
+      }
+    }
+    // 2. confirm that all keys are not blank (TODO: do we want to include this error check?)
+    foreach ($_POST as $key => $value) {
+      if (empty($_POST[$key])) {
+        return new ResponseCode(402, $key);
       }
     }
 
-    $statusObj = array(
-      "code" => $code,
-      "kind" => $kind
-    );
-
-    return $statusObj;
+    return new ResponseCode(201, '');
   }
 
 
@@ -76,22 +65,23 @@ class GeolocPtr
     *         }
     *
     */
-  public static function generateStatusObj($statusObj)
+  public static function generateStatusObj($responseObj)
   {
-    switch ($statusObj["code"]) {
+
+    switch ($responseObj->getCode()) {
       case 201:
         $message = "Success";
         break;
       case 401:
-        $message = "Malformed JSON, missing key - " . $statusObj["kind"];
+        $message = "Malformed JSON, missing key - " . $responseObj->getMessage();
         break;
       case 402:
-        $message = "Malformed JSON, unset value for key - " . $statusObj["kind"];
+        $message = "Malformed JSON, unset value for key - " . $responseObj->getMessage();
         break;
     }
 
     $statusJson = array(
-      "code" => $statusObj["code"],
+      "code" => $responseObj->getCode(),
       "message" => $message
     );
 
@@ -99,8 +89,8 @@ class GeolocPtr
   }
 
 
-  /** The archetypal JSON structure for PTR input
-    *
+  /**
+    * The archetypal JSON structure for PTR input
     */
   private static $ptrJsonStructureString = '{
     "request_id": 123456789,
@@ -116,7 +106,7 @@ class GeolocPtr
     "ipt_server_postal_code": "T1U2V3",
     "maxhops": 24,
     "os": "Darwin",
-    "protocol": "ICMB",
+    "protocol": "ICMP",
     "hop_data": [
       {
         "pass_num": 1,
@@ -143,4 +133,3 @@ class GeolocPtr
   }';
 
 }  // end of class
-?>

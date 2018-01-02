@@ -5,20 +5,20 @@ include('../model/GatherTr.php');           // leaving this for now - we'll need
 include('../model/IXmapsMaxMind.php');
 include('../model/GeolocPtr.php');
 include('../model/TracerouteUtility.php');
+include('../model/ResponseCode.php');
 
 
 // do some utility parsing of the received json
 $hopData = json_decode($_POST["hop_data"], TRUE);
-
 /***
  *** construct the basic GEO JSON object
  ***/
-$geoJson = array();
+$geoJson = [];
 
 
 /***
  *** validate the received JSON, if invalid immediately return with error code
-***/
+ ***/
 /**  returned status of each validate function is an array of structure:
   * {
   *   statusCode: 123,
@@ -26,9 +26,9 @@ $geoJson = array();
   * }
   * success status are 2xx. Only current success status is 201
   */
-$statusObj = GeolocPtr::validateInputPtr();
-if ($statusObj["code"] != 201) {        // TODO make 2xx
-  GeolocPtr::returnGeoJson($geoJson, $statusObj);
+$responseObj = GeolocPtr::validateInputPtr();
+if ($responseObj->getCode() != 201) {        // TODO make 2xx
+  GeolocPtr::returnGeoJson($geoJson, $responseObj);
 }
 
 /***
@@ -59,12 +59,21 @@ $geoJson["boomerang"] = TracerouteUtility::checkIfBoomerang($hops);
 
 // add the lat/long data to each hop of GEO-JSON
 // (I assume we can do this with GatherTr.php, so just some dummy data here)
-// 1. see if we have the IP in the DB
 
-// 2. see if Maxmind has the IP
+
 $overlayData = array();
 foreach ($hops as $hop) {
-  $ipData = $mm->getGeoIp($hop["ip"]);
+  // 1. see if we have the IP in the DB
+  $existsInDB = TracerouteUtility::checkIpExists($hop["ip"]);
+
+  if ($existsInDB) {
+
+  } else {
+    // 2. see if Maxmind has the IP
+    $ipData = $mm->getGeoIp($hop["ip"]);
+  }
+
+  // 3 some kind of default if MM doesn't have it
 
   $attributeObj = array(
     "asnum" => $ipData["asn"],
@@ -83,7 +92,6 @@ foreach ($hops as $hop) {
 }
 $geoJson["overlay_data"] = $overlayData;
 
-// 3 some kind of default if MM doesn't have it
 
 // close MaxMind files
 $mm->closeDatFiles();
@@ -92,8 +100,4 @@ $mm->closeDatFiles();
 /***
  *** return the GEO-JSON to CIRA
  ***/
-GeolocPtr::returnGeoJson($geoJson);
-
-?>
-
-
+GeolocPtr::returnGeoJson($geoJson, $responseObj);
