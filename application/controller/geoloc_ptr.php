@@ -96,4 +96,6 @@ $mm->closeDatFiles();
 /***
  *** return the GEO-JSON to CIRA
  ***/
-GeolocPtr::returnGeoJson($geoJson);
+header('Content-type: application/json');
+echo json_encode($geoJson);
+
