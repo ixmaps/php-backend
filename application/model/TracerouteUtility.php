@@ -73,13 +73,13 @@ class TracerouteUtility
     // NB: this currently only checks the MM object
     // Next job is to create a public function that checks IXmaps then MM then ?
 
-    // is first hop in CA
-    if ($mm->getGeoIp($hops[0]["ip"])["geoip"]["country_code"] != 'CA') {
+    // if first hop is not CA
+    if ($mm->getMMCountry($hops[0]["ip"]) != 'CA') {
       return false;
     }
 
-    // is last hop in CA
-    if ($mm->getGeoIp(end($hops)["ip"])["geoip"]["country_code"] != 'CA') {
+    // if last hop is not CA
+    if ($mm->getMMCountry(end($hops)["ip"]) != 'CA') {
       return false;
     }
 
@@ -87,9 +87,7 @@ class TracerouteUtility
     reset($hops);
 
     foreach ($hops as $key => $hop) {
-      $hopCountry = $mm->getGeoIp($hop["ip"])["geoip"]["country_code"];
-
-      if ($hopCountry == 'US') {
+      if ($mm->getMMCountry($hop["ip"]) == 'US') {
         return true;
       }
     }

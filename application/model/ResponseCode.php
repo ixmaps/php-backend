@@ -5,7 +5,18 @@ class ResponseCode {
 
   function __construct($code, $message) {
     $this->code = $code;
-    $this->message = $message;
+
+    switch ($code) {
+      case 201:
+        $this->message = "Success";
+        break;
+      case 401:
+        $this->message = "Malformed JSON, missing key - " . $message;
+        break;
+      case 402:
+        $this->message = "Malformed JSON, unset value for key - " . $message;
+        break;
+    }
   }
 
   public function getCode() {

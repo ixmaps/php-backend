@@ -5,31 +5,30 @@ include('../model/GatherTr.php');           // leaving this for now - we'll need
 include('../model/IXmapsMaxMind.php');
 include('../model/GeolocPtr.php');
 include('../model/TracerouteUtility.php');
+include('../model/ParisTraceroute.php');
+include('../model/GeolocTraceroute.php');
 include('../model/ResponseCode.php');
 
+// create the mm object
+$mm = new IXmapsMaxMind();
 
 // do some utility parsing of the received json
 $hopData = json_decode($_POST["hop_data"], TRUE);
-/***
- *** construct the basic GEO JSON object
- ***/
-$geoJson = [];
 
-
-/***
- *** validate the received JSON, if invalid immediately return with error code
- ***/
-/**  returned status of each validate function is an array of structure:
-  * {
-  *   statusCode: 123,
-  *   statusMsg: 'abc'
-  * }
-  * success status are 2xx. Only current success status is 201
-  */
-$responseObj = GeolocPtr::validateInputPtr();
-if ($responseObj->getCode() != 201) {        // TODO make 2xx
-  GeolocPtr::returnGeoJson($geoJson, $responseObj);
+if (GeolocPtr::validatePtr($_POST)) {
+  $ptr = new ParisTraceroute($_POST);
+} else {
+  GeolocPtr::handleMalformedPtr($_POST);
 }
+
+var_dump($ptr); die;
+
+
+
+// $responseObj = ParisTraceroute::validatePtr();
+// if ($responseObj->getCode() != 201) {        // TODO make 2xx
+//   GeolocPtr::returnGeoJson($geoJson, $responseObj);
+// }
 
 /***
  *** send the json to ingest_tr_cira (phase 2)
@@ -41,9 +40,6 @@ if ($responseObj->getCode() != 201) {        // TODO make 2xx
  *** construct the GEO-JSON return
  ***/
 
-// create the mm object
-$mm = new IXmapsMaxMind();
-
 // figure out which pass we want to use, *now just using first pass*.
 // NB: we cannot necessarily assume the hop_data array is ordered (eg pass1 != hopdata[0])
 // $trByHop = GatherTr::analyzeIfInconsistentPasses($trData); maybe? And others
@@ -51,7 +47,7 @@ $chosenPass = $hopData[0];
 $hops = $chosenPass["hops"];
 
 // add the header type stuff for GEO-JSON return
-$geoJson["request_id"] = $_POST["request_id"];
+$geolocTr = new GeolocTraceroute();
 $geoJson["ixmaps_id"] = 0;
 $geoJson["hop_count"] = count($hops);
 $geoJson["terminate"] = $chosenPass["terminate"];
@@ -100,4 +96,4 @@ $mm->closeDatFiles();
 /***
  *** return the GEO-JSON to CIRA
  ***/
-GeolocPtr::returnGeoJson($geoJson, $responseObj);
+GeolocPtr::returnGeoJson($geoJson);
