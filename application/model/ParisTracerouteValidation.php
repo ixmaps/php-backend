@@ -5,7 +5,7 @@ class ParisTracerouteValidation
     *
     * @param PTR post
     *
-    * @return Bool
+    * @return Boolean
     *
     */
   public static function isValid($postArr)
@@ -19,8 +19,9 @@ class ParisTracerouteValidation
     }
   }
 
+
   /** Determine correct ResponseCode for the return
-    * TODO: decide if this is specific to PTR (and not GeolocTR), if so get rid of the 201 check
+    * TODO: decide if this is specific to PTR (and not GeolocTR), if so get rid of the 201, refactor a bit
     *
     * @param PTR post
     *

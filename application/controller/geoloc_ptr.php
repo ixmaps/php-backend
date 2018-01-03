@@ -40,12 +40,12 @@ $chosenPass = $hopData[0];
 $hops = $chosenPass["hops"];
 
 // add the header type stuff for GEO-JSON return
-$geolocTr = new GeolocTraceroute();                 // START HERE, FINALLY!
-$geoJson["ixmaps_id"] = 0;
-$geoJson["hop_count"] = count($hops);
-$geoJson["terminate"] = $chosenPass["terminate"];
-$geoJson["boomerang"] = TracerouteUtility::checkIfBoomerang($hops);
-
+$geolocTr = new GeolocTraceroute();
+$geolocTr->setRequestId($ptr->getRequestId());
+$geolocTr->setIXmapsId(0);
+$geolocTr->setHopCount(count($hops));
+$geolocTr->setTerminate($chosenPass["terminate"]);
+$geolocTr->setBoomerang(TracerouteUtility::checkIfBoomerang($hops));
 // add the lat/long data to each hop of GEO-JSON
 // (I assume we can do this with GatherTr.php, so just some dummy data here)
 
@@ -56,13 +56,14 @@ foreach ($hops as $hop) {
   $existsInDB = TracerouteUtility::checkIpExists($hop["ip"]);
 
   if ($existsInDB) {
-
+    // TODO
   } else {
     // 2. see if Maxmind has the IP
     $ipData = $mm->getGeoIp($hop["ip"]);
   }
 
   // 3 some kind of default if MM doesn't have it
+  // TODO
 
   $attributeObj = array(
     "asnum" => $ipData["asn"],
@@ -79,7 +80,9 @@ foreach ($hops as $hop) {
   );
   array_push($overlayData, $overlayHop);
 }
-$geoJson["overlay_data"] = $overlayData;
+$geolocTr->setOverlayData($overlayData);
+
+// START HERE - figure out we want to deal with obj -> JSON mapping (see also PTRValidation class)
 
 
 // close MaxMind files
@@ -90,5 +93,4 @@ $mm->closeDatFiles();
  *** return the GEO-JSON to CIRA
  ***/
 header('Content-type: application/json');
-echo json_encode($geoJson);
-
+echo json_encode($geolocTr);
