@@ -1,10 +1,10 @@
 <?php
 header('Access-Control-Allow-Origin: *');
 include('../config.php');
-include('../model/GatherTr.php');           // leaving this for now - we'll need it
+include('../model/GatherTr.php');           // leaving this for now - we may need it
 include('../model/IXmapsMaxMind.php');
-include('../model/GeolocPtr.php');
 include('../model/TracerouteUtility.php');
+include('../model/ParisTracerouteValidation.php');
 include('../model/ParisTraceroute.php');
 include('../model/GeolocTraceroute.php');
 include('../model/ResponseCode.php');
@@ -13,27 +13,20 @@ include('../model/ResponseCode.php');
 $mm = new IXmapsMaxMind();
 
 // do some utility parsing of the received json
-$hopData = json_decode($_POST["hop_data"], TRUE);
+$hopData = json_decode($_POST["hop_data"], TRUE);       // TODO
 
-if (GeolocPtr::validatePtr($_POST)) {
+if (ParisTracerouteValidation::isValid($_POST)) {
   $ptr = new ParisTraceroute($_POST);
 } else {
-  GeolocPtr::handleMalformedPtr($_POST);
+  ParisTracerouteValidation::handleMalformedPtr($_POST);
 }
 
-var_dump($ptr); die;
-
-
-
-// $responseObj = ParisTraceroute::validatePtr();
-// if ($responseObj->getCode() != 201) {        // TODO make 2xx
-//   GeolocPtr::returnGeoJson($geoJson, $responseObj);
-// }
 
 /***
  *** send the json to ingest_tr_cira (phase 2)
  ***/
 
+// TODO
 
 
 /***
@@ -47,7 +40,7 @@ $chosenPass = $hopData[0];
 $hops = $chosenPass["hops"];
 
 // add the header type stuff for GEO-JSON return
-$geolocTr = new GeolocTraceroute();
+$geolocTr = new GeolocTraceroute();                 // START HERE, FINALLY!
 $geoJson["ixmaps_id"] = 0;
 $geoJson["hop_count"] = count($hops);
 $geoJson["terminate"] = $chosenPass["terminate"];

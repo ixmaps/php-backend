@@ -1,32 +1,50 @@
 <?php
-class GeolocPtr
+class ParisTracerouteValidation
 {
-  /** Validate the incoming PTR JSON
+  /** Check if PTR is valid
     *
     * @param PTR post
     *
     * @return Bool
     *
     */
-  public static function validatePtr($postArr)
+  public static function isValid($postArr)
   {
+    $rc = self::createResponse($postArr);
+
+    if ($rc->getCode() == 201) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  /** Determine correct ResponseCode for the return
+    * TODO: decide if this is specific to PTR (and not GeolocTR), if so get rid of the 201 check
+    *
+    * @param PTR post
+    *
+    * @return ResponseCode object
+    *
+    */
+  public static function createResponse($postArr) {
     $ptrJsonStructure = json_decode(self::ptrJsonStructureString, TRUE);
 
-    // 1. confirm that all required keys are present in the submission
+    // not sure about having a class for this... feels insanely verbose
     foreach ($ptrJsonStructure as $key => $value) {
       if (is_null($postArr[$key])) {
-        return false;
+        return new ResponseCode(401, $key);
       }
     }
-    // 2. confirm that all keys are not blank (TODO: do we want to include this error check?)
     foreach ($postArr as $key => $value) {
       if (empty($postArr[$key])) {
-        return false;
+        return new ResponseCode(402, $key);
       }
     }
 
-    return true;
+    return new ResponseCode(201);       // TEST ME (no 2nd param)
   }
+
 
   /** Handle errors specific to CIRA PTR submissions
     *
@@ -37,28 +55,13 @@ class GeolocPtr
     */
   public static function handleMalformedPtr($postArr)
   {
-    // figure out error code
-    // TODO: warp these elsewhere (from validatePtr)
-    $ptrJsonStructure = json_decode(self::ptrJsonStructureString, TRUE);
-
-    // not sure about this... feels insanely verbose
-    $rc;
-    foreach ($ptrJsonStructure as $key => $value) {
-      if (is_null($postArr[$key])) {
-        $rc = new ResponseCode(401, $key);
-      }
-    }
-    foreach ($postArr as $key => $value) {
-      if (empty($postArr[$key])) {
-        $rc = new ResponseCode(402, $key);
-      }
-    }
-
+    $rc = self::createResponse($postArr);
     // create the status to send back to requester
     $response = array(
       "code" => $rc->getCode(),
       "message" => $rc->getMessage()
     );
+
     // send back the response to requester
     header('Content-type: application/json');
     echo json_encode($response);
