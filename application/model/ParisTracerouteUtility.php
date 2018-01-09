@@ -10,7 +10,7 @@ class ParisTracerouteUtility
     */
   public static function isValid($postArr)
   {
-    $rc = self::createResponse($postArr);
+    $rc = self::determineStatus($postArr);
 
     if ($rc->getCode() == 201) {
       return true;
@@ -18,7 +18,6 @@ class ParisTracerouteUtility
       return false;
     }
   }
-
 
   /** Determine correct ResponseCode for the return
     * TODO: decide if this is specific to PTR (and not GeolocTR), if so get rid of the 201, refactor a bit
@@ -28,7 +27,7 @@ class ParisTracerouteUtility
     * @return ResponseCode object
     *
     */
-  public static function createResponse($postArr) {
+  public static function determineStatus($postArr) {
     $ptrJsonStructure = json_decode(self::ptrJsonStructureString, TRUE);
 
     // check if PTR has all keys
@@ -46,30 +45,6 @@ class ParisTracerouteUtility
 
     return new ResponseCode(201);
   }
-
-
-  /** Handle errors specific to CIRA PTR submissions
-    *
-    * @param PTR post
-    *
-    * @return void (and die)
-    *
-    */
-  public static function handleMalformedPtr($postArr)
-  {
-    $rc = self::createResponse($postArr);
-    // create the status to send back to requester
-    $response = array(
-      "code" => $rc->getCode(),
-      "message" => $rc->getMessage()
-    );
-
-    // send back the response to requester
-    header('Content-type: application/json');
-    echo json_encode($response);
-    die;
-  }
-
 
   /**
     * The archetypal JSON structure for PTR input

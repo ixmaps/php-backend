@@ -1,5 +1,5 @@
 <?php
-// todo-declare(strict_types = 1); TODO set all params with var types
+// todo-declare(strict_types = 1); TODO: get the var type checking working... no error? php7?
 
 class GeolocTraceroute {
   private $status;
@@ -10,17 +10,23 @@ class GeolocTraceroute {
   private $boomerang;
   private $overlay_data;
 
+  function __construct() {
+    $this->status = new ResponseCode(100);
+  }
 
-  public function setStatus() {
-    // default response
-    $this->status = new ResponseCode(201);
-
+  // this must be in this class, needs access to the privates - otherwise we could move this and the PTR ones to the same class
+  public function determineStatus() {
     // check that GLTR has no null values (cannot check status yet, since this is setting it)
     foreach ($this as $key => $value) {
-      if (is_null($value) && $key != 'status') {
-        $this->status = new ResponseCode(502, $key);
+      if (is_null($value)) {
+        return new ResponseCode(502, $key);
       }
     }
+    // default response
+    return new ResponseCode(201);
+  }
+  public function setStatus(ResponseCode $status) {
+    $this->status = $status;
   }
   public function getStatus() {
     return $this->status;

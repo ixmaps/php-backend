@@ -19,7 +19,10 @@ $hopData = json_decode($_POST["hop_data"], TRUE);       // TODO
 if (ParisTracerouteUtility::isValid($_POST)) {
   $ptr = new ParisTraceroute($_POST);
 } else {
-  ParisTracerouteUtility::handleMalformedPtr($_POST);
+  // handle malformed json submission
+  $geolocTr = new GeolocTraceroute();
+  $geolocTr->setStatus(ParisTracerouteUtility::determineStatus($_POST));
+  GeolocTracerouteUtility::encodeAndReturn($geolocTr);
 }
 
 
@@ -82,7 +85,8 @@ foreach ($hops as $hop) {
 }
 $geolocTr->setOverlayData($overlayData);
 
-$geolocTr->setStatus();
+$geolocTr->setStatus($geolocTr->determineStatus());
+
 
 // close MaxMind files
 $mm->closeDatFiles();
@@ -90,6 +94,4 @@ $mm->closeDatFiles();
 /***
  *** return the GEO-JSON to CIRA
  ***/
-$response = GeolocTracerouteUtility::encodeForReturn($geolocTr);
-header('Content-type: application/json');
-echo $response;
+GeolocTracerouteUtility::encodeAndReturn($geolocTr);

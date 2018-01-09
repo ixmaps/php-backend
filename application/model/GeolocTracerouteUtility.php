@@ -7,26 +7,45 @@ class GeolocTracerouteUtility {
     * @return encoded array
     *
     */
-  public function encodeForReturn(GeolocTraceroute $tr) {
-    //if ($tr->getStatus()) {
-      $statusObj = $tr->getStatus();
-      $statusArr = array(
-        "code" => $statusObj->getCode(),
-        "message" => $statusObj->getMessage()
-      );
-    //}
-
-    $jsonArr = array(
-      "status" => $statusArr,
-      "request_id" => $tr->getRequestId(),
-      "ixmaps_id" => $tr->getIxmapsId(),
-      "hop_count" => $tr->getHopCount(),
-      "terminate" => $tr->getTerminate(),
-      "boomerang" => $tr->getBoomerang(),
-      "overlay_data" => $tr->getOverlayData()
+  public function encodeAndReturn(GeolocTraceroute $tr) {
+    $status = array(
+      "code" => $tr->getStatus()->getCode(),
+      "message" => $tr->getStatus()->getMessage()
     );
 
-    return json_encode($jsonArr);
+    if (self::isValid($tr)) {
+      $jsonArr = array(
+        "status" => $status,
+        "request_id" => $tr->getRequestId(),
+        "ixmaps_id" => $tr->getIxmapsId(),
+        "hop_count" => $tr->getHopCount(),
+        "terminate" => $tr->getTerminate(),
+        "boomerang" => $tr->getBoomerang(),
+        "overlay_data" => $tr->getOverlayData()
+      );
+      header('Content-type: application/json');
+      echo json_encode($jsonArr);
+    } else {
+      // send back the response to requester
+      header('Content-type: application/json');
+      echo json_encode($status);
+      die;
+    }
+  }
+
+  /** Check if GLTR is valid
+    *
+    * @param GLTR class object
+    *
+    * @return Boolean
+    *
+    */
+  public function isValid(GeolocTraceroute $tr) {
+    if ($tr->getStatus()->getCode() == 201) {
+      return true;
+    } else {
+      return false;
+    }
   }
 
 } // end of class

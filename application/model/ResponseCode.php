@@ -7,20 +7,23 @@ class ResponseCode {
     $this->code = $code;
 
     switch ($code) {
+      case 100:
+        $this->message = "Error: unset status code";
+        break;
       case 201:
         $this->message = "Success";
         break;
       case 401:
-        $this->message = "Malformed JSON submitted, missing key - " . $message;
+        $this->message = "Error: malformed JSON submitted, missing key - " . $message;
         break;
       case 402:
-        $this->message = "Submitted JSON contains unset value for key - " . $message;
+        $this->message = "Error: submitted JSON contains unset value for key - " . $message;
         break;
       case 501:
-        $this->message = "Malformed JSON returned, missing key - " . $message;
+        $this->message = "Error: malformed JSON returned, missing key - " . $message;
         break;
       case 502:
-        $this->message = "Returned JSON contains unset value for key - " . $message;
+        $this->message = "Error: returned JSON contains unset value for key - " . $message;
         break;
     }
   }
