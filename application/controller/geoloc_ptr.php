@@ -43,7 +43,7 @@ $hops = $chosenPass["hops"];
 // add the header type stuff for GEO-JSON return
 $geolocTr = new GeolocTraceroute();
 $geolocTr->setRequestId($ptr->getRequestId());
-//$geolocTr->setIXmapsId(0);
+$geolocTr->setIXmapsId(0);
 $geolocTr->setHopCount(count($hops));
 $geolocTr->setTerminate($chosenPass["terminate"]);
 $geolocTr->setBoomerang(TracerouteUtility::checkIfBoomerang($hops));
@@ -82,7 +82,7 @@ foreach ($hops as $hop) {
 }
 $geolocTr->setOverlayData($overlayData);
 
-$geolocTr->setStatus(GeolocTracerouteUtility::checkStatus($geolocTr));
+$geolocTr->setStatus();
 
 // close MaxMind files
 $mm->closeDatFiles();
