@@ -1,4 +1,6 @@
 <?php
+// todo-declare(strict_types = 1); TODO set all params with var types
+
 class GeolocTraceroute {
   private $status;
   private $request_id;
@@ -7,10 +9,6 @@ class GeolocTraceroute {
   private $terminate;
   private $boomerang;
   private $overlay_data;
-
-  // function __construct() {
-
-  // }
 
   // public function getStatusCode() {
   //   return $this->status;
@@ -51,14 +49,14 @@ class GeolocTraceroute {
   public function setTerminate($terminate) {
     return $this->terminate = $terminate;
   }
-  public function doesTerminate() {
+  public function getTerminate() {
     return $this->terminate;
   }
 
   public function setBoomerang($boomerang) {
     return $this->boomerang = $boomerang;
   }
-  public function doesBoomerang() {
+  public function getBoomerang() {
     return $this->boomerang;
   }
 

@@ -4,9 +4,10 @@ include('../config.php');
 include('../model/GatherTr.php');           // leaving this for now - we may need it
 include('../model/IXmapsMaxMind.php');
 include('../model/TracerouteUtility.php');
-include('../model/ParisTracerouteValidation.php');
 include('../model/ParisTraceroute.php');
+include('../model/ParisTracerouteUtility.php');
 include('../model/GeolocTraceroute.php');
+include('../model/GeolocTracerouteUtility.php');
 include('../model/ResponseCode.php');
 
 // create the mm object
@@ -15,10 +16,10 @@ $mm = new IXmapsMaxMind();
 // do some utility parsing of the received json
 $hopData = json_decode($_POST["hop_data"], TRUE);       // TODO
 
-if (ParisTracerouteValidation::isValid($_POST)) {
+if (ParisTracerouteUtility::isValid($_POST)) {
   $ptr = new ParisTraceroute($_POST);
 } else {
-  ParisTracerouteValidation::handleMalformedPtr($_POST);
+  ParisTracerouteUtility::handleMalformedPtr($_POST);
 }
 
 
@@ -42,13 +43,12 @@ $hops = $chosenPass["hops"];
 // add the header type stuff for GEO-JSON return
 $geolocTr = new GeolocTraceroute();
 $geolocTr->setRequestId($ptr->getRequestId());
-$geolocTr->setIXmapsId(0);
+//$geolocTr->setIXmapsId(0);
 $geolocTr->setHopCount(count($hops));
 $geolocTr->setTerminate($chosenPass["terminate"]);
 $geolocTr->setBoomerang(TracerouteUtility::checkIfBoomerang($hops));
 // add the lat/long data to each hop of GEO-JSON
 // (I assume we can do this with GatherTr.php, so just some dummy data here)
-
 
 $overlayData = array();
 foreach ($hops as $hop) {
@@ -82,15 +82,14 @@ foreach ($hops as $hop) {
 }
 $geolocTr->setOverlayData($overlayData);
 
-// START HERE - figure out we want to deal with obj -> JSON mapping (see also PTRValidation class)
-
+$geolocTr->setStatus(GeolocTracerouteUtility::checkStatus($geolocTr));
 
 // close MaxMind files
 $mm->closeDatFiles();
 
-
 /***
  *** return the GEO-JSON to CIRA
  ***/
+$response = GeolocTracerouteUtility::encodeForReturn($geolocTr);
 header('Content-type: application/json');
-echo json_encode($geolocTr);
+echo $response;

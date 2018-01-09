@@ -11,10 +11,16 @@ class ResponseCode {
         $this->message = "Success";
         break;
       case 401:
-        $this->message = "Malformed JSON, missing key - " . $message;
+        $this->message = "Malformed JSON submitted, missing key - " . $message;
         break;
       case 402:
-        $this->message = "Malformed JSON, unset value for key - " . $message;
+        $this->message = "Malformed JSON submitted, unset value for key - " . $message;
+        break;
+      case 501:
+        $this->message = "Malformed JSON returned, missing key - " . $message;
+        break;
+      case 502:
+        $this->message = "Malformed JSON returned, unset value for key - " . $message;
         break;
     }
   }

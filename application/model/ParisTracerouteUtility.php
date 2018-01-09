@@ -1,5 +1,5 @@
 <?php
-class ParisTracerouteValidation
+class ParisTracerouteUtility
 {
   /** Check if PTR is valid
     *
@@ -31,19 +31,20 @@ class ParisTracerouteValidation
   public static function createResponse($postArr) {
     $ptrJsonStructure = json_decode(self::ptrJsonStructureString, TRUE);
 
-    // not sure about having a class for this... feels insanely verbose
+    // check if PTR has all keys
     foreach ($ptrJsonStructure as $key => $value) {
       if (is_null($postArr[$key])) {
         return new ResponseCode(401, $key);
       }
     }
+    // check if PTR has no null values
     foreach ($postArr as $key => $value) {
       if (empty($postArr[$key])) {
         return new ResponseCode(402, $key);
       }
     }
 
-    return new ResponseCode(201);       // TEST ME (no 2nd param)
+    return new ResponseCode(201);
   }
 
 
