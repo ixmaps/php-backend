@@ -1,8 +1,8 @@
 <?php
 header('Access-Control-Allow-Origin: *');
 include('../config.php');
-include('../model/GatherTr.php');           // leaving this for now - we may need it
 include('../model/IXmapsMaxMind.php');
+include('../model/Geolocation.php');
 include('../model/TracerouteUtility.php');
 include('../model/ParisTraceroute.php');
 include('../model/ParisTracerouteUtility.php');
@@ -10,12 +10,9 @@ include('../model/GeolocTraceroute.php');
 include('../model/GeolocTracerouteUtility.php');
 include('../model/ResponseCode.php');
 
-// create the mm object
-$mm = new IXmapsMaxMind();
-
-// do some utility parsing of the received json
-$hopData = json_decode($_POST["hop_data"], TRUE);       // TODO
-
+/***
+ *** validate the incoming JSON
+ ***/
 if (ParisTracerouteUtility::isValid($_POST)) {
   $ptr = new ParisTraceroute($_POST);
 } else {
@@ -24,71 +21,62 @@ if (ParisTracerouteUtility::isValid($_POST)) {
   $geolocTr->setStatus(ParisTracerouteUtility::determineStatus($_POST));
   GeolocTracerouteUtility::encodeAndReturn($geolocTr);
 }
-
+$mm = new IXmapsMaxMind();
 
 /***
  *** send the json to ingest_tr_cira (phase 2)
  ***/
 
-// TODO
 
 
 /***
- *** construct the GEO-JSON return
+ *** figure out which pass we want to use, currently just using first pass
  ***/
-
-// figure out which pass we want to use, *now just using first pass*.
 // NB: we cannot necessarily assume the hop_data array is ordered (eg pass1 != hopdata[0])
-// $trByHop = GatherTr::analyzeIfInconsistentPasses($trData); maybe? And others
+// $trByHop = GatherTr::analyzeIfInconsistentPasses($trData); maybe? Anto?
+$hopData = json_decode($_POST["hop_data"], TRUE);
 $chosenPass = $hopData[0];
 $hops = $chosenPass["hops"];
 
-// add the header type stuff for GEO-JSON return
+
+/***
+ *** construct the basic GL TR
+ ***/
 $geolocTr = new GeolocTraceroute();
 $geolocTr->setRequestId($ptr->getRequestId());
 $geolocTr->setIXmapsId(0);
 $geolocTr->setHopCount(count($hops));
 $geolocTr->setTerminate($chosenPass["terminate"]);
 $geolocTr->setBoomerang(TracerouteUtility::checkIfBoomerang($hops));
-// add the lat/long data to each hop of GEO-JSON
-// (I assume we can do this with GatherTr.php, so just some dummy data here)
 
+
+/***
+ *** construct the hop_data object
+ ***/
+// TODO: create hops model, move this all in
 $overlayData = array();
 foreach ($hops as $hop) {
-  // 1. see if we have the IP in the DB
-  $existsInDB = TracerouteUtility::checkIpExists($hop["ip"]);
-
-  if ($existsInDB) {
-    // TODO
-  } else {
-    // 2. see if Maxmind has the IP
-    $ipData = $mm->getGeoIp($hop["ip"]);
-  }
-
-  // 3 some kind of default if MM doesn't have it
-  // TODO
+  $geoloc = new Geolocation($hop["ip"]);
 
   $attributeObj = array(
-    "asnum" => $ipData["asn"],
-    "asname" => $ipData["isp"],
-    "country" => $ipData["geoip"]["country_code"],
+    "asnum" => $geoloc->getASNum($hop["ip"]),
+    "asname" => $geoloc->getASName($hop["ip"]),
+    "country" => $geoloc->getCountry($hop["ip"]),
     "nsa" => "TODO",
     "georeliability" => "TBD"
   );
   $overlayHop = array(
     "hop" => $hop["hop_num"],
-    "lat" => $ipData["geoip"]["latitude"],
-    "long" => $ipData["geoip"]["longitude"],
+    "lat" => $geoloc->getLat(),
+    "long" => $geoloc->getLong(),
     "attributes" => $attributeObj
   );
   array_push($overlayData, $overlayHop);
 }
-$geolocTr->setOverlayData($overlayData);
 
+$geolocTr->setOverlayData($overlayData);
 $geolocTr->setStatus($geolocTr->determineStatus());
 
-
-// close MaxMind files
 $mm->closeDatFiles();
 
 /***

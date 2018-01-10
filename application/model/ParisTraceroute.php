@@ -3,7 +3,7 @@ class ParisTraceroute {
   private $request_id;
   private $ipt_timestamp;
   private $timeout;
-  private $queries;     // this one is not clear enough
+  private $queries;     // this one is not clear enough - rename?
   private $ipt_client_ip;
   private $ipt_client_postal_code;
   private $ipt_client_asn;
@@ -23,14 +23,6 @@ class ParisTraceroute {
       }
     }
   }
-
-  // public function hasKey($key) {
-  //   if () {
-  //     return true;
-  //   }
-
-  //   return false;
-  // }
 
   public function getRequestId() {
     return $this->request_id;

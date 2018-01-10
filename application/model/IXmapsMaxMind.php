@@ -48,6 +48,7 @@ class IXmapsMaxMind
       $r['asn'] = $asn_isp[0];
       $r['isp'] = $asn_isp[1];
     }
+
     return $r;
   }
 
