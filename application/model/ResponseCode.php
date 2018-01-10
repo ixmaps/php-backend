@@ -3,7 +3,7 @@ class ResponseCode {
   private $code;
   private $message;
 
-  function __construct($code, $message) {
+  function __construct($code, $message="") {
     $this->code = $code;
 
     switch ($code) {
