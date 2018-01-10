@@ -22,23 +22,24 @@ class TracerouteUtility
     *
     */
   public static function checkIfBoomerang($hops) {
-    $geoloc = new Geolocation();
+    $firstHop = new Geolocation($hops[0]["ip"]);
+    $lastHop = new Geolocation(end($hops)["ip"]);
+    // we called end on the array, so we need to reset the cursor
+    reset($hops);
 
     // if first hop is not CA
-    if ($geoloc->getCountry($hops[0]["ip"]) != 'CA') {
+    if ($firstHop->getCountry() != 'CA') {
       return false;
     }
 
     // if last hop is not CA
-    if ($geoloc->getCountry(end($hops)["ip"]) != 'CA') {
+    if ($lastHop->getCountry() != 'CA') {
       return false;
     }
 
-    // we called end on the array, so we need to reset the cursor
-    reset($hops);
-
     foreach ($hops as $key => $hop) {
-      if ($geoloc->getCountry($hop["ip"]) == 'US') {
+      $myHop = new Geolocation($hop["ip"]);
+      if ($myHop->getCountry() == 'US') {
         return true;
       }
     }

@@ -56,19 +56,19 @@ $geolocTr->setBoomerang(TracerouteUtility::checkIfBoomerang($hops));
 // TODO: create hops model, move this all in
 $overlayData = array();
 foreach ($hops as $hop) {
-  $geoloc = new Geolocation($hop["ip"]);
+  $myHop = new Geolocation($hop["ip"]);
 
   $attributeObj = array(
-    "asnum" => $geoloc->getASNum($hop["ip"]),
-    "asname" => $geoloc->getASName($hop["ip"]),
-    "country" => $geoloc->getCountry($hop["ip"]),
+    "asnum" => $myHop->getASNum($hop["ip"]),
+    "asname" => $myHop->getASName($hop["ip"]),
+    "country" => $myHop->getCountry($hop["ip"]),
     "nsa" => "TODO",
     "georeliability" => "TBD"
   );
   $overlayHop = array(
     "hop" => $hop["hop_num"],
-    "lat" => $geoloc->getLat(),
-    "long" => $geoloc->getLong(),
+    "lat" => $myHop->getLat(),
+    "long" => $myHop->getLong(),
     "attributes" => $attributeObj
   );
   array_push($overlayData, $overlayHop);
