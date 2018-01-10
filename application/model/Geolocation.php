@@ -7,6 +7,7 @@ class Geolocation {
   private $country;
   private $asnum;
   private $asname;
+  private $source;        // do we like this name? Open to suggestions
 
 
   // move the IXmapsMaxMind class into here? Maybe slower to constantly open and close Dat files? Otherwise? Hopefully not use globals :(
@@ -29,6 +30,8 @@ class Geolocation {
     $this->asnum = $ipData["asn"];
     $this->asname = $ipData["isp"];
     $this->country = $ipData["geoip"]["country_code"];
+
+    $this->source = "Maxmind";
 
     // TODO
 
@@ -79,6 +82,10 @@ class Geolocation {
 
   public function getASName() {
     return $this->asname;
+  }
+
+  public function getSource() {
+    return $this->source;
   }
 
 
