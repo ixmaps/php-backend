@@ -1,55 +1,4 @@
-<?php
-class ParisTracerouteUtility
 {
-  /** Check if PTR is valid
-    *
-    * @param PTR post
-    *
-    * @return Boolean
-    *
-    */
-  public static function isValid($postArr)
-  {
-    $rc = self::determineStatus($postArr);
-
-    if ($rc->getCode() == 201) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  /** Determine correct ResponseCode for the return
-    * TODO: decide if this is specific to PTR (and not GeolocTR), if so get rid of the 201, refactor a bit
-    *
-    * @param PTR post
-    *
-    * @return ResponseCode object
-    *
-    */
-  public static function determineStatus($postArr) {
-    $ptrJsonStructure = json_decode(self::ptrJsonStructureString, TRUE);
-
-    // check if PTR has all keys
-    foreach ($ptrJsonStructure as $key => $value) {
-      if (is_null($postArr[$key])) {
-        return new ResponseCode(401, $key);
-      }
-    }
-    // check if PTR has no null values
-    foreach ($postArr as $key => $value) {
-      if (empty($postArr[$key])) {
-        return new ResponseCode(402, $key);
-      }
-    }
-
-    return new ResponseCode(201);
-  }
-
-  /**
-    * The archetypal JSON structure for PTR input
-    */
-  const ptrJsonStructureString = '{
   "request_id": 12345,
   "ipt_timestamp": "2017-06-09 01:23:24+05",
   "ipt_client_ip": "69.157.148.199",
@@ -108,6 +57,4 @@ class ParisTracerouteUtility
       "rtts": ["37.846", "38.430", "38.872"]
     }
   ]
-}';
-
-}  // end of class
+}

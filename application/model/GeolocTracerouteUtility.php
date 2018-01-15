@@ -19,7 +19,6 @@ class GeolocTracerouteUtility {
         "request_id" => $tr->getRequestId(),
         "ixmaps_id" => $tr->getIxmapsId(),
         "hop_count" => $tr->getHopCount(),
-        "terminate" => $tr->getTerminate(),
         "boomerang" => $tr->getBoomerang(),
         "overlay_data" => $tr->getOverlayData()
       );

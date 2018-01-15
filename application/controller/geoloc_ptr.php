@@ -27,17 +27,10 @@ $mm = new IXmapsMaxMind();
  *** send the json to ingest_tr_cira (phase 2)
  ***/
 
-
-
-/***
- *** figure out which pass we want to use, currently just using first pass
- ***/
-// NB: we cannot necessarily assume the hop_data array is ordered (eg pass1 != hopdata[0])
-// $trByHop = GatherTr::analyzeIfInconsistentPasses($trData); maybe? Anto?
-$hopData = json_decode($_POST["hop_data"], TRUE);
-$chosenPass = $hopData[0];
-$hops = $chosenPass["hops"];
-
+//print_r($_POST);
+//$hopData = "";
+//$chosenPass = $_POST["hops"]
+$hops = $_POST["hops"];
 
 /***
  *** construct the basic GL TR
@@ -46,7 +39,7 @@ $geolocTr = new GeolocTraceroute();
 $geolocTr->setRequestId($ptr->getRequestId());
 $geolocTr->setIXmapsId(0);
 $geolocTr->setHopCount(count($hops));
-$geolocTr->setTerminate($chosenPass["terminate"]);
+//$geolocTr->setTerminate($chosenPass["terminate"]); Not needed/used ?
 $geolocTr->setBoomerang(TracerouteUtility::checkIfBoomerang($hops));
 
 
@@ -59,14 +52,16 @@ foreach ($hops as $hop) {
   $myHop = new Geolocation($hop["ip"]);
 
   $attributeObj = array(
-    "asnum" => $myHop->getASNum($hop["ip"]),
-    "asname" => $myHop->getASName($hop["ip"]),
-    "country" => $myHop->getCountry($hop["ip"]),
+    "asnum" => $myHop->getASNum(),
+    "asname" => $myHop->getASName(),
+    "country" => $myHop->getCountry(),
+    "city" => $myHop->getCity(),
     "nsa" => "TODO",
-    "georeliability" => "TBD"
+    "georeliability" => $myHop->getSource() // Do we want to add the souce here?
   );
   $overlayHop = array(
-    "hop" => $hop["hop_num"],
+    "hop" => $hop["num"],
+    "ip" => $hop["ip"],
     "lat" => $myHop->getLat(),
     "long" => $myHop->getLong(),
     "attributes" => $attributeObj

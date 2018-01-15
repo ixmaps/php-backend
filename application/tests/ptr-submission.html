@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<script src="http://code.jquery.com/jquery-latest.min.js" type="text/javascript"></script>
+
+	<script type="text/javascript">
+		
+		var submit_url = "http://localhost/mywebapps/ixmaps-php-backend/application/controller/geoloc_ptr.php";
+
+		//var submit_url = location.protocol + '//' + location.host + '/application/controller/geoloc_ptr.php';
+
+		//console.log(submit_url);
+
+		var submitPtrData = function() {
+			jQuery("#ptr-response").text("");
+			console.log("submitPtrData() ...");
+			var data = jQuery("#ptr-source").val();
+			//console.log(data);
+			var obj = JSON.parse(data);
+			//var obj = data;
+			//console.log(obj);
+
+			jQuery.ajax(submit_url, {
+				type: 'post',
+				data: obj,
+				success: function (e) {
+				  console.log("success", e);
+				  jQuery("#ptr-response").text(JSON.stringify(e, null, '\t'));
+				},
+				error: function (e) {
+				  console.log("Error", e);
+				}
+			});
+
+		}
+
+		jQuery( document ).ready(function() {
+			jQuery('#submit').click(function() {
+				var ptr_source = jQuery("#ptr-source").html();
+				submitPtrData(ptr_source);
+			});
+		});
+	</script>
+</head>
+
+
+<body>
+	<h3>Test PTR submission</h3>
+	<form>
+		PTR-JSON: 
+		</br>
+		<textarea id="ptr-source" cols="60" rows="10">{
+  "request_id": 12345,
+  "ipt_timestamp": "2017-06-09 01:23:24+05",
+  "ipt_client_ip": "69.157.148.199",
+  "ipt_client_postal_code": "J1L2B1",
+  "ipt_client_asn": 32123,
+  "submitter": "CIRA IPT",
+  "ipt_server_ip": "162.219.49.25",
+  "ipt_server_city": "Montreal",
+  "ipt_server_postal_code": "T1U2V3",
+  "os": "Darwin",
+  "protocol": "ICMP",
+  "hops": [
+    {
+      "num": 1,
+      "ip": "162.219.49.1",
+      "rtts": ["0.251", "0.281", "0.331"]
+    },
+    {
+      "num": 2,
+      "ip": "184.105.64.89",
+      "rtts": ["14.703", "17.144", "19.620"]
+    },
+    {
+      "num": 3,
+      "ip": "198.32.118.113",
+      "rtts": ["12.540", "12.792", "13.013"]
+    },
+    {
+      "num": 4,
+      "ip": "64.230.79.90",
+      "rtts": ["24.443", "26.865", "27.917"]
+    },
+    {
+      "num": 5,
+      "ip": "64.230.79.151",
+      "rtts": ["24.975", "27.147", "28.284"]
+    },
+    {
+      "num": 6,
+      "ip": "64.230.91.57",
+      "rtts": ["21.878", "21.970", "22.113"]
+    },
+    {
+      "num": 7,
+      "ip": "10.178.206.152",
+      "rtts": ["22.132", "22.248", "22.380"]
+    },
+    {
+      "num": 8,
+      "ip": "69.157.148.1",
+      "rtts": ["26.955", "28.098", "33.291"]
+    },
+    {
+      "num": 9,
+      "ip": "69.157.148.199",
+      "rtts": ["37.846", "38.430", "38.872"]
+    }
+  ]
+}
+</textarea>
+		</br></br>
+		<input id="submit" type="button" value="Submit PTR JSON">
+		</br></br>
+		GEO-JSON: 
+		</br>
+		<pre id="ptr-response" style="background-color: #e0d9d9; width: 70%; padding: 10px;"></pre>
+		</br></br>
+		<div id="error"></div>
+	</form>
+</body>
+</html>

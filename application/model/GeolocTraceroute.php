@@ -6,7 +6,6 @@ class GeolocTraceroute {
   private $request_id;
   private $ixmaps_id;
   private $hop_count;
-  private $terminate;
   private $boomerang;
   private $overlay_data;
 
@@ -51,13 +50,6 @@ class GeolocTraceroute {
   }
   public function getHopCount() {
     return $this->hop_count;
-  }
-
-  public function setTerminate($terminate) {
-    $this->terminate = $terminate;
-  }
-  public function getTerminate() {
-    return $this->terminate;
   }
 
   public function setBoomerang($boomerang) {
