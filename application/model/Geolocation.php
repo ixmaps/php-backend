@@ -7,8 +7,10 @@
  *
  */
 class Geolocation {
-  private $mm_ip_data; // REMOVE THIS! deal with this inside functions
+  private $ixmaps_ip_data; //TEMP
+  private $mm_ip_data; //TEMP
   private $ip;         // not sure if we will need this here. It's a bit redundant
+  private $hostname;  // Added for debugging/analysis purposes
   private $lat;
   private $long;
   private $city;
@@ -32,7 +34,7 @@ class Geolocation {
    * Creates a Geolocation object for a given IP. Checks different Geolocation sources:  (ixmaps, maxmind)
    * @param inet $ip Ip address in inet/string format
    */
-  function __construct($ip) {
+  function __construct($ip, $degub_mode=false) {
     global $mm;
     $this->ip = $ip; 
     
@@ -40,31 +42,67 @@ class Geolocation {
     $this->mm_ip_data = $mm->getGeoIp($ip);
 
     // 1. Check if IP exists in IXmaps DB
-    $ixmapsDb = $this->checkIpIxmapsDb($ip);
-    if ($ixmapsDb) {
+    $this->ixmaps_ip_data = $this->checkIpIxmapsDb($ip, $degub_mode);
+
+    if ($this->ixmaps_ip_data) {
       // Check if ip has been geo corrected
-      if($ixmapsDb['gl_override']!=null){
-        // Use IXmaps geo data
-        $this->lat = $ixmapsDb['lat'];
-        $this->long = $ixmapsDb['long'];
-        $this->city = $ixmapsDb['mm_city'];
-        $this->country = $ixmapsDb['mm_country'];
-        if($ixmapsDb['asnum']!="-1"){
-          $this->asnum = $ixmapsDb['asnum'];
-        } else {
-          $this->asnum = NULL;
+      if($this->ixmaps_ip_data['gl_override']!=null){
+        if($degub_mode){
+          echo "\n\t(".$ip.") : In IXmaps DB, geocorrected\n\n";
         }
-        $this->asname = $mm_ip_data["isp"];
+        // Use IXmaps geo data
+        $this->lat = $this->ixmaps_ip_data['lat'];
+        $this->long = $this->ixmaps_ip_data['long'];
+        $this->city = $this->ixmaps_ip_data['mm_city'];
+        $this->country = $this->ixmaps_ip_data['mm_country'];
+        if($this->ixmaps_ip_data['asnum']!=-1){
+          if($degub_mode){
+            echo "\n\t\tUsing asnum and asname from IXmaps DB\n\n";
+          }
+          $this->asnum = $this->ixmaps_ip_data['asnum'];
+          $this->asname = $this->ixmaps_ip_data['name']."";
+
+        } else {
+          // use MM for asn and asname
+          if($degub_mode){
+            echo "\n\t\tUsing asnum and asname from MM DB\n\n";
+          }
+          $this->asnum = $this->mm_ip_data['asn'];
+          $this->asname = $this->mm_ip_data['isp'];
+          
+          if($this->mm_ip_data['asn']!=null){
+            /*
+              TODO: update IXmapsDB with known ASN from MM ?
+            */  
+          }
+        }
         $this->source = "ixmaps";
       } else {
+        if($degub_mode){
+          echo "\n\t(".$ip.") : In IXmaps DB, NOT geocorrected\n\n";
+        }
         // TODO: do something if the ip exists in IXmaps db but it has not been geo-corrected?
         // using MM for now
         $this->lat = $this->mm_ip_data["geoip"]["latitude"];
         $this->long = $this->mm_ip_data["geoip"]["longitude"];
         $this->city = $this->mm_ip_data["geoip"]["city"];
         $this->country = $this->mm_ip_data["geoip"]["country_code"];
-        $this->asnum = $this->mm_ip_data["asn"];
-        $this->asname = $this->mm_ip_data["isp"];
+        
+        
+        if($this->mm_ip_data["asn"]==null && $this->ixmaps_ip_data['asnum']!=-1){
+          if($degub_mode){
+            echo "\n\t\tasnum is null in MM but valid in IXmaps db\n\n";
+          }
+          $this->asnum = $this->ixmaps_ip_data['asnum'];
+          $this->asname = $this->ixmaps_ip_data['name'];
+        } else {
+          if($degub_mode){
+            echo "\n\t\tUsing asnum and asname from MM\n\n";
+          }
+          $this->asnum = $this->mm_ip_data["asn"];
+          $this->asname = $this->mm_ip_data["isp"];
+        }
+        
         $this->source = "maxmind";
       }
 
@@ -73,6 +111,9 @@ class Geolocation {
           
       // Insert new ip in IXmaps Db for logging purposes??
       /*$this->insertNewIpAddress($mm_ip_data);*/
+      if($degub_mode){
+        echo "\n\t(".$ip.") : In MM DB\n\n";
+      }
 
       // Use MM geo data
       $this->lat = $this->mm_ip_data["geoip"]["latitude"];
@@ -85,6 +126,9 @@ class Geolocation {
 
     // 3. Set default geo data
     } else {
+      if($degub_mode){
+        echo "\n\t(".$ip.") : Not in IXmaps nor in MM DBs\n\n";
+      }
       $this->lat = NULL;
       $this->long = NULL;
       $this->city = NULL;
@@ -96,8 +140,6 @@ class Geolocation {
 
     /* TODO: 4. check other geo-data sources. */
 
-
-    //$this->printVars(); 
   }
 
   /**
@@ -108,10 +150,10 @@ class Geolocation {
     * @return $ip_addr array Geo data 
     *
     */
-  private function checkIpIxmapsDb($ip){
+  private function checkIpIxmapsDb($ip, $degub_mode){
     global $dbconn;
 
-    $sql = "SELECT ip_addr_info.hostname, ip_addr_info.lat, ip_addr_info.long, ip_addr_info.mm_country, ip_addr_info.mm_city, ip_addr_info.asnum, ip_addr_info.p_status, ip_addr_info.gl_override FROM ip_addr_info WHERE ip_addr = $1";
+    $sql = "SELECT ip_addr_info.hostname, ip_addr_info.asnum, as_users.name, ip_addr_info.lat, ip_addr_info.long, ip_addr_info.mm_country, ip_addr_info.mm_city, ip_addr_info.p_status, ip_addr_info.gl_override FROM ip_addr_info, as_users WHERE (ip_addr_info.asnum = as_users.num) AND ip_addr_info.ip_addr = $1";
 
     // TODO: add error handling that is consistent with PTR approach
     $params = array($ip);
@@ -119,9 +161,7 @@ class Geolocation {
 
     //$result = pg_query($dbconn, $sql) or die('checkIpIxmapsDb: Query failed'.pg_last_error());
     $ip_addr = pg_fetch_all($result);
-    //print_r($ip_addr);
     pg_free_result($result);
-
     if ($ip_addr) {
       //print_r($ip_addr);
       //echo "\n exists";
@@ -145,25 +185,6 @@ class Geolocation {
 
     // TODO: add error handling that is consistent with PTR approach
     $result = pg_query_params($dbconn, $sql, $params);// 
-  }
-
-  /**
-    * Print class variables: for debugging only
-    */
-  private function printVars(){
-    echo "\n************************";
-    echo "\nGeolocation Variables";
-    echo "\n************************";
-    echo "\nMM data:\n";
-    print_r($this->mm_ip_data);
-    echo "\nlat: ".$this->lat;
-    echo "\nlong: ".$this->long;
-    echo "\ncity: ".$this->city;
-    echo "\ncountry: ".$this->country;
-    echo "\nasnum: ".$this->asnum;
-    echo "\nasname: ".$this->asname;
-    echo "\nsource: ".$this->source;
-    echo "\n************************";
   }
 
   public function getLat() {
