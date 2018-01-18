@@ -1,11 +1,10 @@
 <?php
-// todo-declare(strict_types = 1); TODO: get the var type checking working... no error? php7?
-
 class GeolocTraceroute {
   private $status;
   private $request_id;
   private $ixmaps_id;
   private $hop_count;
+  private $completed;
   private $boomerang;
   private $overlay_data;
 
@@ -13,7 +12,7 @@ class GeolocTraceroute {
     $this->status = new ResponseCode(100);
   }
 
-  // this must be in this class, needs access to the privates - otherwise we could move this and the PTR ones to the same class
+  // this must be in this class, needs access to the privates - otherwise we could move this and the PTR ones to the same class. Or maybe move more into here?
   public function determineStatus() {
     // check that GLTR has no null values (cannot check status yet, since this is setting it)
     foreach ($this as $key => $value) {
@@ -50,6 +49,13 @@ class GeolocTraceroute {
   }
   public function getHopCount() {
     return $this->hop_count;
+  }
+
+  public function setCompleted($completed) {
+    $this->completed = $completed;
+  }
+  public function getCompleted() {
+    return $this->completed;
   }
 
   public function setBoomerang($boomerang) {

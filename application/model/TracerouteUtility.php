@@ -3,20 +3,21 @@ class TracerouteUtility
 {
   /** Check if a set of hops is a CA-US-CA boomerang routes
     *
-    * @param $hops is a set of hops of structure
-    *          [
-    *            {
-    *              "hop_num": 1,
-    *              "ip": 123.234.345.456,
-    *              "rtt": 12.3
-    *            },
-    *            {
-    *              "hop_num": 2,
-    *              "ip": 987.876.765.654,
-    *              "rtt": 34.5
-    *            }
-    *            ...
-    *          ]
+    * @params
+    * $hops is a set of hops of structure
+    *   [
+    *       {
+    *         "num": 1,
+    *         "ip": "162.219.49.1",
+    *         "rtts": ["0.251", "0.281", "0.331"]
+    *       },
+    *       {
+    *         "num": 2,
+    *         "ip": "184.105.64.89",
+    *         "rtts": ["14.703", "17.144", "19.620"]
+    *       },
+    *       ...
+    *   ]
     *
     * @return boolean
     *
@@ -44,7 +45,38 @@ class TracerouteUtility
       }
     }
 
-    // if we get here, route has CA orig and CA dest but no US middle
+    // if we get to this point, route has CA orig and CA dest but no US middle
+    return false;
+  }
+
+
+  /** Check if a set of hops completes
+    * Completing is currently defined as last_hop = destination
+    *
+    * @param $hops, $destIp
+    * $hops is a set of hops of structure
+    *   [
+    *       {
+    *         "num": 1,
+    *         "ip": "162.219.49.1",
+    *         "rtts": ["0.251", "0.281", "0.331"]
+    *       },
+    *       {
+    *         "num": 2,
+    *         "ip": "184.105.64.89",
+    *         "rtts": ["14.703", "17.144", "19.620"]
+    *       },
+    *       ...
+    *   ]
+    *
+    * @return boolean
+    *
+    */
+  public static function checkIfCompleted($hops, $destIp) {
+    // if first hop is not CA
+    if (end($hops)["ip"] == $destIp) {
+      return true;
+    }
     return false;
   }
 

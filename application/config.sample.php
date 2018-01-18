@@ -30,7 +30,7 @@ $MM_geoip_dir = "/var/www/ixmaps/application/geoip";
 $MM_dat_dir = "/home/ixmaps/ix-data/mm-data";
 
 //////////////////////////////////////////////////////////
-$trNumLimit=500; 
+$trNumLimit=500;
 $ixmaps_debug_mode = true;
 $ixmaps_hands_off_config = array();
 

@@ -27,19 +27,17 @@ $mm = new IXmapsMaxMind();
  *** send the json to ingest_tr_cira (phase 2)
  ***/
 
-//print_r($_POST);
-//$hopData = "";
-//$chosenPass = $_POST["hops"]
-$hops = $_POST["hops"];
 
 /***
  *** construct the basic GL TR
  ***/
+// I need this for my local testing - how do we resolve this?
+$hops = json_decode($_POST["hops"], TRUE);
 $geolocTr = new GeolocTraceroute();
 $geolocTr->setRequestId($ptr->getRequestId());
 $geolocTr->setIXmapsId(0);
 $geolocTr->setHopCount(count($hops));
-//$geolocTr->setTerminate($chosenPass["terminate"]); Not needed/used ?
+$geolocTr->setCompleted(TracerouteUtility::checkIfCompleted($hops, $ptr->getClientIp()));
 $geolocTr->setBoomerang(TracerouteUtility::checkIfBoomerang($hops));
 
 
@@ -57,7 +55,7 @@ foreach ($hops as $hop) {
     "country" => $myHop->getCountry(),
     "city" => $myHop->getCity(),
     "nsa" => "TODO",
-    "georeliability" => $myHop->getSource() // Do we want to add the souce here?
+    "georeliability" => $myHop->getSource() // Do we want to add the source here?
   );
   $overlayHop = array(
     "hop" => $hop["num"],
@@ -68,7 +66,6 @@ foreach ($hops as $hop) {
   );
   array_push($overlayData, $overlayHop);
 }
-
 $geolocTr->setOverlayData($overlayData);
 $geolocTr->setStatus($geolocTr->determineStatus());
 

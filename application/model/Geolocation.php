@@ -1,8 +1,8 @@
 <?php
 /**
- * 
+ *
  * This class manages transactions with geolocation sources/databases and services and returns a geolocation object for a given ip
- * It's expected that new geolocation sources will be included as methods 
+ * It's expected that new geolocation sources will be included as methods
  * @author IXmaps.ca
  *
  */
@@ -30,14 +30,14 @@ class Geolocation {
 
 
   /**
-   * 
+   *
    * Creates a Geolocation object for a given IP. Checks different Geolocation sources:  (ixmaps, maxmind)
    * @param inet $ip Ip address in inet/string format
    */
   function __construct($ip, $degub_mode=false) {
     global $mm;
-    $this->ip = $ip; 
-    
+    $this->ip = $ip;
+
     // Query MM object
     $this->mm_ip_data = $mm->getGeoIp($ip);
 
@@ -69,11 +69,11 @@ class Geolocation {
           }
           $this->asnum = $this->mm_ip_data['asn'];
           $this->asname = $this->mm_ip_data['isp'];
-          
+
           if($this->mm_ip_data['asn']!=null){
             /*
               TODO: update IXmapsDB with known ASN from MM ?
-            */  
+            */
           }
         }
         $this->source = "ixmaps";
@@ -87,8 +87,8 @@ class Geolocation {
         $this->long = $this->mm_ip_data["geoip"]["longitude"];
         $this->city = $this->mm_ip_data["geoip"]["city"];
         $this->country = $this->mm_ip_data["geoip"]["country_code"];
-        
-        
+
+
         if($this->mm_ip_data["asn"]==null && $this->ixmaps_ip_data['asnum']!=-1){
           if($degub_mode){
             echo "\n\t\tasnum is null in MM but valid in IXmaps db\n\n";
@@ -102,13 +102,13 @@ class Geolocation {
           $this->asnum = $this->mm_ip_data["asn"];
           $this->asname = $this->mm_ip_data["isp"];
         }
-        
+
         $this->source = "maxmind";
       }
 
     // 2. Check Maxmind data
     } else if (isset($this->mm_ip_data['geoip']['country_code'])) {
-          
+
       // Insert new ip in IXmaps Db for logging purposes??
       /*$this->insertNewIpAddress($mm_ip_data);*/
       if($degub_mode){
@@ -147,7 +147,7 @@ class Geolocation {
     *
     * @param $ip inet ip address
     *
-    * @return $ip_addr array Geo data 
+    * @return $ip_addr array Geo data
     *
     */
   private function checkIpIxmapsDb($ip, $degub_mode){
@@ -170,7 +170,7 @@ class Geolocation {
       return false;
     }
   }
-  
+
   /**
     * Insert New Ip address into IXmaps DB
     * @param $ip_data array IP, Geodata and asn
@@ -184,7 +184,7 @@ class Geolocation {
       print_r($params);*/
 
     // TODO: add error handling that is consistent with PTR approach
-    $result = pg_query_params($dbconn, $sql, $params);// 
+    $result = pg_query_params($dbconn, $sql, $params);//
   }
 
   public function getLat() {

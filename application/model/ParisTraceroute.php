@@ -27,12 +27,8 @@ class ParisTraceroute {
     $sql = "INSERT INTO ptr_contributions (ptr_json) VALUES ($1)";
     $params = array(json_encode($data));
 
-    /*echo "\n".$sql;
-    print_r($params);*/
-
     // TODO: add error handling that is consistent with PTR approach
-    $result = pg_query_params($dbconn, $sql, $params);// 
-
+    $result = pg_query_params($dbconn, $sql, $params);
   }
 
   public function getRequestId() {
@@ -46,34 +42,23 @@ class ParisTraceroute {
   public function getClientIp() {
     return $this->ipt_client_ip;
   }
-
-  public function getSubmitter() {
-    return $this->submitter;
-  }
-  public function getIptServerIp() {
-    return $this->ipt_server_ip;
-  }
-
-  public function getIptServerCity() {
-    return $this->ipt_server_city;
-  }
-
   public function getClientPostalCode() {
     return $this->ipt_client_postal_code;
   }
-
   public function getClientAsn() {
     return $this->ipt_client_asn;
   }
 
-  public function getSubmitterIp() {
-    return $this->submitter_ip;
+  public function getSubmitter() {
+    return $this->submitter;
   }
 
+  public function getServerIp() {
+    return $this->ipt_server_ip;
+  }
   public function getServerCity() {
     return $this->ipt_server_city;
   }
-
   public function getServerPostalCode() {
     return $this->ipt_server_postal_code;
   }
