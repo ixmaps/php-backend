@@ -32,7 +32,8 @@ $mm = new IXmapsMaxMind();
  *** construct the basic GL TR
  ***/
 // I need this for my local testing - how do we resolve this?
-$hops = json_decode($_POST["hops"], TRUE);
+//$hops = json_decode($_POST["hops"], TRUE);
+$hops = $_POST["hops"];
 $geolocTr = new GeolocTraceroute();
 $geolocTr->setRequestId($ptr->getRequestId());
 $geolocTr->setIXmapsId(0);

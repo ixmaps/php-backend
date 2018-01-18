@@ -1,7 +1,8 @@
 <?php
 class ParisTracerouteUtility
 {
-  /** Check if PTR is valid
+  /**
+    * Check if PTR is valid
     *
     * @param PTR post
     *
@@ -19,7 +20,8 @@ class ParisTracerouteUtility
     }
   }
 
-  /** Determine correct ResponseCode for the return
+  /**
+    * Determine correct ResponseCode for the return
     * TODO: decide if this is specific to PTR (and not GeolocTR), if so get rid of the 201, refactor a bit
     *
     * @param PTR post

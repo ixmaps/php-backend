@@ -1,9 +1,10 @@
 <?php
 class TracerouteUtility
 {
-  /** Check if a set of hops is a CA-US-CA boomerang routes
+  /**
+    * Check if a set of hops is a CA-US-CA boomerang routes
     *
-    * @params
+    * @param
     * $hops is a set of hops of structure
     *   [
     *       {
@@ -50,7 +51,8 @@ class TracerouteUtility
   }
 
 
-  /** Check if a set of hops completes
+  /**
+    * Check if a set of hops completes
     * Completing is currently defined as last_hop = destination
     *
     * @param $hops, $destIp

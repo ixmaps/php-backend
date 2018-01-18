@@ -22,19 +22,13 @@ class Geolocation {
 
   // move the IXmapsMaxMind class into here? Maybe slower to constantly open and close Dat files? Otherwise? Hopefully not use globals :(
 
-  // perhaps return ip + 'source' (eg MM). That would speak to using a setup with a verbose constructor like this
-
-  // NOTE: current setup is an alternative to this kind of structure:
-  // $lat = Geolocation::getLat($myIp);
-  // $city = Geolocation::getLat($myIp);
-
 
   /**
    *
    * Creates a Geolocation object for a given IP. Checks different Geolocation sources:  (ixmaps, maxmind)
    * @param inet $ip Ip address in inet/string format
    */
-  function __construct($ip, $degub_mode=false) {
+  function __construct($ip, $debug_mode=false) {
     global $mm;
     $this->ip = $ip;
 
@@ -42,12 +36,12 @@ class Geolocation {
     $this->mm_ip_data = $mm->getGeoIp($ip);
 
     // 1. Check if IP exists in IXmaps DB
-    $this->ixmaps_ip_data = $this->checkIpIxmapsDb($ip, $degub_mode);
+    $this->ixmaps_ip_data = $this->checkIpIxmapsDb($ip, $debug_mode);
 
     if ($this->ixmaps_ip_data) {
       // Check if ip has been geo corrected
       if($this->ixmaps_ip_data['gl_override']!=null){
-        if($degub_mode){
+        if($debug_mode){
           echo "\n\t(".$ip.") : In IXmaps DB, geocorrected\n\n";
         }
         // Use IXmaps geo data
@@ -56,7 +50,7 @@ class Geolocation {
         $this->city = $this->ixmaps_ip_data['mm_city'];
         $this->country = $this->ixmaps_ip_data['mm_country'];
         if($this->ixmaps_ip_data['asnum']!=-1){
-          if($degub_mode){
+          if($debug_mode){
             echo "\n\t\tUsing asnum and asname from IXmaps DB\n\n";
           }
           $this->asnum = $this->ixmaps_ip_data['asnum'];
@@ -64,7 +58,7 @@ class Geolocation {
 
         } else {
           // use MM for asn and asname
-          if($degub_mode){
+          if($debug_mode){
             echo "\n\t\tUsing asnum and asname from MM DB\n\n";
           }
           $this->asnum = $this->mm_ip_data['asn'];
@@ -78,7 +72,7 @@ class Geolocation {
         }
         $this->source = "ixmaps";
       } else {
-        if($degub_mode){
+        if($debug_mode){
           echo "\n\t(".$ip.") : In IXmaps DB, NOT geocorrected\n\n";
         }
         // TODO: do something if the ip exists in IXmaps db but it has not been geo-corrected?
@@ -90,13 +84,13 @@ class Geolocation {
 
 
         if($this->mm_ip_data["asn"]==null && $this->ixmaps_ip_data['asnum']!=-1){
-          if($degub_mode){
+          if($debug_mode){
             echo "\n\t\tasnum is null in MM but valid in IXmaps db\n\n";
           }
           $this->asnum = $this->ixmaps_ip_data['asnum'];
           $this->asname = $this->ixmaps_ip_data['name'];
         } else {
-          if($degub_mode){
+          if($debug_mode){
             echo "\n\t\tUsing asnum and asname from MM\n\n";
           }
           $this->asnum = $this->mm_ip_data["asn"];
@@ -111,7 +105,7 @@ class Geolocation {
 
       // Insert new ip in IXmaps Db for logging purposes??
       /*$this->insertNewIpAddress($mm_ip_data);*/
-      if($degub_mode){
+      if($debug_mode){
         echo "\n\t(".$ip.") : In MM DB\n\n";
       }
 
@@ -126,7 +120,7 @@ class Geolocation {
 
     // 3. Set default geo data
     } else {
-      if($degub_mode){
+      if($debug_mode){
         echo "\n\t(".$ip.") : Not in IXmaps nor in MM DBs\n\n";
       }
       $this->lat = NULL;
@@ -147,10 +141,10 @@ class Geolocation {
     *
     * @param $ip inet ip address
     *
-    * @return $ip_addr array Geo data
+    * @return $ip_addr array Geo data or Bool false
     *
     */
-  private function checkIpIxmapsDb($ip, $degub_mode){
+  private function checkIpIxmapsDb($ip, $debug_mode){
     global $dbconn;
 
     $sql = "SELECT ip_addr_info.hostname, ip_addr_info.asnum, as_users.name, ip_addr_info.lat, ip_addr_info.long, ip_addr_info.mm_country, ip_addr_info.mm_city, ip_addr_info.p_status, ip_addr_info.gl_override FROM ip_addr_info, as_users WHERE (ip_addr_info.asnum = as_users.num) AND ip_addr_info.ip_addr = $1";
