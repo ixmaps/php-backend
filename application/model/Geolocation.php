@@ -18,6 +18,8 @@ class Geolocation {
   private $asnum;
   private $asname;
   private $source;        // do we like this name? Open to suggestions
+  private $asn_source;
+  private $geodata_source;
 
 
   // move the IXmapsMaxMind class into here? Maybe slower to constantly open and close Dat files? Otherwise? Hopefully not use globals :(
@@ -32,11 +34,23 @@ class Geolocation {
     global $mm;
     $this->ip = $ip;
 
-    // Query MM object
-    $this->mm_ip_data = $mm->getGeoIp($ip);
+    // TODO: validate ip format
+    $ip_is_valid = false;
+    if($ip!=""){
+      // Query MM object
+      $this->mm_ip_data = $mm->getGeoIp($ip);
+      $ip_is_valid = true;
+    } else {
+      //exit();
+    }
 
     // 1. Check if IP exists in IXmaps DB
-    $this->ixmaps_ip_data = $this->checkIpIxmapsDb($ip, $debug_mode);
+    if($ip!="" && $ip!=null){
+      $this->ixmaps_ip_data = $this->checkIpIxmapsDb($ip, $debug_mode);  
+    } else {
+      $this->ixmaps_ip_data = null;
+    }
+    
 
     if ($this->ixmaps_ip_data) {
       // Check if ip has been geo corrected
@@ -49,12 +63,16 @@ class Geolocation {
         $this->long = $this->ixmaps_ip_data['long'];
         $this->city = $this->ixmaps_ip_data['mm_city'];
         $this->country = $this->ixmaps_ip_data['mm_country'];
+
         if($this->ixmaps_ip_data['asnum']!=-1){
           if($debug_mode){
             echo "\n\t\tUsing asnum and asname from IXmaps DB\n\n";
           }
           $this->asnum = $this->ixmaps_ip_data['asnum'];
           $this->asname = $this->ixmaps_ip_data['name']."";
+          $this->hostname = $this->ixmaps_ip_data['hostname'];
+          $this->asn_source = "ixmaps";
+          
 
         } else {
           // use MM for asn and asname
@@ -63,14 +81,16 @@ class Geolocation {
           }
           $this->asnum = $this->mm_ip_data['asn'];
           $this->asname = $this->mm_ip_data['isp'];
-
+          $this->hostname = $this->mm_ip_data['hostname'];
+          $this->asn_source = "maxmind";
+          
           if($this->mm_ip_data['asn']!=null){
             /*
               TODO: update IXmapsDB with known ASN from MM ?
             */
           }
         }
-        $this->source = "ixmaps";
+        $this->geodata_source = "ixmaps";
       } else {
         if($debug_mode){
           echo "\n\t(".$ip.") : In IXmaps DB, NOT geocorrected\n\n";
@@ -81,7 +101,9 @@ class Geolocation {
         $this->long = $this->mm_ip_data["geoip"]["longitude"];
         $this->city = $this->mm_ip_data["geoip"]["city"];
         $this->country = $this->mm_ip_data["geoip"]["country_code"];
-
+        $this->geodata_source = "maxmind";
+        $this->hostname = $this->mm_ip_data['hostname'];
+        $this->geodata_source = "maxmind";
 
         if($this->mm_ip_data["asn"]==null && $this->ixmaps_ip_data['asnum']!=-1){
           if($debug_mode){
@@ -89,15 +111,16 @@ class Geolocation {
           }
           $this->asnum = $this->ixmaps_ip_data['asnum'];
           $this->asname = $this->ixmaps_ip_data['name'];
+          $this->asn_source = "ixmaps";
         } else {
           if($debug_mode){
             echo "\n\t\tUsing asnum and asname from MM\n\n";
           }
           $this->asnum = $this->mm_ip_data["asn"];
           $this->asname = $this->mm_ip_data["isp"];
+          $this->asn_source = "maxmind";
         }
-
-        $this->source = "maxmind";
+        
       }
 
     // 2. Check Maxmind data
@@ -116,7 +139,10 @@ class Geolocation {
       $this->country = $this->mm_ip_data["geoip"]["country_code"];
       $this->asnum = $this->mm_ip_data["asn"];
       $this->asname = $this->mm_ip_data["isp"];
-      $this->source = "maxmind";
+      //$this->source = "maxmind";
+      $this->geodata_source = "maxmind";
+      $this->asn_source = "maxmind";
+      $this->hostname = $this->mm_ip_data['hostname'];
 
     // 3. Set default geo data
     } else {
@@ -130,6 +156,9 @@ class Geolocation {
       $this->asnum = NULL;
       $this->asname = NULL;
       $this->source = NULL;
+      $this->geodata_source = NULL;
+      $this->asn_source = NULL;
+      $this->hostname = NULL;
     }
 
     /* TODO: 4. check other geo-data sources. */
@@ -181,6 +210,10 @@ class Geolocation {
     $result = pg_query_params($dbconn, $sql, $params);//
   }
 
+  public function getHostname() {
+    return $this->hostname;
+  }
+
   public function getLat() {
     return $this->lat;
   }
@@ -207,5 +240,13 @@ class Geolocation {
 
   public function getSource() {
     return $this->source;
+  }
+  
+  public function getAsnSource() {
+    return $this->asn_source;
+  }
+  
+  public function getGeodataSource() {
+    return $this->geodata_source;
   }
 } // end class
