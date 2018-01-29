@@ -57,7 +57,7 @@ foreach ($hops as $hop) {
       "asname" => $myHop->getASName(),
       "country" => $myHop->getCountry(),
       "city" => $myHop->getCity(),
-      "nsa" => "TODO",
+      "nsa" => $myHop->getNsa(),
       //"georeliability" => "",//$myHop->getSource() // Do we want to add the source here?
       "asn_source" => $myHop->getAsnSource(),
       "geodata_source" => $myHop->getGeodataSource()
