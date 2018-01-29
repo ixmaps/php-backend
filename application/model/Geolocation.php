@@ -14,6 +14,7 @@ class Geolocation {
   private $lat;
   private $long;
   private $city;
+  private $nsa;
   private $country;
   private $asnum;
   private $asname;
@@ -161,6 +162,8 @@ class Geolocation {
       $this->asn_source = NULL;
       $this->hostname = NULL;
     }
+    
+    $this->setNsa($this->city);
 
     /* TODO: 4. check other geo-data sources. */
 
@@ -214,6 +217,15 @@ class Geolocation {
     }
   }
 
+  private function setNsa($cityName = "") {
+    $nsaCities = ["San Francisco", "Los Angeles", "New York", "Dallas", "Washington", "Ashburn", "Seattle", "San Jose", "San Diego", "Miami", "Boston", "Phoenix", "Salt Lake City", "Nashville", "Denver", "Saint Louis", "Bridgeton", "Bluffdale", "Houston", "Chicago", "Atlanta", "Portland"];
+    if (in_array($cityName, $nsaCities)) {
+      $this->nsa = true;
+    } else {
+      $this->nsa = false;
+    }
+  }
+
   public function getHostname() {
     return $this->hostname;
   }
@@ -228,6 +240,10 @@ class Geolocation {
 
   public function getCity() {
     return $this->city;
+  }
+
+  public function getNsa() {
+    return $this->nsa;
   }
 
   public function getCountry() {
