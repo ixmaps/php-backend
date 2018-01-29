@@ -177,7 +177,7 @@ class Geolocation {
   private function checkIpIxmapsDb($ip, $debug_mode){
     global $dbconn;
 
-  $sql = "SELECT ip_addr_info_temp.hostname, ip_addr_info_temp.asnum, as_users.name, ip_addr_info_temp.lat, ip_addr_info_temp.long, ip_addr_info_temp.mm_country, ip_addr_info_temp.mm_city, ip_addr_info_temp.p_status, ip_addr_info_temp.gl_override FROM ip_addr_info_temp, as_users WHERE (ip_addr_info_temp.asnum = as_users.num) AND ip_addr_info_temp.ip_addr = $1";
+  $sql = "SELECT ip_addr_info.hostname, ip_addr_info.asnum, as_users.name, ip_addr_info.lat, ip_addr_info.long, ip_addr_info.mm_country, ip_addr_info.mm_city, ip_addr_info.p_status, ip_addr_info.gl_override FROM ip_addr_info, as_users WHERE (ip_addr_info.asnum = as_users.num) AND ip_addr_info.ip_addr = $1";
 
     // TODO: add error handling that is consistent with PTR approach
     $params = array($ip);
@@ -201,12 +201,12 @@ class Geolocation {
     */
   private function insertNewIpAddress($ip_data){
     global $dbconn;
-    $sql = "SELECT ip_addr FROM ip_addr_info_temp WHERE ip_addr = $1";
+    $sql = "SELECT ip_addr FROM ip_addr_info WHERE ip_addr = $1";
     $params = array($ip_data['ip']);
     $result = pg_query_params($dbconn, $sql, $params) or die();
     $id_data = pg_fetch_all($result);
     if(!$id_data){
-      $sql = "INSERT INTO ip_addr_info_temp (ip_addr, asnum, mm_lat, mm_long, hostname, mm_country, mm_region, mm_city, mm_postal, mm_area_code, mm_dma_code, lat, long, p_status, gl_override) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)";
+      $sql = "INSERT INTO ip_addr_info (ip_addr, asnum, mm_lat, mm_long, hostname, mm_country, mm_region, mm_city, mm_postal, mm_area_code, mm_dma_code, lat, long, p_status, gl_override) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)";
       $params = array($ip_data['ip'], $ip_data['asn'], $ip_data['geoip']['latitude'], $ip_data['geoip']['longitude'], $ip_data['hostname'], $ip_data['geoip']['country_code'], $ip_data['geoip']['region'], $ip_data['geoip']['city'], $ip_data['geoip']['postal_code'], $ip_data['geoip']['area_code'], $ip_data['geoip']['dma_code'], $ip_data['geoip']['latitude'], $ip_data['geoip']['longitude'], 'x', NULL);
 
         // TODO: add error handling that is consistent with PTR approach
