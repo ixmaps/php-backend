@@ -1,16 +1,20 @@
 <?php
 /**
  *
- * This class manages transactions with geolocation sources/databases and services and returns a geolocation object for a given ip
+ * This class manages transactions with geolocation sources/databases and services
+ * and returns a geolocation object for a given ip
+ *
  * It's expected that new geolocation sources will be included as methods
- * @author IXmaps.ca
+ *
+ * @author IXmaps.ca (Antonio, Colin)
+ * @since 2018 Jan 1
  *
  */
 class Geolocation {
   private $ixmaps_ip_data; //TEMP
   private $mm_ip_data; //TEMP
   private $ip;         // not sure if we will need this here. It's a bit redundant
-  private $hostname;  // Added for debugging/analysis purposes
+  private $hostname;   // Added for debugging/analysis purposes
   private $lat;
   private $long;
   private $city;
@@ -18,45 +22,42 @@ class Geolocation {
   private $country;
   private $asnum;
   private $asname;
-  private $source;        // do we like this name? Open to suggestions
   private $asn_source;
-  private $geodata_source;
-
-
-  // move the IXmapsMaxMind class into here? Maybe slower to constantly open and close Dat files? Otherwise? Hopefully not use globals :(
-
+  private $geo_source;
 
   /**
    *
-   * Creates a Geolocation object for a given IP. Checks different Geolocation sources:  (ixmaps, maxmind)
+   * Creates a Geolocation object for a given IP.
+   * Current Geolocation sources: ixmaps, maxmind.
+   *
    * @param inet $ip Ip address in inet/string format
    */
-  function __construct($ip, $debug_mode=false) {
+  function __construct($ip, $debugMode=false) {
     global $mm;
     $this->ip = $ip;
 
     // TODO: validate ip format
-    $ip_is_valid = false;
+    $ipIsValid = false;
     if($ip!=""){
       // Query MM object
       $this->mm_ip_data = $mm->getGeoIp($ip);
-      $ip_is_valid = true;
+      $ipIsValid = true;
     } else {
       //exit();
     }
 
     // 1. Check if IP exists in IXmaps DB
     if($ip!="" && $ip!=null){
-      $this->ixmaps_ip_data = $this->checkIpIxmapsDb($ip, $debug_mode);  
+      $this->ixmaps_ip_data = $this->checkIpIxmapsDb($ip, $debugMode);
     } else {
       $this->ixmaps_ip_data = null;
     }
-    
+
 
     if ($this->ixmaps_ip_data) {
       // Check if ip has been geo corrected
       if($this->ixmaps_ip_data['gl_override']!=null){
-        if($debug_mode){
+        if($debugMode){
           echo "\n\t(".$ip.") : In IXmaps DB, geocorrected\n\n";
         }
         // Use IXmaps geo data
@@ -66,34 +67,33 @@ class Geolocation {
         $this->country = $this->ixmaps_ip_data['mm_country'];
 
         if($this->ixmaps_ip_data['asnum']!=-1){
-          if($debug_mode){
+          if($debugMode){
             echo "\n\t\tUsing asnum and asname from IXmaps DB\n\n";
           }
           $this->asnum = $this->ixmaps_ip_data['asnum'];
           $this->asname = $this->ixmaps_ip_data['name']."";
           $this->hostname = $this->ixmaps_ip_data['hostname'];
           $this->asn_source = "ixmaps";
-          
 
         } else {
           // use MM for asn and asname
-          if($debug_mode){
+          if($debugMode){
             echo "\n\t\tUsing asnum and asname from MM DB\n\n";
           }
           $this->asnum = $this->mm_ip_data['asn'];
           $this->asname = $this->mm_ip_data['isp'];
           $this->hostname = $this->mm_ip_data['hostname'];
           $this->asn_source = "maxmind";
-          
+
           if($this->mm_ip_data['asn']!=null){
             /*
               TODO: update IXmapsDB with known ASN from MM ?
             */
           }
         }
-        $this->geodata_source = "ixmaps";
+        $this->geo_source = "ixmaps";
       } else {
-        if($debug_mode){
+        if($debugMode){
           echo "\n\t(".$ip.") : In IXmaps DB, NOT geocorrected\n\n";
         }
         // TODO: do something if the ip exists in IXmaps db but it has not been geo-corrected?
@@ -102,35 +102,35 @@ class Geolocation {
         $this->long = $this->mm_ip_data["geoip"]["longitude"];
         $this->city = $this->mm_ip_data["geoip"]["city"];
         $this->country = $this->mm_ip_data["geoip"]["country_code"];
-        $this->geodata_source = "maxmind";
+        $this->geo_source = "maxmind";
         $this->hostname = $this->mm_ip_data['hostname'];
-        $this->geodata_source = "maxmind";
+        $this->geo_source = "maxmind";
 
         if($this->mm_ip_data["asn"]==null && $this->ixmaps_ip_data['asnum']!=-1){
-          if($debug_mode){
+          if($debugMode){
             echo "\n\t\tasnum is null in MM but valid in IXmaps db\n\n";
           }
           $this->asnum = $this->ixmaps_ip_data['asnum'];
           $this->asname = $this->ixmaps_ip_data['name'];
           $this->asn_source = "ixmaps";
         } else {
-          if($debug_mode){
+          if($debugMode){
             echo "\n\t\tUsing asnum and asname from MM\n\n";
           }
           $this->asnum = $this->mm_ip_data["asn"];
           $this->asname = $this->mm_ip_data["isp"];
           $this->asn_source = "maxmind";
         }
-        
+
       }
 
     // 2. Check Maxmind data
     } else if (isset($this->mm_ip_data['geoip']['country_code'])) {
 
-      // Insert new ip in IXmaps Db for logging purposes??
+      // Insert new ip in IXmaps Db for logging purposes?
       $this->insertNewIpAddress($this->mm_ip_data);
-      
-      if($debug_mode){
+
+      if($debugMode){
         echo "\n\t(".$ip.") : In MM DB\n\n";
       }
 
@@ -142,13 +142,13 @@ class Geolocation {
       $this->asnum = $this->mm_ip_data["asn"];
       $this->asname = $this->mm_ip_data["isp"];
       //$this->source = "maxmind";
-      $this->geodata_source = "maxmind";
+      $this->geo_source = "maxmind";
       $this->asn_source = "maxmind";
       $this->hostname = $this->mm_ip_data['hostname'];
 
     // 3. Set default geo data
     } else {
-      if($debug_mode){
+      if($debugMode){
         echo "\n\t(".$ip.") : Not in IXmaps nor in MM DBs\n\n";
       }
       $this->lat = NULL;
@@ -158,11 +158,11 @@ class Geolocation {
       $this->asnum = NULL;
       $this->asname = NULL;
       $this->source = NULL;
-      $this->geodata_source = NULL;
+      $this->geo_source = NULL;
       $this->asn_source = NULL;
       $this->hostname = NULL;
     }
-    
+
     $this->setNsa($this->city);
 
     /* TODO: 4. check other geo-data sources. */
@@ -177,7 +177,7 @@ class Geolocation {
     * @return $ip_addr array Geo data or Bool false
     *
     */
-  private function checkIpIxmapsDb($ip, $debug_mode){
+  private function checkIpIxmapsDb($ip, $debugMode){
     global $dbconn;
 
   $sql = "SELECT ip_addr_info.hostname, ip_addr_info.asnum, as_users.name, ip_addr_info.lat, ip_addr_info.long, ip_addr_info.mm_country, ip_addr_info.mm_city, ip_addr_info.p_status, ip_addr_info.gl_override FROM ip_addr_info, as_users WHERE (ip_addr_info.asnum = as_users.num) AND ip_addr_info.ip_addr = $1";
@@ -202,6 +202,7 @@ class Geolocation {
     * Insert New Ip address into IXmaps DB
     * @param $ip_data array IP, Geodata and asn
     */
+  // CM: suggest this does not belong in this class
   private function insertNewIpAddress($ip_data){
     global $dbconn;
     $sql = "SELECT ip_addr FROM ip_addr_info WHERE ip_addr = $1";
@@ -217,6 +218,7 @@ class Geolocation {
     }
   }
 
+  // CM: suggest this does not belong in this class
   private function setNsa($cityName = "") {
     $nsaCities = ["San Francisco", "Los Angeles", "New York", "Dallas", "Washington", "Ashburn", "Seattle", "San Jose", "San Diego", "Miami", "Boston", "Phoenix", "Salt Lake City", "Nashville", "Denver", "Saint Louis", "Bridgeton", "Bluffdale", "Houston", "Chicago", "Atlanta", "Portland"];
     if (in_array($cityName, $nsaCities)) {
@@ -258,15 +260,11 @@ class Geolocation {
     return $this->asname;
   }
 
-  public function getSource() {
-    return $this->source;
-  }
-  
   public function getAsnSource() {
     return $this->asn_source;
   }
-  
-  public function getGeodataSource() {
-    return $this->geodata_source;
+
+  public function getGeoSource() {
+    return $this->geo_source;
   }
 } // end class

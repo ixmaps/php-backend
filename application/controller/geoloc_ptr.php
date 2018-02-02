@@ -1,4 +1,14 @@
 <?php
+/**
+ *
+ * This controller acts as an API to handle geolocation POST requests
+ *
+ * Input is 'ptr' JSON structure, output is a geolocated JSON structure
+ *
+ * @author IXmaps.ca (Colin, Antonio)
+ * @since 2018 Jan 1
+ *
+ */
 header('Access-Control-Allow-Origin: *');
 include('../config.php');
 include('../model/IXmapsMaxMind.php');
@@ -23,6 +33,7 @@ if (ParisTracerouteUtility::isValid($_POST)) {
 }
 $mm = new IXmapsMaxMind();
 
+
 /***
  *** send the json to ingest_tr_cira (phase 2)
  ***/
@@ -31,8 +42,8 @@ $mm = new IXmapsMaxMind();
 /***
  *** construct the basic GL TR
  ***/
-// I need this for my local testing - how do we resolve this?
-//$hops = json_decode($_POST["hops"], TRUE);
+// CM: I need this for my local testing - how do we resolve this?
+$hops = json_decode($_POST["hops"], TRUE);
 $hops = $_POST["hops"];
 $geolocTr = new GeolocTraceroute();
 $geolocTr->setRequestId($ptr->getRequestId());
@@ -48,7 +59,7 @@ $geolocTr->setBoomerang(TracerouteUtility::checkIfBoomerang($hops));
 // TODO: create hops model, move this all in
 $overlayData = array();
 foreach ($hops as $hop) {
-  /*TODO: add ip format validation */
+  // TODO: add ip format validation
   if($hop["ip"]!=null && $hop["ip"]!=""){
     $myHop = new Geolocation($hop["ip"]);
 
@@ -58,9 +69,8 @@ foreach ($hops as $hop) {
       "country" => $myHop->getCountry(),
       "city" => $myHop->getCity(),
       "nsa" => $myHop->getNsa(),
-      //"georeliability" => "",//$myHop->getSource() // Do we want to add the source here?
       "asn_source" => $myHop->getAsnSource(),
-      "geodata_source" => $myHop->getGeodataSource()
+      "geo_source" => $myHop->getGeoSource()
 
     );
     $overlayHop = array(
@@ -71,7 +81,7 @@ foreach ($hops as $hop) {
       "long" => $myHop->getLong(),
       "attributes" => $attributeObj
     );
-    array_push($overlayData, $overlayHop);    
+    array_push($overlayData, $overlayHop);
   }
 
 }
