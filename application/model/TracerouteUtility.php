@@ -24,22 +24,19 @@ class TracerouteUtility
     *
     */
   public static function checkIfBoomerang($hops) {
-    
+
     // unset hops with no response
-    $hops_valid_ip = array();
+    $cleanedHops = array();
     foreach ($hops as $key1 => $hop1) {
-        //if(is_null($hop1['ip'])){
-        if($hop1['ip']!=""){
-            //unset($hops[$key1]);
-            $hops_valid_ip[]=$hop1;
-            //print_r($hop1);
-        }
+      if($hop1['ip']!=""){
+        $cleanedHops[]=$hop1;
+      }
     }
-    //print_r($hops);
-    $firstHop = new Geolocation($hops_valid_ip[0]["ip"]);
-    $lastHop = new Geolocation(end($hops_valid_ip)["ip"]);
+
+    $firstHop = new Geolocation($cleanedHops[0]["ip"]);
+    $lastHop = new Geolocation(end($cleanedHops)["ip"]);
     // we called end on the array, so we need to reset the cursor
-    reset($hops_valid_ip);
+    reset($cleanedHops);
 
     // if first hop is not CA
     if ($firstHop->getCountry() != 'CA') {
@@ -51,7 +48,7 @@ class TracerouteUtility
       return false;
     }
 
-    foreach ($hops_valid_ip as $key => $hop) {
+    foreach ($cleanedHops as $key => $hop) {
       $myHop = new Geolocation($hop["ip"]);
       if ($myHop->getCountry() == 'US') {
         return true;

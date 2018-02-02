@@ -1,4 +1,12 @@
 <?php
+/**
+ *
+ * This class handles response codes used by the validation module
+ *
+ * @author IXmaps.ca (Colin, Antonio)
+ * @since 2018 Jan 1
+ *
+ */
 class ParisTracerouteUtility
 {
   /**
@@ -40,13 +48,13 @@ class ParisTracerouteUtility
     }
     // check if PTR has no null values
     // TODO: [AG]: This validation needs to be refined. Need to agree on which fields can be empty. Changing validation logic and adding a few exceptions
-    $allowed_empty_fields = array(
-      'ipt_server_postal_code', 
+    // agreed - maybe it's best to remove the validation empty field check all together?
+    $permittedEmptyFields = array(
+      'ipt_server_postal_code',
       'ipt_client_postal_code'
     );
     foreach ($postArr as $key => $value) {
-
-      if (empty($postArr[$key]) && !in_array($key, $allowed_empty_fields)) {
+      if (empty($postArr[$key]) && !in_array($key, $permittedEmptyFields)) {
         return new ResponseCode(402, $key);
       }
     }

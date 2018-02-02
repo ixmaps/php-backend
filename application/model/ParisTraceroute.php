@@ -1,4 +1,14 @@
 <?php
+/**
+ *
+ * Paris Traceroute class. Bit of a misnomer, as this object is not a full Paris Traceroute.
+ * Rather, this class handles the CIRA submitted JSON object that has been refined
+ * from a Paris Traceroute
+ *
+ * @author IXmaps.ca (Colin, Antonio)
+ * @since 2018 Jan 1
+ *
+ */
 class ParisTraceroute {
   private $request_id;
   private $ipt_timestamp;
@@ -22,6 +32,7 @@ class ParisTraceroute {
     $this->saveData($ptrJson);
   }
 
+  // CM: I suggest that this functionality does not belong in this class
   private function saveData($data){
     global $dbconn;
     $sql = "INSERT INTO ptr_contributions (ptr_json, ip_addr) VALUES ($1, $2)";

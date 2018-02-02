@@ -1,4 +1,12 @@
 <?php
+/**
+ *
+ * This class handles response codes used by the validation module
+ *
+ * @author IXmaps.ca (Colin)
+ * @since 2018 Jan 1
+ *
+ */
 class ResponseCode {
   private $code;
   private $message;

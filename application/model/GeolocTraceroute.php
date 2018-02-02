@@ -1,4 +1,13 @@
 <?php
+/**
+ *
+ * Geolocated traceroute class. Used as an object to structure the returned JSON for
+ * the geoloc_ptr class (expandable)
+ *
+ * @author IXmaps.ca (Colin, Antonio)
+ * @since 2018 Jan 1
+ *
+ */
 class GeolocTraceroute {
   private $status;
   private $request_id;
