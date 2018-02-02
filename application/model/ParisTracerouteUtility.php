@@ -39,8 +39,14 @@ class ParisTracerouteUtility
       }
     }
     // check if PTR has no null values
+    // TODO: [AG]: This validation needs to be refined. Need to agree on which fields can be empty. Changing validation logic and adding a few exceptions
+    $allowed_empty_fields = array(
+      'ipt_server_postal_code', 
+      'ipt_client_postal_code'
+    );
     foreach ($postArr as $key => $value) {
-      if (empty($postArr[$key])) {
+
+      if (empty($postArr[$key]) && !in_array($key, $allowed_empty_fields)) {
         return new ResponseCode(402, $key);
       }
     }

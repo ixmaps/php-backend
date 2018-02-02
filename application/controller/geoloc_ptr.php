@@ -48,24 +48,32 @@ $geolocTr->setBoomerang(TracerouteUtility::checkIfBoomerang($hops));
 // TODO: create hops model, move this all in
 $overlayData = array();
 foreach ($hops as $hop) {
-  $myHop = new Geolocation($hop["ip"]);
+  /*TODO: add ip format validation */
+  if($hop["ip"]!=null && $hop["ip"]!=""){
+    $myHop = new Geolocation($hop["ip"]);
 
-  $attributeObj = array(
-    "asnum" => $myHop->getASNum(),
-    "asname" => $myHop->getASName(),
-    "country" => $myHop->getCountry(),
-    "city" => $myHop->getCity(),
-    "nsa" => "TODO",
-    "georeliability" => $myHop->getSource() // Do we want to add the source here?
-  );
-  $overlayHop = array(
-    "hop" => $hop["num"],
-    "ip" => $hop["ip"],
-    "lat" => $myHop->getLat(),
-    "long" => $myHop->getLong(),
-    "attributes" => $attributeObj
-  );
-  array_push($overlayData, $overlayHop);
+    $attributeObj = array(
+      "asnum" => $myHop->getASNum(),
+      "asname" => $myHop->getASName(),
+      "country" => $myHop->getCountry(),
+      "city" => $myHop->getCity(),
+      "nsa" => $myHop->getNsa(),
+      //"georeliability" => "",//$myHop->getSource() // Do we want to add the source here?
+      "asn_source" => $myHop->getAsnSource(),
+      "geodata_source" => $myHop->getGeodataSource()
+
+    );
+    $overlayHop = array(
+      "hop" => $hop["num"],
+      "ip" => $hop["ip"],
+      "hostname" => $myHop->getHostname(),
+      "lat" => $myHop->getLat(),
+      "long" => $myHop->getLong(),
+      "attributes" => $attributeObj
+    );
+    array_push($overlayData, $overlayHop);    
+  }
+
 }
 $geolocTr->setOverlayData($overlayData);
 $geolocTr->setStatus($geolocTr->determineStatus());

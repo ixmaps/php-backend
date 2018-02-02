@@ -14,10 +14,13 @@ class Geolocation {
   private $lat;
   private $long;
   private $city;
+  private $nsa;
   private $country;
   private $asnum;
   private $asname;
   private $source;        // do we like this name? Open to suggestions
+  private $asn_source;
+  private $geodata_source;
 
 
   // move the IXmapsMaxMind class into here? Maybe slower to constantly open and close Dat files? Otherwise? Hopefully not use globals :(
@@ -32,11 +35,23 @@ class Geolocation {
     global $mm;
     $this->ip = $ip;
 
-    // Query MM object
-    $this->mm_ip_data = $mm->getGeoIp($ip);
+    // TODO: validate ip format
+    $ip_is_valid = false;
+    if($ip!=""){
+      // Query MM object
+      $this->mm_ip_data = $mm->getGeoIp($ip);
+      $ip_is_valid = true;
+    } else {
+      //exit();
+    }
 
     // 1. Check if IP exists in IXmaps DB
-    $this->ixmaps_ip_data = $this->checkIpIxmapsDb($ip, $debug_mode);
+    if($ip!="" && $ip!=null){
+      $this->ixmaps_ip_data = $this->checkIpIxmapsDb($ip, $debug_mode);  
+    } else {
+      $this->ixmaps_ip_data = null;
+    }
+    
 
     if ($this->ixmaps_ip_data) {
       // Check if ip has been geo corrected
@@ -49,12 +64,16 @@ class Geolocation {
         $this->long = $this->ixmaps_ip_data['long'];
         $this->city = $this->ixmaps_ip_data['mm_city'];
         $this->country = $this->ixmaps_ip_data['mm_country'];
+
         if($this->ixmaps_ip_data['asnum']!=-1){
           if($debug_mode){
             echo "\n\t\tUsing asnum and asname from IXmaps DB\n\n";
           }
           $this->asnum = $this->ixmaps_ip_data['asnum'];
           $this->asname = $this->ixmaps_ip_data['name']."";
+          $this->hostname = $this->ixmaps_ip_data['hostname'];
+          $this->asn_source = "ixmaps";
+          
 
         } else {
           // use MM for asn and asname
@@ -63,14 +82,16 @@ class Geolocation {
           }
           $this->asnum = $this->mm_ip_data['asn'];
           $this->asname = $this->mm_ip_data['isp'];
-
+          $this->hostname = $this->mm_ip_data['hostname'];
+          $this->asn_source = "maxmind";
+          
           if($this->mm_ip_data['asn']!=null){
             /*
               TODO: update IXmapsDB with known ASN from MM ?
             */
           }
         }
-        $this->source = "ixmaps";
+        $this->geodata_source = "ixmaps";
       } else {
         if($debug_mode){
           echo "\n\t(".$ip.") : In IXmaps DB, NOT geocorrected\n\n";
@@ -81,7 +102,9 @@ class Geolocation {
         $this->long = $this->mm_ip_data["geoip"]["longitude"];
         $this->city = $this->mm_ip_data["geoip"]["city"];
         $this->country = $this->mm_ip_data["geoip"]["country_code"];
-
+        $this->geodata_source = "maxmind";
+        $this->hostname = $this->mm_ip_data['hostname'];
+        $this->geodata_source = "maxmind";
 
         if($this->mm_ip_data["asn"]==null && $this->ixmaps_ip_data['asnum']!=-1){
           if($debug_mode){
@@ -89,22 +112,24 @@ class Geolocation {
           }
           $this->asnum = $this->ixmaps_ip_data['asnum'];
           $this->asname = $this->ixmaps_ip_data['name'];
+          $this->asn_source = "ixmaps";
         } else {
           if($debug_mode){
             echo "\n\t\tUsing asnum and asname from MM\n\n";
           }
           $this->asnum = $this->mm_ip_data["asn"];
           $this->asname = $this->mm_ip_data["isp"];
+          $this->asn_source = "maxmind";
         }
-
-        $this->source = "maxmind";
+        
       }
 
     // 2. Check Maxmind data
     } else if (isset($this->mm_ip_data['geoip']['country_code'])) {
 
       // Insert new ip in IXmaps Db for logging purposes??
-      /*$this->insertNewIpAddress($mm_ip_data);*/
+      $this->insertNewIpAddress($this->mm_ip_data);
+      
       if($debug_mode){
         echo "\n\t(".$ip.") : In MM DB\n\n";
       }
@@ -116,7 +141,10 @@ class Geolocation {
       $this->country = $this->mm_ip_data["geoip"]["country_code"];
       $this->asnum = $this->mm_ip_data["asn"];
       $this->asname = $this->mm_ip_data["isp"];
-      $this->source = "maxmind";
+      //$this->source = "maxmind";
+      $this->geodata_source = "maxmind";
+      $this->asn_source = "maxmind";
+      $this->hostname = $this->mm_ip_data['hostname'];
 
     // 3. Set default geo data
     } else {
@@ -130,7 +158,12 @@ class Geolocation {
       $this->asnum = NULL;
       $this->asname = NULL;
       $this->source = NULL;
+      $this->geodata_source = NULL;
+      $this->asn_source = NULL;
+      $this->hostname = NULL;
     }
+    
+    $this->setNsa($this->city);
 
     /* TODO: 4. check other geo-data sources. */
 
@@ -147,7 +180,7 @@ class Geolocation {
   private function checkIpIxmapsDb($ip, $debug_mode){
     global $dbconn;
 
-    $sql = "SELECT ip_addr_info.hostname, ip_addr_info.asnum, as_users.name, ip_addr_info.lat, ip_addr_info.long, ip_addr_info.mm_country, ip_addr_info.mm_city, ip_addr_info.p_status, ip_addr_info.gl_override FROM ip_addr_info, as_users WHERE (ip_addr_info.asnum = as_users.num) AND ip_addr_info.ip_addr = $1";
+  $sql = "SELECT ip_addr_info.hostname, ip_addr_info.asnum, as_users.name, ip_addr_info.lat, ip_addr_info.long, ip_addr_info.mm_country, ip_addr_info.mm_city, ip_addr_info.p_status, ip_addr_info.gl_override FROM ip_addr_info, as_users WHERE (ip_addr_info.asnum = as_users.num) AND ip_addr_info.ip_addr = $1";
 
     // TODO: add error handling that is consistent with PTR approach
     $params = array($ip);
@@ -171,14 +204,30 @@ class Geolocation {
     */
   private function insertNewIpAddress($ip_data){
     global $dbconn;
-    $sql = "INSERT INTO ip_addr_info (ip_addr, asnum, mm_lat, mm_long, mm_country, mm_region, mm_city, mm_postal, mm_area_code, mm_dma_code, lat, long, gl_override) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)";
-    $params = array($ip_data['ip'], $ip_data['asn'], $ip_data['geoip']['latitude'], $ip_data['geoip']['longitude'], $ip_data['geoip']['country_code'], $ip_data['geoip']['region'], $ip_data['geoip']['city'], $ip_data['geoip']['postal_code'], $ip_data['geoip']['area_code'], $ip_data['geoip']['dma_code'], $ip_data['geoip']['latitude'], $ip_data['geoip']['longitude'], NULL);
+    $sql = "SELECT ip_addr FROM ip_addr_info WHERE ip_addr = $1";
+    $params = array($ip_data['ip']);
+    $result = pg_query_params($dbconn, $sql, $params) or die();
+    $id_data = pg_fetch_all($result);
+    if(!$id_data){
+      $sql = "INSERT INTO ip_addr_info (ip_addr, asnum, mm_lat, mm_long, hostname, mm_country, mm_region, mm_city, mm_postal, mm_area_code, mm_dma_code, lat, long, p_status, gl_override) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)";
+      $params = array($ip_data['ip'], $ip_data['asn'], $ip_data['geoip']['latitude'], $ip_data['geoip']['longitude'], $ip_data['hostname'], $ip_data['geoip']['country_code'], $ip_data['geoip']['region'], $ip_data['geoip']['city'], $ip_data['geoip']['postal_code'], $ip_data['geoip']['area_code'], $ip_data['geoip']['dma_code'], $ip_data['geoip']['latitude'], $ip_data['geoip']['longitude'], 'x', NULL);
 
-      /*echo "\n".$sql;
-      print_r($params);*/
+        // TODO: add error handling that is consistent with PTR approach
+        $result = pg_query_params($dbconn, $sql, $params) or die();
+    }
+  }
 
-    // TODO: add error handling that is consistent with PTR approach
-    $result = pg_query_params($dbconn, $sql, $params);//
+  private function setNsa($cityName = "") {
+    $nsaCities = ["San Francisco", "Los Angeles", "New York", "Dallas", "Washington", "Ashburn", "Seattle", "San Jose", "San Diego", "Miami", "Boston", "Phoenix", "Salt Lake City", "Nashville", "Denver", "Saint Louis", "Bridgeton", "Bluffdale", "Houston", "Chicago", "Atlanta", "Portland"];
+    if (in_array($cityName, $nsaCities)) {
+      $this->nsa = true;
+    } else {
+      $this->nsa = false;
+    }
+  }
+
+  public function getHostname() {
+    return $this->hostname;
   }
 
   public function getLat() {
@@ -191,6 +240,10 @@ class Geolocation {
 
   public function getCity() {
     return $this->city;
+  }
+
+  public function getNsa() {
+    return $this->nsa;
   }
 
   public function getCountry() {
@@ -207,5 +260,13 @@ class Geolocation {
 
   public function getSource() {
     return $this->source;
+  }
+  
+  public function getAsnSource() {
+    return $this->asn_source;
+  }
+  
+  public function getGeodataSource() {
+    return $this->geodata_source;
   }
 } // end class

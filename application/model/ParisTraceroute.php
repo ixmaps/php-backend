@@ -24,8 +24,8 @@ class ParisTraceroute {
 
   private function saveData($data){
     global $dbconn;
-    $sql = "INSERT INTO ptr_contributions (ptr_json) VALUES ($1)";
-    $params = array(json_encode($data));
+    $sql = "INSERT INTO ptr_contributions (ptr_json, ip_addr) VALUES ($1, $2)";
+    $params = array(json_encode($data), $_SERVER['REMOTE_ADDR']);
 
     // TODO: add error handling that is consistent with PTR approach
     $result = pg_query_params($dbconn, $sql, $params);
