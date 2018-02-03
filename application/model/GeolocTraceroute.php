@@ -105,8 +105,9 @@ class GeolocTraceroute {
           "asname": null,
           "country": "CA",
           "city": "Ottawa",
-          "nsa": "TODO",
-          "georeliability": "maxmind"
+          "nsa": false,
+          "as_source": "maxmind",
+          "geo_source": "ixmaps"
         }
       },
       {
@@ -119,8 +120,9 @@ class GeolocTraceroute {
           "asname": "HURRICANE - Hurricane Electric, Inc.",
           "country": "US",
           "city": "New York",
-          "nsa": "TODO",
-          "georeliability": "ixmaps"
+          "nsa": true,
+          "as_source": "ixmaps",
+          "geo_source": "ixmaps"
         }
       },
       {
@@ -133,8 +135,9 @@ class GeolocTraceroute {
           "asname": "BHARTI Airtel Ltd.",
           "country": "US",
           "city": "New York",
-          "nsa": "TODO",
-          "georeliability": "ixmaps"
+          "nsa": true,
+          "as_source": "ixmaps",
+          "geo_source": "ixmaps"
         }
       },
       {
@@ -147,8 +150,9 @@ class GeolocTraceroute {
           "asname": "Bell",
           "country": "CA",
           "city": null,
-          "nsa": "TODO",
-          "georeliability": "maxmind"
+          "nsa": false,
+          "as_source": "maxmind",
+          "geo_source": "ixmaps"
         }
       },
       {
@@ -161,8 +165,9 @@ class GeolocTraceroute {
           "asname": "Bell",
           "country": "CA",
           "city": "Montreal",
-          "nsa": "TODO",
-          "georeliability": "ixmaps"
+          "nsa": false,
+          "as_source": "ixmaps",
+          "geo_source": "ixmaps"
         }
       },
       {
@@ -175,8 +180,9 @@ class GeolocTraceroute {
           "asname": null,
           "country": "CA",
           "city": null,
-          "nsa": "TODO",
-          "georeliability": "maxmind"
+          "nsa": false,
+          "as_source": "maxmind",
+          "geo_source": "ixmaps"
         }
       },
       {
@@ -189,8 +195,9 @@ class GeolocTraceroute {
           "asname": null,
           "country": null,
           "city": null,
-          "nsa": "TODO",
-          "georeliability": null
+          "nsa": false,
+          "as_source": null,
+          "geo_source": "ixmaps"
         }
       },
       {
@@ -203,8 +210,9 @@ class GeolocTraceroute {
           "asname": "Bell Canada",
           "country": "CA",
           "city": "Sherbrooke",
-          "nsa": "TODO",
-          "georeliability": "maxmind"
+          "nsa": false,
+          "as_source": "maxmind",
+          "geo_source": "ixmaps"
         }
       },
       {
@@ -217,8 +225,9 @@ class GeolocTraceroute {
           "asname": "Bell Canada",
           "country": "CA",
           "city": "Sherbrooke",
-          "nsa": "TODO",
-          "georeliability": "maxmind"
+          "nsa": false,
+          "as_source": "maxmind",
+          "geo_source": "ixmaps"
         }
       }
     ]
