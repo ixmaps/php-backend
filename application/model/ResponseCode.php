@@ -21,6 +21,9 @@ class ResponseCode {
       case 201:
         $this->message = "Success";
         break;
+      case 400:
+        $this->message = "Error: malformed JSON submitted - " . $message;
+        break;
       case 401:
         $this->message = "Error: malformed JSON submitted, missing key - " . $message;
         break;

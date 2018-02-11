@@ -17,9 +17,9 @@ class ParisTracerouteUtility
     * @return Boolean
     *
     */
-  public static function isValid($postArr)
+  public static function isValid($postJson)
   {
-    $rc = self::determineStatus($postArr);
+    $rc = self::determineStatus($postJson);
 
     if ($rc->getCode() == 201) {
       return true;
@@ -37,24 +37,48 @@ class ParisTracerouteUtility
     * @return ResponseCode object
     *
     */
-  public static function determineStatus($postArr) {
+  public static function determineStatus($postJson) {
     $ptrJsonStructure = json_decode(self::ptrJsonStructureString, TRUE);
+
+    // // check if PTR is correctly formatted JSON
+    $postArr = json_decode($postJson, TRUE);
+    switch (json_last_error()) {
+      case JSON_ERROR_DEPTH:
+        return new ResponseCode(400, 'Maximum stack depth exceeded');
+      break;
+      case JSON_ERROR_STATE_MISMATCH:
+        return new ResponseCode(400, 'Underflow or the modes mismatch');
+      break;
+      case JSON_ERROR_CTRL_CHAR:
+        return new ResponseCode(400, 'Unexpected control character found');
+      break;
+      case JSON_ERROR_SYNTAX:
+        return new ResponseCode(400, 'Syntax error');
+      break;
+      case JSON_ERROR_UTF8:
+        return new ResponseCode(400, 'Malformed UTF-8 characters, possibly incorrectly encoded');
+      break;
+      default:
+        //return new ResponseCode(400, 'Unknown error');
+      break;
+    }
 
     // check if PTR has all keys
     foreach ($ptrJsonStructure as $key => $value) {
-      if (is_null($postArr[$key])) {
+      if (is_null($postJson[$key])) {
         return new ResponseCode(401, $key);
       }
     }
+
     // check if PTR has no null values
     // TODO: [AG]: This validation needs to be refined. Need to agree on which fields can be empty. Changing validation logic and adding a few exceptions
-    // agreed - maybe it's best to remove the validation empty field check all together?
+    // CM: agreed - maybe it's best to remove the validation empty field check all together?
     $permittedEmptyFields = array(
       'ipt_server_postal_code',
       'ipt_client_postal_code'
     );
-    foreach ($postArr as $key => $value) {
-      if (empty($postArr[$key]) && !in_array($key, $permittedEmptyFields)) {
+    foreach ($postJson as $key => $value) {
+      if (empty($postJson[$key]) && !in_array($key, $permittedEmptyFields)) {
         return new ResponseCode(402, $key);
       }
     }

@@ -6,20 +6,24 @@
   <script type="text/javascript">
 
     // CM: this should be handled with a config file, no?
-    var submit_url = "https://www.ixmaps.ca/application/controller/geoloc_ptr.php";
-    //var submit_url = "http://localhost/application/controller/geoloc_ptr.php";
+    //var submitUrl = "https://www.ixmaps.ca/application/controller/geoloc_ptr.php";
+    var submitUrl = "http://localhost/application/controller/geoloc_ptr.php";
 
     var submitPtrData = function() {
       jQuery("#ptr-response").text("");
       console.log("submitPtrData() ...");
       var data = jQuery("#ptr-source").val();
-      var obj = JSON.parse(data);
+      // CM: Note - changed final output from JSON.parse to JSON.stringify... POSTing shouldn't use a JS object as a rule
+      var obj = JSON.stringify(JSON.parse(data));
+      //var obj = '{"a":"b","c":"d,}';
 
-      jQuery.ajax(submit_url, {
-        type: 'post',
+      jQuery.ajax(submitUrl, {
+        type: 'POST',
         data: obj,
+        contentType : 'application/json',
         success: function (e) {
           console.log("success", e);
+          // mess around with this too?
           jQuery("#ptr-response").text(JSON.stringify(e, null, '\t'));
         },
         error: function (e) {
@@ -31,8 +35,7 @@
 
     jQuery( document ).ready(function() {
       jQuery('#submit').click(function() {
-        var ptr_source = jQuery("#ptr-source").html();
-        submitPtrData(ptr_source);
+        submitPtrData();
       });
     });
   </script>

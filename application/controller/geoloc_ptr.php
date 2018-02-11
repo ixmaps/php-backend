@@ -9,7 +9,7 @@
  * @since 2018 Jan 1
  *
  */
-header('Access-Control-Allow-Origin: *');
+//header('Access-Control-Allow-Origin: *');       // CHECK MEEEEEE!
 include('../config.php');
 include('../model/IXmapsMaxMind.php');
 include('../model/Geolocation.php');
@@ -21,14 +21,18 @@ include('../model/GeolocTracerouteUtility.php');
 include('../model/ResponseCode.php');
 
 /***
- *** validate the incoming JSON
+ *** validate the incoming PTR JSON
  ***/
-if (ParisTracerouteUtility::isValid($_POST)) {
-  $ptr = new ParisTraceroute($_POST);
+$postJson = file_get_contents('php://input');
+$postArr = [];
+
+if (ParisTracerouteUtility::isValid($postJson)) {
+  $postArr = json_decode($postJson, TRUE);
+  $ptr = new ParisTraceroute($postArr);
 } else {
   // handle malformed json submission
   $geolocTr = new GeolocTraceroute();
-  $geolocTr->setStatus(ParisTracerouteUtility::determineStatus($_POST));
+  $geolocTr->setStatus(ParisTracerouteUtility::determineStatus($postJson));
   GeolocTracerouteUtility::encodeAndReturn($geolocTr);
 }
 $mm = new IXmapsMaxMind();
@@ -42,9 +46,7 @@ $mm = new IXmapsMaxMind();
 /***
  *** construct the basic GL TR
  ***/
-// CM: I need this for my local testing - how do we resolve this?
-$hops = json_decode($_POST["hops"], TRUE);
-$hops = $_POST["hops"];
+$hops = $postArr["hops"];
 $geolocTr = new GeolocTraceroute();
 $geolocTr->setRequestId($ptr->getRequestId());
 $geolocTr->setIXmapsId(0);
