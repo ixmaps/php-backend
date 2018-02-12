@@ -15,7 +15,7 @@
       var data = jQuery("#ptr-source").val();
       // CM: Note - changed final output from JSON.parse to JSON.stringify... POSTing shouldn't use a JS object as a rule
       var obj = JSON.stringify(JSON.parse(data));
-      //var obj = '{"a":"b","c":"d,}';
+      //var obj = '{"a":"b","c":"d,}';               // testing malformed JSON
 
       jQuery.ajax(submitUrl, {
         type: 'POST',

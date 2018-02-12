@@ -23,13 +23,13 @@ class ParisTraceroute {
   private $protocol;
   private $hops;
 
-  function __construct(array $ptrJson) {
-    foreach($ptrJson as $key => $val) {
+  function __construct(array $postArr) {
+    foreach($postArr as $key => $val) {
       if(property_exists(__CLASS__, $key)) {
         $this->$key = $val;
       }
     }
-    $this->saveData($ptrJson);
+    $this->saveData($postArr);
   }
 
   // CM: I suggest that this functionality does not belong in this class

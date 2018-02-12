@@ -9,7 +9,7 @@
  * @since 2018 Jan 1
  *
  */
-//header('Access-Control-Allow-Origin: *');       // CHECK MEEEEEE!
+header('Access-Control-Allow-Origin: *');
 include('../config.php');
 include('../model/IXmapsMaxMind.php');
 include('../model/Geolocation.php');

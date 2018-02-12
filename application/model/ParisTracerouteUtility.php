@@ -30,7 +30,7 @@ class ParisTracerouteUtility
 
   /**
     * Determine correct ResponseCode for the return
-    * TODO: decide if this is specific to PTR (and not GeolocTR), if so get rid of the 201, refactor a bit
+    * TODO: refactor this - this is prt validation, not determineStatus
     *
     * @param PTR post
     *
@@ -40,7 +40,9 @@ class ParisTracerouteUtility
   public static function determineStatus($postJson) {
     $ptrJsonStructure = json_decode(self::ptrJsonStructureString, TRUE);
 
-    // // check if PTR is correctly formatted JSON
+    // check if PTR is correctly formatted JSON
+    // passing in the postJson, then decoding it to see if it is valid JSON
+    // this may want a bit of a refactor too, once we get around to redoing the validation
     $postArr = json_decode($postJson, TRUE);
     switch (json_last_error()) {
       case JSON_ERROR_DEPTH:
@@ -65,7 +67,7 @@ class ParisTracerouteUtility
 
     // check if PTR has all keys
     foreach ($ptrJsonStructure as $key => $value) {
-      if (is_null($postJson[$key])) {
+      if (is_null($postArr[$key])) {
         return new ResponseCode(401, $key);
       }
     }
@@ -77,8 +79,8 @@ class ParisTracerouteUtility
       'ipt_server_postal_code',
       'ipt_client_postal_code'
     );
-    foreach ($postJson as $key => $value) {
-      if (empty($postJson[$key]) && !in_array($key, $permittedEmptyFields)) {
+    foreach ($postArr as $key => $value) {
+      if (empty($postArr[$key]) && !in_array($key, $permittedEmptyFields)) {
         return new ResponseCode(402, $key);
       }
     }
