@@ -25,16 +25,16 @@ class ResponseCode {
         $this->message = "Error: malformed JSON submitted - " . $message;
         break;
       case 401:
-        $this->message = "Error: malformed JSON submitted, missing key - " . $message;
+        $this->message = "Error: submitted PTR JSON missing key - " . $message;
         break;
       case 402:
-        $this->message = "Error: submitted JSON contains unset value for key - " . $message;
+        $this->message = "Error: submitted PTR JSON contains unset value for key - " . $message;
         break;
       case 501:
-        $this->message = "Error: malformed JSON returned, missing key - " . $message;
+        $this->message = "Error: GEO JSON return missing key - " . $message;
         break;
       case 502:
-        $this->message = "Error: returned JSON contains unset value for key - " . $message;
+        $this->message = "Error: GEO JSON contains unset value for key - " . $message;
         break;
     }
   }
