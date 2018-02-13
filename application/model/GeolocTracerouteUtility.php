@@ -13,7 +13,10 @@ class GeolocTracerouteUtility {
       "code" => $tr->getStatus()->getCode(),
       "message" => $tr->getStatus()->getMessage()
     );
-
+    
+    //AG: adding proper http response code to the header
+    header($_SERVER['SERVER_PROTOCOL']." ".$status["code"]. " ".$status["message"]);
+    
     if (self::isValid($tr)) {
       $jsonArr = array(
         "status" => $status,
