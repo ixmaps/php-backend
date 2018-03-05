@@ -30,7 +30,6 @@ class ParisTracerouteUtility
 
   /**
     * Determine correct ResponseCode for the return
-    * TODO: refactor this - this is prt validation, not determineStatus
     *
     * @param PTR post
     *

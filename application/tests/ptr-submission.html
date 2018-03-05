@@ -11,7 +11,7 @@
 
     var submitPtrData = function() {
       jQuery("#ptr-response").text("");
-      console.log("submitPtrData() ...");
+      console.log("submitPtrData()...");
       var data = jQuery("#ptr-source").val();
       // CM: Note - changed final output from JSON.parse to JSON.stringify... POSTing shouldn't use a JS object as a rule
       var obj = JSON.stringify(JSON.parse(data));

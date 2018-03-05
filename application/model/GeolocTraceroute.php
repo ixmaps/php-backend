@@ -2,13 +2,13 @@
 /**
  *
  * Geolocated traceroute class. Used as an object to structure the returned JSON for
- * the geoloc_ptr class (expandable)
+ * the geoloc_ptr class
  *
  * @author IXmaps.ca (Colin, Antonio)
  * @since 2018 Jan 1
  *
  */
-class GeolocTraceroute {
+class GeolocTraceroute implements JsonSerializable {
   private $status;
   private $request_id;
   private $ixmaps_id;
@@ -21,7 +21,38 @@ class GeolocTraceroute {
     $this->status = new ResponseCode(100);
   }
 
-  // this must be in this class, needs access to the privates - otherwise we could move this and the PTR ones to the same class. Or maybe move more into here?
+  // may have overloaded this function - think about moving the validity check out?
+  function jsonSerialize() {
+    $status = array(
+      "code" => $this->getStatus()->getCode(),
+      "message" => $this->getStatus()->getMessage()
+    );
+    header($_SERVER['SERVER_PROTOCOL']." ".$status["code"]. " ".$status["message"]);
+    header('Content-type: application/json');
+    if ($this->isValid()) {
+      $jsonArr = array(
+        "status" => $status,
+        "request_id" => $this->getRequestId(),
+        "ixmaps_id" => $this->getIxmapsId(),
+        "hop_count" => $this->getHopCount(),
+        "completed" => $this->getCompleted(),
+        "boomerang" => $this->getBoomerang(),
+        "overlay_data" => $this->getOverlayData()
+      );
+      return $jsonArr;
+    } else {
+      return $status;
+    }
+  }
+
+  public function isValid() {
+    if ($this->getStatus()->getCode() == 201) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   public function determineStatus() {
     // check that GLTR has no null values (cannot check status yet, since this is setting it)
     foreach ($this as $key => $value) {
@@ -32,6 +63,7 @@ class GeolocTraceroute {
     // default response
     return new ResponseCode(201);
   }
+
   public function setStatus(ResponseCode $status) {
     $this->status = $status;
   }
