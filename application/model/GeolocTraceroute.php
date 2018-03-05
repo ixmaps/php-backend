@@ -22,6 +22,7 @@ class GeolocTraceroute implements JsonSerializable {
   }
 
   // may have overloaded this function - think about moving the validity check out?
+  // or remove the validity check entirely?
   function jsonSerialize() {
     $status = array(
       "code" => $this->getStatus()->getCode(),
@@ -63,6 +64,8 @@ class GeolocTraceroute implements JsonSerializable {
     // default response
     return new ResponseCode(201);
   }
+
+
 
   public function setStatus(ResponseCode $status) {
     $this->status = $status;
@@ -116,7 +119,7 @@ class GeolocTraceroute implements JsonSerializable {
   /**
     * The archetypal JSON structure for GeoLoc output
     */
-  const geolocJsonStructureString = '{
+  const GEOLOC_JSON_STRUCTURE_STRING = '{
     "status": {
       "code": 201,
       "message": "Success"

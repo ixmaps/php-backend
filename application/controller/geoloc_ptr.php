@@ -24,16 +24,14 @@ include('../model/ResponseCode.php');
  ***/
 $postJson = file_get_contents('php://input');
 $postArr = [];
-
 $geolocTr = new GeolocTraceroute();
-
-if (ParisTracerouteUtility::isValid($postJson)) {
+if (ParisTraceroute::isValid($postJson)) {
   $postArr = json_decode($postJson, TRUE);
   $ptr = new ParisTraceroute($postArr);
 } else {
   // handle malformed json submission
-  $geolocTr->setStatus(ParisTracerouteUtility::determineStatus($postJson));
-  echo json_encode($geolocTr, JSON_PRETTY_PRINT);
+  $geolocTr->setStatus(ParisTraceroute::determineStatus($postJson));
+  echo json_encode($geolocTr);
   die;
 }
 $mm = new IXmapsMaxMind();
@@ -47,7 +45,7 @@ $mm = new IXmapsMaxMind();
 /***
  *** construct the basic GL TR
  ***/
-$hops = $postArr["hops"];
+$hops = $ptr->getHops();
 $geolocTr->setRequestId($ptr->getRequestId());
 $geolocTr->setIXmapsId(0);
 $geolocTr->setHopCount(count($hops));
@@ -95,4 +93,4 @@ $mm->closeDatFiles();
 /***
  *** return the GEO-JSON to CIRA
  ***/
-echo json_encode($geolocTr, JSON_PRETTY_PRINT);
+echo json_encode($geolocTr);
