@@ -15,25 +15,14 @@ include('../model/IXmapsMaxMind.php');
 include('../model/Geolocation.php');
 include('../model/TracerouteUtility.php');
 include('../model/ParisTraceroute.php');
-include('../model/ParisTracerouteUtility.php');
+include('../model/ParisTracerouteFactory.php');
 include('../model/GeolocTraceroute.php');
 include('../model/ResponseCode.php');
 
 /***
- *** validate the incoming PTR JSON
+ *** validate the incoming PTR JSON and build ptr object
  ***/
-$postJson = file_get_contents('php://input');
-$postArr = [];
-$geolocTr = new GeolocTraceroute();
-if (ParisTraceroute::isValid($postJson)) {
-  $postArr = json_decode($postJson, TRUE);
-  $ptr = new ParisTraceroute($postArr);
-} else {
-  // handle malformed json submission
-  $geolocTr->setStatus(ParisTraceroute::determineStatus($postJson));
-  echo json_encode($geolocTr);
-  die;
-}
+$ptr = ParisTracerouteFactory::build(file_get_contents('php://input'));
 $mm = new IXmapsMaxMind();
 
 
@@ -45,6 +34,7 @@ $mm = new IXmapsMaxMind();
 /***
  *** construct the basic GL TR
  ***/
+$geolocTr = new GeolocTraceroute();
 $hops = $ptr->getHops();
 $geolocTr->setRequestId($ptr->getRequestId());
 $geolocTr->setIXmapsId(0);
