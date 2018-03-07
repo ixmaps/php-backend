@@ -65,8 +65,6 @@ class GeolocTraceroute implements JsonSerializable {
     return new ResponseCode(201);
   }
 
-
-
   public function setStatus(ResponseCode $status) {
     $this->status = $status;
   }

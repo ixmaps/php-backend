@@ -61,7 +61,6 @@ foreach ($hops as $hop) {
       "nsa" => $myHop->getNsa(),
       "asn_source" => $myHop->getAsnSource(),
       "geo_source" => $myHop->getGeoSource()
-
     );
     $overlayHop = array(
       "hop" => $hop["num"],
@@ -73,7 +72,6 @@ foreach ($hops as $hop) {
     );
     array_push($overlayData, $overlayHop);
   }
-
 }
 $geolocTr->setOverlayData($overlayData);
 $geolocTr->setStatus($geolocTr->determineStatus());

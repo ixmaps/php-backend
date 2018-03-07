@@ -3,11 +3,10 @@
 <head>
   <meta charset="utf-8">
   <script src="https://code.jquery.com/jquery-latest.min.js" type="text/javascript"></script>
+  <script src="../config.js"></script>
   <script type="text/javascript">
 
-    // CM: this should be handled with a config file, no?
-    // AG: Yes, it should. But this file will not be used in production later on. I see it only as a GUI for testing and debug. Parhaps move it later when we move to other phases?
-    var submitUrl = "https://www.ixmaps.ca/application/controller/geoloc_ptr.php";
+    var submitUrl = config.ptr_url;
 
     var submitPtrData = function() {
       jQuery("#ptr-response").text("");

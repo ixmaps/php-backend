@@ -3,12 +3,9 @@
   <head>
     <meta charset="utf-8">
     <script src="https://code.jquery.com/jquery-latest.min.js" type="text/javascript"></script>
+    <script src="../config.js"></script>
     <script type="text/javascript">
-
-      var submitUrl = "http://localhost/application/controller/geoloc_ptr.php";
-
       var tests = ['Success (201)', 'Malformed Json (400)', 'PTR Missing Key (401)', 'PTR Missing Value (402)'];
-
       // TODO
       // , 'Boomerang', 'Completed' others?
 
@@ -43,7 +40,7 @@
               break;
           }
 
-          jQuery.ajax(submitUrl, {
+          jQuery.ajax(config.ptr_url, {
             type: 'POST',
             data: obj,
             contentType: 'application/json',
