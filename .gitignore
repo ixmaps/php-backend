@@ -1,3 +1,4 @@
 mm-data/
 .DS_Store
 application/config.php
+application/config.js
