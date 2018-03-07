@@ -10,57 +10,113 @@
     <script src="./ptr-samples.js"></script>
 
     <script type="text/javascript">
-      var tests = ['Success (201)', 'Malformed Json (400)', 'PTR Missing Key (401)', 'PTR Missing Value (402)'];
-      // TODO
-      // , 'Boomerang', 'Completed' others?
+      var testCases = [
+      {
+        "name": "SUCCESS (201)",
+        "submission": JSON.stringify(ptrSamples.sample1),
+        "type": "status",
+        "code": 201,
+        "passValue": 201
+      },
+      {
+        "name": "MALFORMED JSON (400)",
+        "submission": '{"a":"b","c":"d,}',
+        "type": "status",
+        "code": 400,
+        "passValue": 400
+      },
+      {
+        "name": "PTR MISSING KEY (401)",
+        "submission": JSON.stringify(ptrSamples.error401),
+        "type": "status",
+        "code": 401,
+        "passValue": 401
+      },
+      {
+        "name": "PTR MISSING VALUE (402)",
+        "submission": JSON.stringify(ptrSamples.error402),
+        "type": "status",
+        "code": 402,
+        "passValue": 402
+      },
+      {
+        "name": "BOOMERANG ROUTE TRUE",
+        "submission": JSON.stringify(ptrSamples.sample1),
+        "type": "boomerang",
+        "code": 201,
+        "passValue": true
+      },
+      {
+        "name": "BOOMERANG ROUTE FALSE",
+        "submission": JSON.stringify(ptrSamples.sample3),
+        "type": "boomerang",
+        "code": 201,
+        "passValue": false
+      },
+      {
+        "name": "COMPLETED ROUTE TRUE",
+        "submission": JSON.stringify(ptrSamples.sample1),
+        "type": "completed",
+        "code": 201,
+        "passValue": true
+      },
+      {
+        "name": "COMPLETED ROUTE FALSE",
+        "submission": JSON.stringify(ptrSamples.sample2),
+        "type": "completed",
+        "code": 201,
+        "passValue": false
+      }];
 
       var runTests = function() {
         jQuery("#response-container").text("");
 
-        jQuery.each(tests, function(v, k) {
-          var submission = ptrSubmissions[0];     // pulled from ptr-samples.js
-          var obj = null;
-          switch (v) {
-            // TEST 1: 201 - no changes to json
-            case 0:
-              obj = JSON.stringify(submission);
-              break;
-
-            // TEST 2: 400 - malformed json
-            case 1:
-              obj = '{"a":"b","c":"d,}';
-              break;
-
-            // TEST 3: - misname a key in the json
-            case 2:
-              modifiedSubmission = JSON.parse(JSON.stringify(submission).split('"request_id":').join('"misnamed_key":'));
-              obj = JSON.stringify(modifiedSubmission);
-              break;
-
-            // TEST 3 - remove a value from the json
-            case 3:
-              submission.request_id = "";
-              obj = JSON.stringify(submission);
-              break;
-          }
-
+        jQuery.each(testCases, function(index, testCase) {
           jQuery.ajax(config.ptr_url, {
             type: 'POST',
-            data: obj,
+            data: testCase.submission,
             contentType: 'application/json',
             dataType: 'json',
             success: function(e) {
-              jQuery("#response-container").append('<div style="color: #3e9600;">' + k + ' test PASSED </div><br />');
+              updateUI(e, testCase, true);
             },
             error: function(e) {
-              if (e.status == 400 || e.status == 401 || e.status == 402) {
-                jQuery("#response-container").append('<div style="color: #3e9600;">' + k + ' test PASSED with expected error returned >> ' + e.statusText+ '</div><br />');
-              } else {
-                jQuery("#response-container").append('<div  style="color: #f21713;">' + k + ' test FAILED with unexpected error returned >> ' + e.statusText+ '</div><br />');
-              }
+              updateUI(e, testCase, false);
             }
           });
         });
+
+        var updateUI = function(returnValue, testCase, success) {
+          var el = "";
+
+          // this looks a little funky cause returnValue is differently structured depending on success or error. Think about handling that in the jQuery.ajax result so that this function always gets passed the same thing
+
+          // case 1: pass - generic success
+          if (success && returnValue.status.code == testCase.passValue) {
+            el = '<div style="color: #3E9600;">Test for ' + testCase.name + ' - PASSED with expected return value of -> ' + returnValue.status.message+ '('+returnValue.status.code+')</div><br />';
+          }
+          // case 2: pass - checking payload
+          else if (success && returnValue[testCase.type] == testCase.passValue) {
+            el = '<div style="color: #3E9600;">Test for ' + testCase.name + ' - PASSED with expected return value of -> ' + testCase.type+ ' is '+returnValue[testCase.type]+'</div><br />';
+          }
+          // case 3: fail - checking payload
+          else if (success && returnValue[testCase.type] != testCase.passValue) {
+            el = '<div style="color: #F21713;">Test for ' + testCase.name + ' - FAILED</div>';
+          }
+          // case 4: pass - expected error
+          else if (!success && testCase.passValue == returnValue.status) {
+            el = '<div style="color: #3E9600;">Test for ' + testCase.name + ' - PASSED with expected return value of -> ' + returnValue.statusText+ '('+returnValue.status+')</div><br />';
+          }
+          // case 5: fail - unexpected error
+          else if (!success) {
+            el = '<div style="color: #F21713;">Test for ' + testCase.name + ' - FAILED</div>';
+          }
+          // case 6: should be unreachable
+          else {
+            el = '<div style="color: #F21713;">TEST FAILED: Unknown case type</div>';
+          }
+          jQuery("#response-container").append(el + '<br />');
+        }
       }
 
       jQuery(document).ready(function() {
