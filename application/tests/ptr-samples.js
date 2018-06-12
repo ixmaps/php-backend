@@ -204,7 +204,7 @@ var ptrSamples =
       }
     ]
   },
-  "sample3": {
+  "nonBoomerang": {
     "request_id": 12345,
     "ipt_timestamp": "2017-06-09 01:23:24+05",
     "ipt_client_ip": "69.157.148.199",
