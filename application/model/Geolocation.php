@@ -53,7 +53,6 @@ class Geolocation {
       $this->ixmaps_ip_data = null;
     }
 
-
     if ($this->ixmaps_ip_data) {
       // Check if ip has been geo corrected
       if($this->ixmaps_ip_data['gl_override']!=null){
@@ -145,7 +144,6 @@ class Geolocation {
       $this->geo_source = "maxmind";
       $this->asn_source = "maxmind";
       $this->hostname = $this->mm_ip_data['hostname'];
-
     // 3. Set default geo data
     } else {
       if($debugMode){
@@ -186,9 +184,9 @@ class Geolocation {
     $params = array($ip);
     $result = pg_query_params($dbconn, $sql, $params);// or die('checkIxmapsDb: Query failed'.pg_last_error());
 
-    //$result = pg_query($dbconn, $sql) or die('checkIpIxmapsDb: Query failed'.pg_last_error());
     $ip_addr = pg_fetch_all($result);
     pg_free_result($result);
+
     if ($ip_addr) {
       //print_r($ip_addr);
       //echo "\n exists";

@@ -24,7 +24,6 @@ class TracerouteUtility
     *
     */
   public static function checkIfBoomerang($hops) {
-
     // unset hops with no response
     $cleanedHops = array();
     foreach ($hops as $key1 => $hop1) {

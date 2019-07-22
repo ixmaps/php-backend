@@ -16,7 +16,7 @@ class IXmapsMaxMind
     $this->giasn = geoip_open($this->MM_dat_dir."/GeoIPASNum.dat", GEOIP_STANDARD);
     $this->gi1 = geoip_open($this->MM_dat_dir."/GeoLiteCity.dat", GEOIP_STANDARD);
   }
-
+  
   public function loadGeoIpIncFiles() {
     // load MM dat files
     include($this->MM_geoip_dir."/geoip.inc");

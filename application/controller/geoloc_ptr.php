@@ -51,6 +51,7 @@ $overlayData = array();
 foreach ($hops as $hop) {
   // TODO: add ip format validation
   if($hop["ip"]!=null && $hop["ip"]!=""){
+
     $myHop = new Geolocation($hop["ip"]);
 
     $attributeObj = array(
@@ -73,6 +74,7 @@ foreach ($hops as $hop) {
     array_push($overlayData, $overlayHop);
   }
 }
+
 $geolocTr->setOverlayData($overlayData);
 $geolocTr->setStatus($geolocTr->determineStatus());
 

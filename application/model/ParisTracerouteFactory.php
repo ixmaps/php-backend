@@ -84,7 +84,6 @@ class ParisTracerouteFactory
         return new ResponseCode(402, $key);
       }
     }
-
     return new ResponseCode(201);
   }
 
