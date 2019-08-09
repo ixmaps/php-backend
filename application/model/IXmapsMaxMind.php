@@ -1,4 +1,12 @@
 <?php
+/**
+ *
+ * SOME DESCRIPTION
+ *
+ * Updated Aug 2019
+ * @author IXmaps.ca (Colin, Antonio)
+ *
+ */
 class IXmapsMaxMind
 {
   private $MM_dat_dir = "";
