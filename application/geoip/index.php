@@ -12,11 +12,7 @@
 
 
 // Data stored in ~/ix-data/mm-data
-require_once('../config.php');
-require_once('../../vendor/autoload.php');
-use GeoIp2\Database\Reader;
-// This creates the Reader object, which should be reused across lookups
-
+require_once('../model/IXmapsMaxMind.php');
 // country seems useless - maybe don't dl it?
 // $reader = new Reader($MM_dat_dir."/GeoLite2-Country.mmdb");
 // $record = $reader->country('128.101.101.101');
@@ -58,22 +54,21 @@ if(isset($_POST['ip'])) {
 // dirty check for localhost - throw in the MM default test value
 // NB - this is broken
 
-
-$reader = new Reader($MM_dat_dir."/GeoLite2-City.mmdb");
-$record = $reader->city($ip);
-$lat = $record->location->latitude;
-$long = $record->location->longitude;
+$mm = new IXmapsMaxMind($ip);
 
 echo '<b>Values derived from GeoLite2-City.mmdb</b><br/>';
-echo 'Lat: ' . $lat . "<br/>";
-echo 'Long: ' . $long . "<br/>";
+echo 'Lat: ' . $mm->getLat() . "<br/>";
+echo 'Long: ' . $mm->getlong() . "<br/>";
 
-echo 'City: ' . $record->city->name . "<br/>";
-echo 'Region: ' . $record->mostSpecificSubdivision->name . "<br/>";
-echo 'Region code: ' . $record->mostSpecificSubdivision->isoCode . "<br/>";
-echo 'Postal code: ' . $record->postal->code . "<br/>";
-echo 'Country: ' . $record->country->name . "<br/>";
-echo 'Country code: ' . $record->country->isoCode . "<br/>";
+echo 'City: ' . $mm->getCity() . "<br/>";
+echo 'Region: ' . $mm->getRegion() . "<br/>";
+echo 'Region code: ' . $mm->getRegionCode() . "<br/>";
+echo 'Postal code: ' . $mm->getPostalCode() . "<br/>";
+echo 'Country: ' . $mm->getCountry() . "<br/>";
+echo 'Country code: ' . $mm->getCountryCode() . "<br/>";
+
+echo 'ASN: ' . $mm->getASNum() . "<br/>";
+echo 'ASN name: ' . $mm->getASName() . "<br/>";
 
 echo '<br/><br/>';
 ?>
@@ -115,7 +110,7 @@ echo '<br/><br/>';
         });
       <?php } ?>
       }
-      google.maps.event.addDomListener(window, 'load', initialize);
+      // google.maps.event.addDomListener(window, 'load', initialize);
     </script>
   </head>
   <body>
