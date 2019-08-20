@@ -302,14 +302,14 @@ class Traceroute
 
   /**
     Get TR details data for a current TR: this is quite expensive computationally and memory
-    Only used to perform advanced analysis that need to look at all the attemps and all the hops in a TR
+    Only used to perform advanced analysis that need to look at all the attempts and all the hops in a TR
   */
   public static function getTraceRouteAll($trId)
   {
     global $dbconn;
     $result = array();
     $trArr = array();
-    // adding exception to prevent error with tr id wiht no tr_items
+    // adding exception to prevent error with tr id with no tr_items
     if($trId!=''){
       $sql = 'SELECT traceroute.id, tr_item.* FROM traceroute, tr_item WHERE (tr_item.traceroute_id=traceroute.id) AND traceroute.id = '.$trId.' ORDER BY tr_item.traceroute_id, tr_item.hop, tr_item.attempt';
 

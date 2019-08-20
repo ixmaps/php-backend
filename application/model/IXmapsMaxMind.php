@@ -61,6 +61,7 @@ class IXmapsMaxMind
     $this->asname = $asnRecord->autonomousSystemOrganization;
 
     // TODO - do we need to unset or otherwise close the Reader object?
+    // eg unset($cityReader);
   }
 
   public function getLat() {

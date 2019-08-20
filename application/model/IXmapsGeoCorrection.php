@@ -58,14 +58,16 @@ class IXmapsGeoCorrection
       a. old MM
       b. current geo data in IXmaps db
       c. latest geo data MM db
+
+
+      UPDATE AUG 2019 - this appears to be legacy, is now broken with GeoLite2 (not updating)
   */
   public static function insertLogIpAddrInfo($data)
   {
     global $dbconn, $appPath;
-    include($appPath.'/model/IXmapsMaxMind.php');
+    require_once($appPath.'/model/IXmapsMaxMind.php');
 
     $mm = new IXmapsMaxMind();
-    //print_r($data);
 
     $columns = array('ip_addr', 'asnum', 'mm_lat', 'mm_long', 'hostname', 'mm_country', 'mm_region', 'mm_city', 'mm_postal', 'mm_area_code', 'mm_dma_code', 'p_status', 'lat', 'long', 'gl_override', 'flagged', 'date_created', 'date_modified', 'updated_asn', 'updated_mm_lat', 'updated_mm_long', 'updated_mm_country', 'updated_mm_region', 'updated_mm_city', 'updated_mm_postal', 'updated_mm_area_code', 'updated_mm_dma_code', 'updated_mm_asn', 'dis_mm_first_updated', 'dis_mm_first_corrected', 'dis_mm_updated_corrected');
 

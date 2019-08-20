@@ -10,20 +10,18 @@
  *
  */
 header('Access-Control-Allow-Origin: *');
-include('../config.php');
-include('../model/IXmapsMaxMind.php');
-include('../model/Geolocation.php');
-include('../model/TracerouteUtility.php');
-include('../model/ParisTraceroute.php');
-include('../model/ParisTracerouteFactory.php');
-include('../model/GeolocTraceroute.php');
-include('../model/ResponseCode.php');
+require_once('../config.php');
+require_once('../model/Geolocation.php');
+require_once('../model/TracerouteUtility.php');
+require_once('../model/ParisTraceroute.php');
+require_once('../model/ParisTracerouteFactory.php');
+require_once('../model/GeolocTraceroute.php');
+require_once('../model/ResponseCode.php');
 
 /***
  *** validate the incoming PTR JSON and build ptr object
  ***/
 $ptr = ParisTracerouteFactory::build(file_get_contents('php://input'));
-$mm = new IXmapsMaxMind();
 
 
 /***
@@ -77,8 +75,6 @@ foreach ($hops as $hop) {
 
 $geolocTr->setOverlayData($overlayData);
 $geolocTr->setStatus($geolocTr->determineStatus());
-
-$mm->closeDatFiles();
 
 /***
  *** return the GEO-JSON to CIRA
