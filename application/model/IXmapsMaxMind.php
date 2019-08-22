@@ -104,10 +104,6 @@ class IXmapsMaxMind
     return $this->asname;
   }
 
-  // public function getHostname() {
-  //   return $this->hostname;
-  // }
-
   /**
    * Get Geo IP and ASN data from MaxMind local files
    * @param string $ip

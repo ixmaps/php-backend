@@ -4,7 +4,7 @@
  *
  * @param Request POSTS from IXmapsClient
  *
- * @return JSON response to IXmapsClient.
+ * @return JSON response to IXmapsClient
  *
  * @since Updated Aug 2019
  * @author IXmaps.ca (Anto, Colin)
@@ -40,7 +40,7 @@ $_POST['cl_version'] = "";
   Requires discussion with tests on the IXmapsClient
 */
 if (isset($_POST['dest_ip']) && $_POST['dest_ip'] != "") {
-  $trGatherMessage="";
+  $trGatherMessage = "";
   $saveTrResult = GatherTr::saveTrContribution($_POST);
   $tr_c_id = $saveTrResult['tr_c_id'];
 
@@ -48,7 +48,7 @@ if (isset($_POST['dest_ip']) && $_POST['dest_ip'] != "") {
     $trGatherMessage.=" ".$saveTrResult['error'];
   }
 
-  $b = GatherTr::saveTrContributionData($_POST,$tr_c_id);
+  $b = GatherTr::saveTrContributionData($_POST, $tr_c_id);
   $trData = GatherTr::getTrContribution($tr_c_id);
   $trByHop = GatherTr::analyzeIfInconsistentPasses($trData);
 

@@ -124,7 +124,7 @@ class Geolocation {
     } else if ($this->mm->getCountryCode()) {
 
       // Insert new ip in IXmaps Db for logging purposes?
-      $this->insertNewIpAddress($ip, $this->mm);
+      // $this->insertNewIpAddress($ip, $this->mm);
 
       if ($debugMode) {
         echo "\n\t(".$ip.") : In MM DB\n\n";
@@ -203,8 +203,8 @@ class Geolocation {
     $result = pg_query_params($dbconn, $sql, $params) or die();
     $id_data = pg_fetch_all($result);
     if (!$id_data) {
-      $sql = "INSERT INTO ip_addr_info (ip_addr, asnum, mm_lat, mm_long, hostname, mm_country, mm_region, mm_city, mm_postal, mm_area_code, mm_dma_code, lat, long, p_status, gl_override) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)";
-      $params = array($ip, $mm->getASNum(), $mm->getLat(), $mm->getLong(), NULL, $mm->getCountryCode(), $mm->getRegion(), $mm->getCity(), $mm->getPostalCode(), NULL, NULL, $$mm->getLat(), $mm->getLong(), 'x', NULL);
+      $sql = "INSERT INTO ip_addr_info (ip_addr, asnum, mm_lat, mm_long, hostname, mm_country, mm_region, mm_city, mm_postal, lat, long, p_status, gl_override) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)";
+      $params = array($ip, $mm->getASNum(), $mm->getLat(), $mm->getLong(), NULL, $mm->getCountryCode(), $mm->getRegion(), $mm->getCity(), $mm->getPostalCode(), $mm->getLat(), $mm->getLong(), 'x', NULL);
 
         // TODO: add error handling that is consistent with PTR approach
         $result = pg_query_params($dbconn, $sql, $params) or die();

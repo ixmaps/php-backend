@@ -60,7 +60,7 @@ class IXmapsGeoCorrection
       c. latest geo data MM db
 
 
-      UPDATE AUG 2019 - this appears to be legacy, is now broken with GeoLite2 (not updating)
+      UPDATE AUG 2019 - this appears to be legacy, is now broken with GeoLite2 (I'm not updating it until it's proved necessary)
   */
   public static function insertLogIpAddrInfo($data)
   {
