@@ -12,7 +12,7 @@
 
 require_once('../model/IXmapsMaxMind.php');
 
-if(isset($_POST['ip'])) {
+if (isset($_POST['ip'])) {
   $ip = $_POST['ip'];
 } else {
   $ip = $_SERVER['REMOTE_ADDR'];
@@ -64,14 +64,14 @@ echo '<br/><br/>';
         if($ip!='')
         {
         ?>
-        var myLatLng = new google.maps.LatLng(<?php echo $lat.','.$long;?>);
+        var myLatLng = new google.maps.LatLng(<?php echo $mm->getLat().','.$mm->getlong()?>);
         var mapOptions = {
           zoom: 6,
           center: myLatLng,
           mapTypeId: google.maps.MapTypeId.ROADMAP
         };
         var map = new google.maps.Map(document.getElementById('map_canvas'), mapOptions);
-        var ip_IXmaps = new google.maps.LatLng(<?php echo $lat.','.$long;?>);
+        var ip_IXmaps = new google.maps.LatLng(<?php echo $mm->getLat().','.$mm->getlong()?>);
         var marker_IXmaps = new google.maps.Marker({
           position: ip_IXmaps,
           map: map,
