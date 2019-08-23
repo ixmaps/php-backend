@@ -1,7 +1,10 @@
 <?php
 /**
  *
- * This gets hit on load by the map page
+ * This gets hit on load by:
+ * - Map page on load
+ * - IXmapsClient
+ * 
  * @return structured geoloc values for front end user's ip
  *
  * Updated Aug 2019

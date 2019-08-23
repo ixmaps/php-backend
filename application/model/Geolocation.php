@@ -200,7 +200,7 @@ class Geolocation {
     $id_data = pg_fetch_all($result);
     if (!$id_data) {
       $sql = "INSERT INTO ip_addr_info (ip_addr, asnum, mm_lat, mm_long, hostname, mm_country, mm_region, mm_city, mm_postal, lat, long, p_status, gl_override) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)";
-      $params = array($ip, $mm->getASNum(), $mm->getLat(), $mm->getLong(), $mm->getHostname(), $mm->getCountryCode(), $mm->getRegion(), $mm->getCity(), $mm->getPostalCode(), $mm->getLat(), $mm->getLong(), 'x', NULL);
+      $params = array($ip, $mm->getASNum(), $mm->getLat(), $mm->getLong(), $mm->getHostname() , $mm->getCountryCode(), $mm->getRegion(), $mm->getCity(), $mm->getPostalCode(), $mm->getLat(), $mm->getLong(), 'x', NULL);
 
         // TODO: add error handling that is consistent with PTR approach
         $result = pg_query_params($dbconn, $sql, $params) or die();
