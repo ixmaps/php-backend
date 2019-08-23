@@ -30,35 +30,60 @@ class IXmapsMaxMind
   private $countryCode;
   private $asnum;
   private $asname;
-
+  private $hostname;
 
   /**
    *
    */
   function __construct($ip) {
-    // TODO - first check if $ip is null, and fail loudly if not
-    // Where do we handle errors on this? EG if MM doesn't have one of the values
+    // TODO - first check if $ip is null or malformed, and fail loudly if not
+    // TODO - consider if the below try / catches are appropriate for error handling?
+    // They're necessary for the case where the MM files don't have the IP
+    // Could also consider another value to explicitly show whether or not those values exist
+    // eg $this->mmContainsASNvalue
     global $MM_dat_dir;     // why is this a global? - TODO
     $this->MM_dat_dir = $MM_dat_dir;
     // $this->MM_geoip_dir = $MM_geoip_dir;
     // $this->loadGeoIpIncFiles();
     // $this->giasn = geoip_open($this->MM_dat_dir."/GeoIPASNum.dat", GEOIP_STANDARD);
     // $this->gi1 = geoip_open($this->MM_dat_dir."/GeoLiteCity.dat", GEOIP_STANDARD);
-    $cityReader = new Reader($MM_dat_dir."/GeoLite2-City.mmdb");
-    $cityRecord = $cityReader->city($ip);
-    $this->lat = $cityRecord->location->latitude;
-    $this->long = $cityRecord->location->longitude;
-    $this->city = $cityRecord->city->name;
-    $this->region = $cityRecord->mostSpecificSubdivision->name;
-    $this->regionCode = $cityRecord->mostSpecificSubdivision->isoCode;
-    $this->postal = $cityRecord->postal->code;
-    $this->country = $cityRecord->country->name;
-    $this->countryCode = $cityRecord->country->isoCode;
+    if (filter_var($ip, FILTER_VALIDATE_IP) == false) {
+      throw new Exception("Not a valid IP address");
+    }
 
-    $asnReader = new Reader($MM_dat_dir."/GeoLite2-ASN.mmdb");
-    $asnRecord = $asnReader->asn($ip);
-    $this->asnum = $asnRecord->autonomousSystemNumber;
-    $this->asname = $asnRecord->autonomousSystemOrganization;
+    try {
+      $cityReader = new Reader($MM_dat_dir."/GeoLite2-City.mmdb");
+      $cityRecord = $cityReader->city($ip);
+      $this->lat = $cityRecord->location->latitude;
+      $this->long = $cityRecord->location->longitude;
+      $this->city = $cityRecord->city->name;
+      $this->region = $cityRecord->mostSpecificSubdivision->name;
+      $this->regionCode = $cityRecord->mostSpecificSubdivision->isoCode;
+      $this->postal = $cityRecord->postal->code;
+      $this->country = $cityRecord->country->name;
+      $this->countryCode = $cityRecord->country->isoCode;
+    } catch(Exception $e) {
+      $this->lat = NULL;
+      $this->long = NULL;
+      $this->city = NULL;
+      $this->region = NULL;
+      $this->regionCode = NULL;
+      $this->postal = NULL;
+      $this->country = NULL;
+      $this->countryCode = NULL;
+    }
+
+    try {
+      $asnReader = new Reader($MM_dat_dir."/GeoLite2-ASN.mmdb");
+      $asnRecord = $asnReader->asn($ip);
+      $this->asnum = $asnRecord->autonomousSystemNumber;
+      $this->asname = $asnRecord->autonomousSystemOrganization;
+    } catch(Exception $e) {
+      $this->asnum = NULL;
+      $this->asname = NULL;
+    }
+
+    $this->hostname = gethostbyaddr($ip);
 
     // TODO - do we need to unset or otherwise close the Reader object?
     // eg unset($cityReader);
@@ -104,33 +129,37 @@ class IXmapsMaxMind
     return $this->asname;
   }
 
+  public function getHostname() {
+    return $this->hostname;
+  }
+
   /**
    * Get Geo IP and ASN data from MaxMind local files
    * @param string $ip
    */
-  // public function getGeoIp($ip) {
-  //   $this->geoIp = geoip_record_by_addr($this->gi1, $ip);
+  public function getGeoIp($ip) {
+    $this->geoIp = geoip_record_by_addr($this->gi1, $ip);
 
-  //   if(isset($this->geoIp->city) && $this->geoIp->city!=""){
-  //     $this->geoIp->city = mb_convert_encoding($this->geoIp->city, "UTF-8", "iso-8859-1");
-  //   }
+    if(isset($this->geoIp->city) && $this->geoIp->city!=""){
+      $this->geoIp->city = mb_convert_encoding($this->geoIp->city, "UTF-8", "iso-8859-1");
+    }
 
-  //   $r = array(
-  //     "ip"=>$ip,
-  //     "geoip"=>(array)$this->geoIp,
-  //     "asn"=>NULL,
-  //     "isp"=>NULL,
-  //     "hostname"=>gethostbyaddr($ip)
-  //   );
-  //   $ipAsn = geoip_name_by_addr($this->giasn, $ip);
-  //   if($ipAsn!=NULL){
-  //     $asn_isp = $this->extractAsn($ipAsn);
-  //     $r['asn'] = $asn_isp[0];
-  //     $r['isp'] = $asn_isp[1];
-  //   }
+    $r = array(
+      "ip"=>$ip,
+      "geoip"=>(array)$this->geoIp,
+      "asn"=>NULL,
+      "isp"=>NULL,
+      "hostname"=>gethostbyaddr($ip)
+    );
+    $ipAsn = geoip_name_by_addr($this->giasn, $ip);
+    if($ipAsn!=NULL){
+      $asn_isp = $this->extractAsn($ipAsn);
+      $r['asn'] = $asn_isp[0];
+      $r['isp'] = $asn_isp[1];
+    }
 
-  //   return $r;
-  // }
+    return $r;
+  }
 
   // public function loadGeoIpIncFiles() {
   //   // load MM dat files

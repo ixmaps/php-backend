@@ -489,6 +489,7 @@ class GatherTr
           $foundFirstValidIp=true;
 
           $ipQuads = explode('.', $hop['winIp']);
+          // CM: what is an
           $ipAmonim = "";
 
           for ($i=0; $i < count($ipQuads); $i++) {
@@ -1013,12 +1014,13 @@ class GatherTr
     $mm = new IXmapsMaxMind($ip);
 
     /* TODO: check data types on all $data vars */
-    if($mm->getASNum() == null || $mm->getASNum() == ""){
-      $mm->getASNum() = -1;
+    $asn = $mm->getASNum();
+    if ($mm->getASNum() == null || $mm->getASNum() == "") {
+      $asn = -1;
     }
 
     $sql = "INSERT INTO ip_addr_info (ip_addr, asnum, mm_lat, mm_long, hostname, mm_country, mm_region, mm_city, mm_postal, p_status, lat, long, gl_override) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15);";
-    $ipData = array($ip, $mm->getASNum(), $mm->getLat(), $mm->getLong(), NULL, $mm->getCountryCode(), $mm->getRegion(), $mm->getCity(), $mm->getPostalCode(), "N", $mm->getLat(), $mm->getLong(), NULL);
+    $ipData = array($ip, $asn, $mm->getLat(), $mm->getLong(), $mm->getHostname(), $mm->getCountryCode(), $mm->getRegion(), $mm->getCity(), $mm->getPostalCode(), "N", $mm->getLat(), $mm->getLong(), NULL);
 
       /* Catch errors in sql statement */
       if (pg_send_query_params($dbconn, $sql, $ipData)) {

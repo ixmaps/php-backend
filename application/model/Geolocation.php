@@ -36,7 +36,7 @@ class Geolocation {
    */
   function __construct($ip, $debugMode=false) {
     $this->ip = $ip;
-    $this->mm = new IXmapsMaxMind($ip);
+    $mm = new IXmapsMaxMind($ip);
 
     // TODO: validate ip format
     $ipIsValid = false;
@@ -58,11 +58,12 @@ class Geolocation {
           echo "\n\t(".$ip.") : In IXmaps DB, geocorrected\n\n";
         }
         // Use IXmaps geo data
-        $this->lat = $this->ixmaps_ip_data['lat'];
-        $this->long = $this->ixmaps_ip_data['long'];
+        $this->lat = (float)$this->ixmaps_ip_data['lat'];
+        $this->long = (float)$this->ixmaps_ip_data['long'];
         $this->city = $this->ixmaps_ip_data['mm_city'];
         $this->country = $this->ixmaps_ip_data['mm_country'];
 
+        // these are never used in the PTR return. Do we need to rethink what this class actually does?
         if ($this->ixmaps_ip_data['asnum'] != -1) {
           if ($debugMode) {
             echo "\n\t\tUsing asnum and asname from IXmaps DB\n\n";
@@ -77,16 +78,11 @@ class Geolocation {
           if ($debugMode) {
             echo "\n\t\tUsing asnum and asname from MM DB\n\n";
           }
-          $this->asnum = $this->mm_ip_data['asn'];
-          $this->asname = $this->mm_ip_data['isp'];
-          $this->hostname = $this->mm_ip_data['hostname'];
+          $this->asnum = $mm->getASNum();
+          $this->asname = $mm->getASName();
+          $this->hostname = $mm->getHostname();
           $this->asn_source = "maxmind";
 
-          if ($this->mm_ip_data['asn'] != null) {
-            /*
-              TODO: update IXmapsDB with known ASN from MM ?
-            */
-          }
         }
         $this->geo_source = "ixmaps";
       } else {
@@ -95,14 +91,14 @@ class Geolocation {
         }
         // TODO: do something if the ip exists in IXmaps db but it has not been geo-corrected?
         // using MM for now
-        $this->lat = $this->mm->getLat();
-        $this->long = $this->mm->getLong();
-        $this->city = $this->mm->getCity();
-        $this->country = $this->mm->getCountryCode();
-        $this->hostname = NULL;
+        $this->lat = $mm->getLat();
+        $this->long = $mm->getLong();
+        $this->city = $mm->getCity();
+        $this->country = $mm->getCountryCode();
+        $this->hostname = $mm->getHostname();
         $this->geo_source = "maxmind";
 
-        if ($this->mm->getASNum() == null && $this->mm->getASNum() != -1) {
+        if ($mm->getASNum() == null && $mm->getASNum() != -1) {
           if ($debugMode) {
             echo "\n\t\tasnum is null in MM but valid in IXmaps db\n\n";
           }
@@ -113,15 +109,15 @@ class Geolocation {
           if ($debugMode) {
             echo "\n\t\tUsing asnum and asname from MM\n\n";
           }
-          $this->asnum = $this->mm->getASNum();
-          $this->asname = $this->mm->getASName();
+          $this->asnum = $mm->getASNum();
+          $this->asname = $mm->getASName();
           $this->asn_source = "maxmind";
         }
 
       }
 
     // 2. Check Maxmind data
-    } else if ($this->mm->getCountryCode()) {
+    } else if ($mm->getCountryCode()) {
 
       // Insert new ip in IXmaps Db for logging purposes?
       // $this->insertNewIpAddress($ip, $this->mm);
@@ -131,12 +127,12 @@ class Geolocation {
       }
 
       // Use MM geo data
-      $this->lat = $this->mm->getLat();
-      $this->long = $this->mm->getLong();
-      $this->city = $this->mm->getCity();
-      $this->country = $this->mm->getCountryCode();
-      $this->asnum = $this->mm->getASNum();
-      $this->asname = $this->mm->getASName();
+      $this->lat = $mm->getLat();
+      $this->long = $mm->getLong();
+      $this->city = $mm->getCity();
+      $this->country = $mm->getCountryCode();
+      $this->asnum = $mm->getASNum();
+      $this->asname = $mm->getASName();
       $this->geo_source = "maxmind";
       $this->asn_source = "maxmind";
       $this->hostname = NULL;
@@ -204,7 +200,7 @@ class Geolocation {
     $id_data = pg_fetch_all($result);
     if (!$id_data) {
       $sql = "INSERT INTO ip_addr_info (ip_addr, asnum, mm_lat, mm_long, hostname, mm_country, mm_region, mm_city, mm_postal, lat, long, p_status, gl_override) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)";
-      $params = array($ip, $mm->getASNum(), $mm->getLat(), $mm->getLong(), NULL, $mm->getCountryCode(), $mm->getRegion(), $mm->getCity(), $mm->getPostalCode(), $mm->getLat(), $mm->getLong(), 'x', NULL);
+      $params = array($ip, $mm->getASNum(), $mm->getLat(), $mm->getLong(), $mm->getHostname(), $mm->getCountryCode(), $mm->getRegion(), $mm->getCity(), $mm->getPostalCode(), $mm->getLat(), $mm->getLong(), 'x', NULL);
 
         // TODO: add error handling that is consistent with PTR approach
         $result = pg_query_params($dbconn, $sql, $params) or die();

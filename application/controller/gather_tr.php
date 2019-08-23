@@ -60,8 +60,8 @@ if (isset($_POST['dest_ip']) && $_POST['dest_ip'] != "") {
   } else {
     $trGatherMessage = "";
     $trAnalyzed = GatherTr::selectBestIp($trByHop['tr_by_hop']);
-    $trData['ip_analysis']=$trAnalyzed;
-    $trData['tr_flag']=$trByHop['tr_flag'];
+    $trData['ip_analysis'] = $trAnalyzed;
+    $trData['tr_flag'] = $trByHop['tr_flag'];
 
     $publishResult = GatherTr::publishTraceroute($trData);
 

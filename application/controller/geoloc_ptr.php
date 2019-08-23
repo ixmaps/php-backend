@@ -48,7 +48,7 @@ $geolocTr->setBoomerang(TracerouteUtility::checkIfBoomerang($hops));
 $overlayData = array();
 foreach ($hops as $hop) {
   // TODO: add ip format validation
-  if($hop["ip"]!=null && $hop["ip"]!=""){
+  if ($hop["ip"] != null && $hop["ip"] != "") {
 
     $myHop = new Geolocation($hop["ip"]);
 
@@ -66,8 +66,7 @@ foreach ($hops as $hop) {
       "ip" => $hop["ip"],
       "hostname" => $myHop->getHostname(),
       "lat" => $myHop->getLat(),
-      "long" => $myHop->getLong(),
-      "attributes" => $attributeObj
+      "long" => $myHop->getLong()
     );
     array_push($overlayData, $overlayHop);
   }
