@@ -3,7 +3,7 @@
  *
  * This gets hit on load by:
  * - Map page on load
- * - IXmapsClient
+ * - IXmapsClient - NO! Not yet at least
  * 
  * @return structured geoloc values for front end user's ip
  *
