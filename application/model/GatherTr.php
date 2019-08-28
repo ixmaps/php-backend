@@ -1021,7 +1021,7 @@ class GatherTr
     }
 
     $sql = "INSERT INTO ip_addr_info (ip_addr, asnum, mm_lat, mm_long, hostname, mm_country, mm_region, mm_city, mm_postal, p_status, lat, long, gl_override) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13);";
-    $ipData = array($ip, $asn, $mm->getLat(), $mm->getLong(), $mm->getHostname(), $mm->getCountryCode(), $mm->getRegion(), $mm->getCity(), $mm->getPostalCode(), "N", $mm->getLat(), $mm->getLong(), NULL);
+    $ipData = array($ip, $asn, $mm->getLat(), $mm->getLong(), $mm->getHostname(), $mm->getCountryCode(), $mm->getRegionCode(), $mm->getCity(), $mm->getPostalCode(), "N", $mm->getLat(), $mm->getLong(), NULL);
 
       /* Catch errors in sql statement */
       if (pg_send_query_params($dbconn, $sql, $ipData)) {

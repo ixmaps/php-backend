@@ -98,7 +98,7 @@ class IXmapsMaxMind
   }
 
   public function getRegion() {
-    return $this->getRegionCode;
+    return $this->region;
   }
 
   public function getRegionCode() {

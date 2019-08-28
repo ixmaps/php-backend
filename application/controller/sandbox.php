@@ -84,7 +84,7 @@ echo '<br/><br/>';
   </head>
   <body>
     <div>
-      <form action="index.php" method="post">
+      <form action="sandbox.php" method="post">
         IP: <input name="ip" type="text" value="<?php echo $ip;?>"/> <input type="submit" value="Geocode"/>
       </form>
     </div>
