@@ -1025,7 +1025,7 @@ class GatherTr
 
       /* Catch errors in sql statement */
       if (pg_send_query_params($dbconn, $sql, $ipData)) {
-        $result=pg_get_result($dbconn);
+        $result = pg_get_result($dbconn);
         if ($result) {
           $state = pg_result_error_field($result, PGSQL_DIAG_SQLSTATE);
           if ($state!=0) {
@@ -1033,7 +1033,7 @@ class GatherTr
               "class"=>"GatherTr",
               "function"=>"insertNewIp",
               "tr_c_id"=>$tr_c_id,
-              "data"=>$data,
+              "data"=>$ipData,
               "error"=>pg_last_error(),
               "E_USER_ERROR"=>E_USER_ERROR
             );
