@@ -423,6 +423,7 @@ class GatherTr
     $lastIp = $data['ip_analysis']['hops'][$lastKey]['winIp'];
     //echo "LastIP: ".$lastIp;
 
+    // NB - c means complete, i means incomplete
     if ($data['dest_ip']==$lastIp) {
       $trStatus = "c";
     } else {
@@ -535,7 +536,7 @@ class GatherTr
     }
 
     /* Enables publication of current TR data if there are at least 2 valid public IP addresses */
-    if ($validPublicIPs>=2) {
+    if ($validPublicIPs >= 2) {
       $publishControl = true;
     }
 
@@ -551,7 +552,7 @@ class GatherTr
       $newTrId = GatherTr::saveTraceroute($trInsertData["trData"]);
 
       /* Insert TrItems */
-      if ($newTrId!=0) {
+      if ($newTrId != 0) {
         GatherTr::manageNewIps($newTrId, $trInsertData["trItems"]);
         $resultArray['trId'] = $newTrId;
       }
@@ -976,10 +977,10 @@ class GatherTr
 
     /* Catch errors in sql statement */
     if (pg_send_query_params($dbconn, $sql, $trItemsData)) {
-      $result=pg_get_result($dbconn);
+      $result = pg_get_result($dbconn);
       if ($result) {
         $state = pg_result_error_field($result, PGSQL_DIAG_SQLSTATE);
-        if ($state!=0) { // error catched
+        if ($state != 0) { // error catched
           $errorData = array(
             "class"=>"GatherTr",
             "function"=>"saveTracerouteItem",
@@ -1019,7 +1020,7 @@ class GatherTr
       $asn = -1;
     }
 
-    $sql = "INSERT INTO ip_addr_info (ip_addr, asnum, mm_lat, mm_long, hostname, mm_country, mm_region, mm_city, mm_postal, p_status, lat, long, gl_override) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15);";
+    $sql = "INSERT INTO ip_addr_info (ip_addr, asnum, mm_lat, mm_long, hostname, mm_country, mm_region, mm_city, mm_postal, p_status, lat, long, gl_override) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13);";
     $ipData = array($ip, $asn, $mm->getLat(), $mm->getLong(), $mm->getHostname(), $mm->getCountryCode(), $mm->getRegion(), $mm->getCity(), $mm->getPostalCode(), "N", $mm->getLat(), $mm->getLong(), NULL);
 
       /* Catch errors in sql statement */
@@ -1035,7 +1036,7 @@ class GatherTr
               "data"=>$data,
               "error"=>pg_last_error(),
               "E_USER_ERROR"=>E_USER_ERROR
-              );
+            );
             GatherTr::saveError($errorData);
             /* TODO: need to decide if we rollback the new TR ?? discuss this!!*/
             return 0;
@@ -1097,7 +1098,7 @@ class GatherTr
       /* Loop hop latencies - Insert TR item */
       foreach ($hop as $key => $trItem) {
         $saveTrItemResult = GatherTr::saveTracerouteItem($trId, $trItem);
-        /* TODO: determine what action needs to be taker if at least one item could not be saved
+        /* TODO: determine what action needs to be taken if at least one item could not be saved
           $saveTrItemResult == 0
         */
       } // end loop latencies

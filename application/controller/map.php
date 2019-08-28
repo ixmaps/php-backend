@@ -1,7 +1,11 @@
 <?php
 /**
  *
- * Not sure what this controller does - TODO
+ * This handles queries from the map.js frontend
+ * 
+ * @param $_POST json
+ *
+ * @return some kind of JSON object - TODO
  *
  * @author IXmaps.ca (Anto)
  *
@@ -20,6 +24,7 @@ $mtime = microtime();
 $mtime = explode(" ",$mtime);
 $mtime = $mtime[1] + $mtime[0];
 $starttime = $mtime;
+
 
 if (!isset($_POST) || count($_POST)==0) {
   $error = array(
