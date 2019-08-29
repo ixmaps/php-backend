@@ -56,13 +56,12 @@ echo '<br/><br/>';
       }
     </STYLE>
 
-    <script src="https://maps.googleapis.com/maps/api/js"></script>
+    <script src="../config.js"></script>
     <script language="JavaScript">
 
       function initialize() {
         <?php
-        if($ip!='')
-        {
+        if ($ip != '') {
         ?>
         var myLatLng = new google.maps.LatLng(<?php echo $mm->getLat().','.$mm->getlong()?>);
         var mapOptions = {
@@ -71,15 +70,19 @@ echo '<br/><br/>';
           mapTypeId: google.maps.MapTypeId.ROADMAP
         };
         var map = new google.maps.Map(document.getElementById('map_canvas'), mapOptions);
-        var ip_IXmaps = new google.maps.LatLng(<?php echo $mm->getLat().','.$mm->getlong()?>);
+        var ip_ixmaps = new google.maps.LatLng(<?php echo $mm->getLat().','.$mm->getlong()?>);
         var marker_IXmaps = new google.maps.Marker({
-          position: ip_IXmaps,
+          position: ip_ixmaps,
           map: map,
           title:'<?php echo $ip;?>'
         });
       <?php } ?>
       }
-      // google.maps.event.addDomListener(window, 'load', initialize);
+
+      var scriptEl = document.createElement('script');
+      scriptEl.type = 'text/javascript';
+      scriptEl.src = 'https://maps.google.com/maps/api/js?v=3&libraries=geometry&key='+config.gmaps.key+'&callback=initialize';
+      document.body.appendChild(scriptEl);
     </script>
   </head>
   <body>
