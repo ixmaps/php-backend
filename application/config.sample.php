@@ -4,10 +4,10 @@
 ini_set( "display_errors", 0);
 
 /* Db configuration */
-$dbname   = 'ixmaps';
-$dbuser   = 'postgres';
+$dbname     = 'ixmaps';
+$dbuser     = 'postgres';
 $dbpassword = 'xxxx';
-$dbport   = '5432';
+$dbport     = '5432';
 
 try {
   // Connecting, selecting database
@@ -38,6 +38,7 @@ $ixmaps_hands_off_config = array();
 $coordExclude = array(
   '60,-95',
   '38,-97',
+  '47.0','8.0',
   '37.751,-97.822'
 );
 ?>
