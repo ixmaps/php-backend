@@ -25,19 +25,19 @@ class IXmapsGeoCorrection
       }*/
 
     // select geo-corrected ips
-    } else if($type==1){
+    } else if($type==1) {
       $sql1 = "SELECT ip_addr, asnum, hostname, lat, long, mm_country, mm_region, mm_city FROM ip_addr_info WHERE p_status='G' LIMIT $limit;";
 
     // select an ip
-    } else if($type==2){
+    } else if($type==2) {
       $sql1 = "SELECT ip_addr, asnum, hostname, lat, long, mm_country, mm_region, mm_city FROM ip_addr_info WHERE ip_addr = '".$ip."';";
 
     // select ips not geo corrected, with valid coordinates, but with not city name
-    } else if($type==3){
+    } else if($type==3) {
       $sql1 = "SELECT ip_addr, gl_override, p_status, asnum, hostname, lat, long, mm_country, mm_region, mm_city FROM ip_addr_info WHERE mm_city = '' and p_status<>'F' and p_status<>'G' and p_status<>'U' and lat <> 0 and gl_override is not null order by ip_addr OFFSET $offset LIMIT $limit;";
 
     // select ips by asn
-    } else if($type==4){
+    } else if($type==4) {
       $sql1 = "SELECT ip_addr, gl_override, p_status, asnum, hostname, lat, long, mm_country, mm_region, mm_city FROM ip_addr_info WHERE mm_city = '' and p_status<>'F' and p_status<>'G' and p_status<>'U' and lat <> 0 and gl_override is null and asn=$asn order by ip_addr OFFSET $offset LIMIT $limit;";
     }
 
@@ -131,53 +131,53 @@ class IXmapsGeoCorrection
   }
 
   /**
-   * Collect the most recurrent geodata for a set ip geo matches
+   * Collect the most recurrent geodata for a set ip geo matches - legacy?
    */
-  public static function getBestMatchforGeoData($geodata)
-  {
-    $bestMatchCountry = array ();
-    $bestMatchRegion = array ();
-    $bestMatchCity = array ();
+  // public static function getBestMatchforGeoData($geodata)
+  // {
+  //   $bestMatchCountry = array ();
+  //   $bestMatchRegion = array ();
+  //   $bestMatchCity = array ();
 
-    foreach ($geodata as $key1 => $geoLocMatch) {
-      // Exclude null region names
-      if($geoLocMatch['region']!=""){
-        if(!isset($bestMatchCountry[$geoLocMatch['region']])){
-          $bestMatchRegion[$geoLocMatch['region']] = 1;
-        } else {
-          $bestMatchRegion[$geoLocMatch['region']] += 1;
-        }
-      }
-      // Exclude null country names
-      if($geoLocMatch['country']!=""){
-        if(!isset($bestMatchCountry[$geoLocMatch['country']])){
-          $bestMatchCountry[$geoLocMatch['country']] = 1;
-        } else {
-          $bestMatchCountry[$geoLocMatch['country']] += 1;
-        }
-      }
-      // Exclude null city names
-      if($geoLocMatch['city']!=""){
-        if(!isset($bestMatchCity[$geoLocMatch['city']])){
-          $bestMatchCity[$geoLocMatch['city']] = 1;
-        } else {
-          $bestMatchCity[$geoLocMatch['city']] += 1;
-        }
-      }
+  //   foreach ($geodata as $key1 => $geoLocMatch) {
+  //     // Exclude null region names
+  //     if($geoLocMatch['region']!=""){
+  //       if(!isset($bestMatchCountry[$geoLocMatch['region']])){
+  //         $bestMatchRegion[$geoLocMatch['region']] = 1;
+  //       } else {
+  //         $bestMatchRegion[$geoLocMatch['region']] += 1;
+  //       }
+  //     }
+  //     // Exclude null country names
+  //     if($geoLocMatch['country']!=""){
+  //       if(!isset($bestMatchCountry[$geoLocMatch['country']])){
+  //         $bestMatchCountry[$geoLocMatch['country']] = 1;
+  //       } else {
+  //         $bestMatchCountry[$geoLocMatch['country']] += 1;
+  //       }
+  //     }
+  //     // Exclude null city names
+  //     if($geoLocMatch['city']!=""){
+  //       if(!isset($bestMatchCity[$geoLocMatch['city']])){
+  //         $bestMatchCity[$geoLocMatch['city']] = 1;
+  //       } else {
+  //         $bestMatchCity[$geoLocMatch['city']] += 1;
+  //       }
+  //     }
 
-    } // end for find best match
+  //   } // end for find best match
 
-    arsort($bestMatchCountry);
-    arsort($bestMatchRegion);
-    arsort($bestMatchCity);
+  //   arsort($bestMatchCountry);
+  //   arsort($bestMatchRegion);
+  //   arsort($bestMatchCity);
 
-    $bestMatch = array(
-      "country"=>key($bestMatchCountry),
-      "region"=>key($bestMatchRegion),
-      "ciity"=>key($bestMatchCity),
-      );
-    return $bestMatch;
-  }
+  //   $bestMatch = array(
+  //     "country"=>key($bestMatchCountry),
+  //     "region"=>key($bestMatchRegion),
+  //     "city"=>key($bestMatchCity),
+  //     );
+  //   return $bestMatch;
+  // }
 
   /**
    * Updates country, region, and city in ip_addr_info table

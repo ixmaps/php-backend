@@ -10,7 +10,7 @@ include($appPath.'/config.php');
 include($appPath.'/model/IXmapsGeoCorrection.php');
 
 // Get test IP
-if(isset($_GET['ip'])){
+if (isset($_GET['ip'])) {
   $testIp = $_GET['ip'];
   $ipAddrData = IXmapsGeoCorrection::getIpAddrInfo(0, 2, $testIp);
 } else {
@@ -18,7 +18,7 @@ if(isset($_GET['ip'])){
   $ipAddrData = IXmapsGeoCorrection::getIpAddrInfo(100, 1);
 }
 
-if(isset($_GET['m'])){
+if (isset($_GET['m'])) {
   $matchLimit = $_GET['m'];
 } else {
   $matchLimit = 30;
@@ -28,7 +28,7 @@ if(isset($_GET['m'])){
 //$params = getopt("f:hp:");
 
 // check if nothing to do
-if(!$ipAddrData){
+if (!$ipAddrData) {
   echo "\n"."Nothing to do.\n";
 } else {
   // Update geodata
