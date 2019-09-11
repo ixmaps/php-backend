@@ -67,11 +67,13 @@ while ($row = pg_fetch_assoc($resp)) {
   if ($result === false) {
     echo "Error: ".pg_last_error()."\n";
   } else {
-    echo "Inserted\n";
     $count++;
     pg_free_result($result);
   }
 }
 
-echo "Total inserted: ".$count."\n";
+// echo "Total inserted: ".$count."\n";
+$fp = fopen('geolite_comparison_log.txt', 'w');
+fwrite($fp, 'Complete with '.$myc.' inserted');
+fclose($fp);
 pg_free_result($resp);
