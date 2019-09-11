@@ -39,10 +39,7 @@ require_once('../model/Geolocation.php');
 global $dbconn;
 
 $sql = "SELECT ip_addr, lat, long, mm_lat, mm_long, mm_city, mm_country FROM ip_addr_info WHERE datecreated < date('2019-08-28')";
-// $params = array($ip);
 $resp = pg_query($dbconn, $sql) or die('Error message: ' . pg_last_error());
-
-// $ip_addrs = pg_fetch_all($result);
 
 $count = 0;
 while ($row = pg_fetch_assoc($resp)) {
