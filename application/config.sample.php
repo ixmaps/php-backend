@@ -5,7 +5,7 @@ ini_set( "display_errors", 0);
 
 /* Db configuration */
 $dbname     = 'ixmaps';
-$dbuser     = 'postgres';
+$dbuser     = 'ixmaps';
 $dbpassword = 'xxxx';
 $dbport     = '5432';
 
