@@ -15,7 +15,7 @@ require_once('../config.php');
 require_once('../model/GatherTr.php');
 require_once('../model/IXmapsMaxMind.php');
 
-echo json_encode("Traceroute submission is disabled at this time - we will be back up shortly! See ixmaps.ca for more details.");
+echo 'Traceroute submission is disabled at this time - we will be back up shortly! See ixmaps.ca for more details.';
 
 // can we reliably assume that there will always be an IP?
 // $myIp = $_SERVER['REMOTE_ADDR'];
