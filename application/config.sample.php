@@ -5,7 +5,7 @@ ini_set( "display_errors", 0);
 
 /* Db configuration */
 $dbname     = 'ixmaps';
-$dbuser     = 'postgres';
+$dbuser     = 'ixmaps';
 $dbpassword = 'xxxx';
 $dbport     = '5432';
 
@@ -19,7 +19,7 @@ try {
 
 #### URL and app directory
 $webUrl = "https://www.ixmaps.ca";
-$appRootPath = '/var/www/ixmaps';
+$appRootPath = '/srv/www/website';
 $savePath = $appRootPath.'/gm-temp';
 
 #### MaxMind data and include files
