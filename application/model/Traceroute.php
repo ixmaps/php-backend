@@ -555,18 +555,14 @@ class Traceroute
     $result = array();
     $totTrs = count($data);
     $totTrFound = $totTrs;
-    //echo '<br/>Tot: '.$totTrs;
 
     // set index increase if total traceroutes is > $trNumLimit
-    if($totTrs>$trNumLimit)
-    {
+    if ($totTrs>$trNumLimit) {
       $indexJump = $totTrs/$trNumLimit;
-      $indexJump = intval($indexJump)+1;
+      $indexJump = intval($indexJump) + 1;
     } else {
       $indexJump = 1;
     }
-    //echo '<br/>indexJump: '.$indexJump;
-    //echo '<br/>Displaying the following traceroutes IDs: <br/>';
 
     $longLatArray = array();
 
@@ -574,41 +570,25 @@ class Traceroute
     $trCoordinates = '';
     $trCollected = array();
 
-    $c=0;
+    $c = 0;
     // build SQL where for the given TR set
-    //foreach ($data as $trId)
-    for ($i=0; $i<$totTrs; $i+=$indexJump)
-    // as $trId)
-    {
-      $trCollected[]=$data[$i];
-      //echo ''.$data[$i].' | ';
-      if($c==0)
-      {
+    for ($i = 0; $i < $totTrs; $i += $indexJump) {
+      $trCollected[] = $data[$i];
+      if ($c == 0) {
         $wTrs.=' traceroute.id='.$data[$i];
-
       } else {
         $wTrs.=' OR traceroute.id='.$data[$i];
       }
       $c++;
     }
 
-    if($totTrs>$trNumLimit){
-      //$dbQueryHtml .= "<span title='The search produced more routes than can be easily mapped. Every nth route is presented to keep the number mapped to no more than 100.'>Displaying <span id='tr-count-db'>1</span> of ".$c." sampled results (".$totTrs." total)</span>";
-      //$dbQuerySummary .= "<span title='The search produced more routes than can be easily mapped. Every nth route is presented to keep the number mapped to no more than 100.'>Displaying <span id='tr-count-db'>1</span> of ".$c." sampled results (".$totTrs." total)</span>";
-    } else {
-      //$dbQueryHtml .= "Displaying <span id='tr-count-db'>1</span> of ".$c." results";
-    }
-
-    if($totTrs>$trNumLimit){
-      //$dbQuerySummary .= '<p style="color:red;">Showing a sample of <b>'.$c.' traceroutes</b>.</p>';
-    }
     // free some memory
     unset($data);
 
     $sql = "SELECT
     tr_item.traceroute_id, tr_item.hop, tr_item.rtt_ms,
 
-    traceroute.id, traceroute.dest, traceroute.dest_ip, traceroute.submitter, traceroute.sub_time,
+    traceroute.id, traceroute.dest, traceroute.dest_ip, traceroute.submitter, traceroute.sub_time, traceroute.zip_code,
 
     ip_addr_info.ip_addr, ip_addr_info.hostname, ip_addr_info.lat, ip_addr_info.long, ip_addr_info.mm_country, ip_addr_info.mm_city, ip_addr_info.gl_override,
 
@@ -620,14 +600,10 @@ class Traceroute
     $sql.=" AND (".$wTrs.")";
     $sql.=" order by tr_item.traceroute_id, tr_item.hop, tr_item.attempt";
 
-    //echo '<textarea>'.$sql.'</textarea>';
-    //echo '<hr/>'.$sql;
     // free some memory
     $wTrs='';
 
     $result = pg_query($dbconn, $sql) or die('Query failed: ' . pg_last_error());
-    //$tot = pg_num_rows($result);
-    // get all data in a single array
     $trArr = pg_fetch_all($result);
 
     return $trArr;
@@ -693,7 +669,7 @@ class Traceroute
     $sql = "SELECT
     tr_item.traceroute_id, tr_item.hop, tr_item.rtt_ms,
 
-    traceroute.id, traceroute.dest, traceroute.dest_ip, traceroute.submitter, traceroute.sub_time,
+    traceroute.id, traceroute.dest, traceroute.dest_ip, traceroute.submitter
 
     ip_addr_info.ip_addr, ip_addr_info.hostname, ip_addr_info.lat, ip_addr_info.long, ip_addr_info.mm_country, ip_addr_info.mm_city, ip_addr_info.gl_override,
 
@@ -704,14 +680,9 @@ class Traceroute
     FROM tr_item, traceroute, ip_addr_info, as_users WHERE (tr_item.traceroute_id=traceroute.id) AND (ip_addr_info.ip_addr=tr_item.ip_addr) AND (as_users.num=ip_addr_info.asnum) AND tr_item.attempt = 1";
     $sql.=" AND (".$wTrs.")";
     $sql.=" order by tr_item.traceroute_id, tr_item.hop, tr_item.attempt";
-
-    //echo '<textarea>'.$sql.'</textarea>';
-    //echo '<hr/>'.$sql;
-    // free some memory
     $wTrs='';
 
     $result = pg_query($dbconn, $sql) or die('Query failed: ' . pg_last_error());
-    //$tot = pg_num_rows($result);
     // get all data in a single array
     $trArr = pg_fetch_all($result);
 
@@ -772,64 +743,61 @@ class Traceroute
   */
   public static function generateDataForGoogleMaps($data)
   {
-
     global $coordExclude, $webUrl, $savePath, $as_num_color;
 
     $trDataToJson = array();
 
     // loop 1: TRids
     $totTrs = 0;
-    foreach($data as $trId => $hops)
-    {
+    foreach($data as $trId => $hops) {
       $totTrs++;
       // loop 2: hops in a TRid
       $totHopsAll = 0;
-      for($r=0;$r<count($hops);$r++)
-      {
+
+      for ($r = 0; $r < count($hops); $r++) {
         $totHopsAll++;
 
         // new approach: use for looping in a way that previous hops' data can be accessed easily
-
-        // minimal data for map generation
-        $ip = $hops[$r][0];
-        $hopN = $hops[$r][1];
-        $lat = $hops[$r][2];
-        $long = $hops[$r][3];
         $id = $hops[$r][4];
-        $asNum = $hops[$r][5];
-        $asName = $hops[$r][6];
-        $cEx = "$lat,$long";
-
+        $hopN = $hops[$r][1];
         $mm_city = $hops[$r][10];
         $mm_city = str_replace("'"," ",$mm_city);
-        //$mm_city = "";
 
-        $gl_override = $hops[$r][14];
+        // tr_item.traceroute_id, tr_item.hop, tr_item.rtt_ms,
+
+        // traceroute.id, traceroute.dest, traceroute.dest_ip, traceroute.submitter, traceroute.sub_time, traceroute.zip_code
+
+        // ip_addr_info.ip_addr, ip_addr_info.hostname, ip_addr_info.lat, ip_addr_info.long, ip_addr_info.mm_country, ip_addr_info.mm_city, ip_addr_info.gl_override,
+
+        // as_users.num, as_users.name,
+
+        // ip_addr_info.flagged
 
         // data set to be exported to json
-        $trDataToJson[$id][$hopN]=array(
-          'asNum'=>$asNum,
-          'asName'=>$asName,
-          'ip'=>$ip,
-          'lat'=>$lat,
-          'long'=>$long,
-          //'destHostname'=>$hops[$r][7],
-          '8'=>$hops[$r][8],
-          '9'=>$hops[$r][9],
-          '20'=>$hops[$r][20],
-          'hopN'=>$hopN,
+        $trDataToJson[$id][$hopN] = array(
+          'ip'=>$hops[$r][0],
+          'hopN'=>$hops[$r][1],
+          'lat'=>$hops[$r][2],
+          'long'=>$hops[$r][3],
+          'asNum'=>$hops[$r][5],
+          'asName'=>$hops[$r][6],
+          'dest_hostname'=>$hops[$r][7],
+          'destIp'=>$hops[$r][8],
+          'submitter'=>$hops[$r][9],
           'mm_city'=>$mm_city,
           'mm_country'=>$hops[$r][11],
-          //'sub_time'=>$hops[$r][12],
+          'sub_time'=>$hops[$r][12],
           'rtt_ms'=>$hops[$r][13],
-          'gl_override'=>$gl_override,
+          'gl_override'=>$hops[$r][14],
           'dist_from_origin'=>$hops[$r][15],
           'imp_dist'=>$hops[$r][16],
           'time_light'=>$hops[$r][17],
           'latOrigin'=>$hops[$r][18],
           'longOrigin'=>$hops[$r][19],
+          '20'=>$hops[$r][20],
           'flagged'=>$hops[$r][21],
-          'hostname'=>$hops[$r][22]
+          'hostname'=>$hops[$r][22],
+          'zip_code'=>$hops[$r][23]
         );
 
       } // end loop 2
@@ -860,12 +828,12 @@ class Traceroute
     $myLogFileWeb = $webUrl.'/gm-temp/_log_'.$date.".csv";
     //$fhLog = fopen($myLogFile, 'w') or die("can't open file");
 
-    $dist_from_origin=0;
+    $dist_from_origin = 0;
     $latOrigin = 0;
     $longOrigin = 0;
     $originAsn = 0;
     $imp_dist = 0;
-    $imp_dist_txt = '"Trid";"Hop";"Country";"City";"ASN";"IP";"Latency";"Time SoL";"Distance From Origin (KM)";"gl_override";"Origin Lat";"Origin Long"; "Origin ASN"';
+    $imp_dist_txt = '"Trid";"Hop";"Country";"City";"ASN";"IP";"Latency";"Time SoL";"Distance From Origin (KM)";"gl_override";"Origin Lat";"Origin Long";"Origin ASN"';
     //fwrite($fhLog, $imp_dist_txt);
 
     $time_light_will_do = 0;
@@ -882,7 +850,7 @@ class Traceroute
 
     // analyze min latency for origin
     // calculate if the min latency of the following hop is less than the min latency of the origin,
-    // if so assign that min latency to orign and this also applies to following hop; where current hop != from origin and != from last hop.
+    // if so assign that min latency to origin and this also applies to following hop; where current hop != from origin and != from last hop.
 
     // origin data
 
@@ -966,8 +934,7 @@ class Traceroute
 
   //////////////////////////
     // start loop over tr data array, where $i is an index of joined traceroute and tr_item tables
-    for($i=0;$i<count($trArr);$i++)
-    {
+    for ($i=0; $i < count($trArr); $i++) {
       //echo '****************************'.$trArr[$i]['hostname'];
 
       // key data for google display
@@ -985,26 +952,21 @@ class Traceroute
 
       preg_match_all($pattern1, $trArr[$i]['name'], $matches, PREG_SET_ORDER);
 
-      if($nameLen<23){
+      if ($nameLen<23) {
         $name = $trArr[$i]['name'].'';
       } else if (count($matches)==1) {
         $nameArr = explode(' - ', $trArr[$i]['name']);
-
         $nameLen1 = strlen($nameArr[1]);
-        if($nameLen1>23){
+        if ($nameLen1>23) {
           $name = substr($nameArr[1], 0, 22).'...';
         } else {
           $name = $nameArr[1].'';
         }
-
         unset($nameArr);
       } else {
-        //$nameArr = explode(' ', $trArr[$i]['name']);
-        //$name = $nameArr[0].' : 3';
         $name = substr($trArr[$i]['name'], 0, 22).'...';
       }
       unset($matches);
-
 
       // data needed for impossible distance calculation
       $dist_from_origin=0;
@@ -1012,17 +974,15 @@ class Traceroute
       $imp_dist_txt = '';
       $time_light_will_do = 0;
 
-
       // old approach: use only the first attempt data
       $rtt_ms = $trArr[$i]['rtt_ms'];
 
-      // new approach: use min latency out of the 4 attemps and correct it relative to the min latency of subsequent hops. This seems to be working quite well ;) There seems to be
+      // new approach: use min latency out of the 4 attempts and correct it relative to the min latency of subsequent hops. This seems to be working quite well ;) There seems to be
       // Stil under development, causing a too much processing for Anto standards ;)
       //$rtt_ms = $latenciesArrayCalculated[$hop];
 
-      // calclulate origin assuming it does have a hop number = 1; Note this is not 100% acurate as there might be traceroutes that have missed it and start on a number > 1
-      //if($i==0){
-      if($hop==1){
+      // calculate origin assuming it does have a hop number = 1; Note this is not 100% acurate as there might be traceroutes that have missed it and start on a number > 1
+      if ($hop==1) {
         $latOrigin = $lat;
         $longOrigin = $long;
         $originAsn = $num;
@@ -1032,7 +992,7 @@ class Traceroute
         $time_light_will_do = $dist_from_origin/$SL;
         $time_light_will_do *= 2;
 
-        // is it an imposible time? distance?
+        // is it an impossible time? distance?
         //if($rtt_ms<$time_light_will_do){
 
         // use $minOriginLatency instead
@@ -1042,7 +1002,7 @@ class Traceroute
         }
       }
       $lastHopIp=0;
-      $trData[$trId][]=array(
+      $trData[$trId][] = array(
         $ip,
         $hop,
         $lat,
@@ -1065,11 +1025,12 @@ class Traceroute
         $longOrigin,
         $lastHopIp,
         $trArr[$i]['flagged'],
-        $trArr[$i]['hostname']
+        $trArr[$i]['hostname'],
+        $trArr[$i]['zip_code']
       );
 
       // write impossible distances to a CSV file: this method seems to be more secure and faster than doing in jQuery: NOTE: this is only for development version. It seems an overhead for production
-      if($imp_dist==1){
+      if ($imp_dist==1) {
         $impDistanceLog = ''.$trId.';'.$hop.';"'.$trArr[$i]['mm_country'].'";"'.$trArr[$i]['mm_city'].'";'.$num.';"'.$ip.'";'.$trArr[$i]['rtt_ms'].';'.$time_light_will_do.';"'.$dist_from_origin.'";'.$trArr[$i]['gl_override'].';"'.$latOrigin.'";"'.$longOrigin.'";"'.$originAsn.'"';
         //echo '<br/>'.$imp_dist_txt.$impDistanceLog;
 
@@ -1078,14 +1039,8 @@ class Traceroute
 
     } // end for
 
-    //fclose($fhLog);
-    //echo '<br/>Impossible Distances log saved at <a href="'.$myLogFileWeb.'">_log_'.$date.'.csv</a>';
     unset($trArr);
     return $trData;
-
-    //unset($trData);
-
-
   }
 
   /**
@@ -1161,10 +1116,7 @@ class Traceroute
     foreach($data as $trId => $trIdData)
     {
       $c++;
-      //print_r($trIdData);
-      //$onMouseOver = " onmouseover='showThisTr(".$trId.")'";
       $onMouseOver = " onmouseout='removeTr()' onmouseover='renderTr2(".$trId.")' onfocus='showThisTr(".$trId.")'";
-      //$onMouseOver = "";
       //$onClick = "javascript: viewTrDetails(".$trId.");";       // REMOVED THIS FOR PRATT - BUT I THINK WE WANT TO KEEP IT REMOVED
       $onClick = "javascript: showThisTr(".$trId.");";
 
@@ -1194,17 +1146,7 @@ class Traceroute
             </tr>
             ';
 
-            /*$html .='
-      <tr>
-        <td><a id="tr-a-'.$trId.'" class="tr-list-ids-item centered-table-cell '.$active.'" href="'.$onClick.'" '.$onMouseOver.'>'.$trId.'</a></td>
-        <td>'.$originStr.'</td>
-        <td>'.mb_strimwidth($trIdData[0][7], 0, 20, "...").'</td>
-        <td>'.$trIdData[0][12].'</td>
-      </tr>
-      ';*/
-
       $trResultsData[$trId]=array(
-        //"trid"=>$trId,
         "city"=>$trIdData[0][10],
         "country"=>$trIdData[0][11],
         "destination"=>$trIdData[0][7],
@@ -1214,9 +1156,7 @@ class Traceroute
     } // end foreach
 
     $html .='</tbody></table>';
-    ///return $trResultsData;
     return $html;
-
   }
 
   /**
