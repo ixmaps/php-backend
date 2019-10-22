@@ -592,7 +592,7 @@ class Traceroute
 
     ip_addr_info.ip_addr, ip_addr_info.hostname, ip_addr_info.lat, ip_addr_info.long, ip_addr_info.mm_country, ip_addr_info.mm_city, ip_addr_info.gl_override,
 
-    as_users.num, as_users.name,
+    as_users.num, as_users.name, as_users.short_name,
 
     ip_addr_info.flagged
 
@@ -763,16 +763,6 @@ class Traceroute
         $mm_city = $hops[$r][10];
         $mm_city = str_replace("'"," ",$mm_city);
 
-        // tr_item.traceroute_id, tr_item.hop, tr_item.rtt_ms,
-
-        // traceroute.id, traceroute.dest, traceroute.dest_ip, traceroute.submitter, traceroute.sub_time, traceroute.zip_code
-
-        // ip_addr_info.ip_addr, ip_addr_info.hostname, ip_addr_info.lat, ip_addr_info.long, ip_addr_info.mm_country, ip_addr_info.mm_city, ip_addr_info.gl_override,
-
-        // as_users.num, as_users.name,
-
-        // ip_addr_info.flagged
-
         // data set to be exported to json
         $trDataToJson[$id][$hopN] = array(
           'ip'=>$hops[$r][0],
@@ -781,23 +771,25 @@ class Traceroute
           'long'=>$hops[$r][3],
           'asNum'=>$hops[$r][5],
           'asName'=>$hops[$r][6],
-          'dest_hostname'=>$hops[$r][7],
+          'destHostname'=>$hops[$r][7],
           'destIp'=>$hops[$r][8],
           'submitter'=>$hops[$r][9],
-          'mm_city'=>$mm_city,
-          'mm_country'=>$hops[$r][11],
-          'sub_time'=>$hops[$r][12],
+          'mmCity'=>$mm_city,
+          'mmCountry'=>$hops[$r][11],
+          'subTime'=>$hops[$r][12],
           'rtt_ms'=>$hops[$r][13],
-          'gl_override'=>$hops[$r][14],
-          'dist_from_origin'=>$hops[$r][15],
-          'imp_dist'=>$hops[$r][16],
-          'time_light'=>$hops[$r][17],
+          'glOverride'=>$hops[$r][14],
+          'distFromOrigin'=>$hops[$r][15],
+          'impDist'=>$hops[$r][16],
+          'timeLight'=>$hops[$r][17],
           'latOrigin'=>$hops[$r][18],
           'longOrigin'=>$hops[$r][19],
-          '20'=>$hops[$r][20],
+          'lastHopIp'=>$hops[$r][20],
           'flagged'=>$hops[$r][21],
           'hostname'=>$hops[$r][22],
-          'zip_code'=>$hops[$r][23]
+          'zipCode'=>$hops[$r][23],
+          'asShortname'=>$hops[$r][24],
+          'hostname'=>$hops[$r][25]
         );
 
       } // end loop 2
@@ -826,7 +818,6 @@ class Traceroute
     $date = md5(date('d-m-o_G-i-s'));
     $myLogFile = $savePath."/"."_log_".$date.".csv";
     $myLogFileWeb = $webUrl.'/gm-temp/_log_'.$date.".csv";
-    //$fhLog = fopen($myLogFile, 'w') or die("can't open file");
 
     $dist_from_origin = 0;
     $latOrigin = 0;
@@ -834,7 +825,7 @@ class Traceroute
     $originAsn = 0;
     $imp_dist = 0;
     $imp_dist_txt = '"Trid";"Hop";"Country";"City";"ASN";"IP";"Latency";"Time SoL";"Distance From Origin (KM)";"gl_override";"Origin Lat";"Origin Long";"Origin ASN"';
-    //fwrite($fhLog, $imp_dist_txt);
+
 
     $time_light_will_do = 0;
 
@@ -878,10 +869,10 @@ class Traceroute
       $currentHop = $TrDetailData['hop'];
 
       // collect latencies and exclude values = -1 and = 0
-      if($TrDetailData['rtt_ms']!=-1 && $TrDetailData['rtt_ms']!=0){
+      if ($TrDetailData['rtt_ms']!=-1 && $TrDetailData['rtt_ms']!=0) {
 
         // this approach actually works better. Capture all here, then analyze the array.
-        $latenciesArray[$TrDetailData['hop']][]=$TrDetailData['rtt_ms'];
+        $latenciesArray[$TrDetailData['hop']][] = $TrDetailData['rtt_ms'];
         //$latenciesArray[$TrDetailData['hop']][$TrDetailData['rtt_ms']]=0;
       }
     } // end for collecting latencies
@@ -1026,7 +1017,9 @@ class Traceroute
         $lastHopIp,
         $trArr[$i]['flagged'],
         $trArr[$i]['hostname'],
-        $trArr[$i]['zip_code']
+        $trArr[$i]['zip_code'],
+        $trArr[$i]['short_name'],
+        $trArr[$i]['hostname']
       );
 
       // write impossible distances to a CSV file: this method seems to be more secure and faster than doing in jQuery: NOTE: this is only for development version. It seems an overhead for production
