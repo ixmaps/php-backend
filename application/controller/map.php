@@ -26,7 +26,7 @@ $mtime = $mtime[1] + $mtime[0];
 $starttime = $mtime;
 
 
-if (!isset($_POST) || count($_POST)==0) {
+if (!isset($_POST) || count($_POST) == 0) {
   $error = array(
     "error"=> "No parameters sent to Map Backend"
   );
@@ -45,14 +45,14 @@ if (!isset($_POST) || count($_POST)==0) {
     $dataArray[] = $constraint;
   }
 
-  if ($dataArray[0]['constraint1']=="quickLink") {
+  if ($dataArray[0]['constraint1'] == "quickLink") {
     $b = Traceroute::processQuickLink($dataArray);
   } else {
     $b = Traceroute::getTraceRoute($dataArray);
   }
 
-  $data = json_encode($dataArray);
-  $saveLog = Traceroute::saveSearch($data);
+  // $data = json_encode($dataArray);
+  // $saveLog = Traceroute::saveSearch($data);
 
   if (count($b) != 0) {
     $ixMapsData = Traceroute::getIxMapsData($b);

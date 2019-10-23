@@ -1159,15 +1159,13 @@ class Traceroute
   {
     global $dbconn, $myIp, $myCity;
     $data_json = json_encode($qArray);
-    if($myCity==""){
+    if ($myCity == "") {
       $myCity="--";
     }
     $myCity=utf8_encode($myCity);
     // last
     $sql = "INSERT INTO s_log (timestamp, log, ip, city) VALUES (NOW(), '".$data_json."', '".$myIp."', '".$myCity."');";
-    //echo '<hr/>'.$sql;
     pg_query($dbconn, $sql) or die('Error! Insert Log failed: ' . pg_last_error());
-    //pg_close($dbconn);
   }
 
   /**
