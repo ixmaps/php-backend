@@ -5,7 +5,7 @@
   The script is called after a geo-correction has changed lat/long fields in ip_addr_info table
 */
 header('Access-Control-Allow-Origin: *');
-$appPath = "/var/www/ixmaps/application"; // new server
+$appPath = "/srv/www/website/application";
 include($appPath.'/config.php');
 include($appPath.'/model/IXmapsGeoCorrection.php');
 

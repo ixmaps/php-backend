@@ -1,5 +1,5 @@
 <?php
-include('/var/www/php-backend/application/config.php');
+require_once('../config.php');
 
 $lastTrId = getLastTrIdGen();
 echo 'Last TRid generated: '.$lastTrId;
