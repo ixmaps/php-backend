@@ -1,5 +1,12 @@
 <?php
 
+/*
+	This Model is strangely named - it does not relate to Map and Search.
+	Rather, it is used to gather some data for the initial model that pops
+	up when a user first visits the map page
+*/
+
+
 class MapSearch
 {
 
@@ -20,8 +27,7 @@ class MapSearch
 		global $dbconn, $debugTrSearch;
 
 		// return empty for non params
-
-		if(count($data)==0){
+		if (count($data)==0) {
 			$resultA =  array(
 				"results"=>array(),
 				"total"=>0,
@@ -34,13 +40,12 @@ class MapSearch
 			// sql for intersect constraints
 			$sql1 = "SELECT DISTINCT traceroute.id FROM as_users, tr_item, traceroute, ip_addr_info WHERE (tr_item.traceroute_id=traceroute.id) AND (ip_addr_info.ip_addr=tr_item.ip_addr) AND (as_users.num=ip_addr_info.asnum)";
 
-			//$sqlLimit = " LIMIT 100";
 			$paramsCounter=0;
 			$sqlParamsArray = array();
 
 			$doesNotChk=false;
 			$params = array(); // build count independet constraint
-			$params1 = array(); // build count insersect all constraints
+			$params1 = array(); // build count intersect all constraints
 			$sqlRun = "";
 			$sqlIntersectArray = array();
 			$sqlIntersect = "";
@@ -56,22 +61,18 @@ class MapSearch
 
 				$result = pg_query_params($dbconn, $sqlRun, array($params[1])) or die('countTrResults: Query failed: incorrect parameters');
 
-				//echo "\n".$sqlRun."\n".$params[1];;
-
 				$trArr = pg_fetch_all($result);
-				//print_r($trArr);
 
 				// sql for intersect statements
-				if($trArr[0]['count']!=0){
+				if ($trArr[0]['count']!=0) {
 					$paramsCounter++;
 					$params1 = Traceroute::buildWhere($constraint, $doesNotChk, $paramsCounter);
 
 					$sqlIntersectArray[]= $sql1 . $params1[0]; // add sql where
 					$sqlParamsArray[] = $params[1]; // collect params array
-
 				}
 
-				if($debugTrSearch){
+				if ($debugTrSearch) {
 					$filterResults[$key] = array(
 						"total"=>$trArr[0]['count'],
 						"constraint"=>$constraint,
@@ -82,13 +83,13 @@ class MapSearch
 					$filterResults[$key] = array(
 						"total"=>$trArr[0]['count'],
 						"constraint"=>$constraint
-						);
+					);
 				}
 
 			} // end for each
 
 			// query intersect for more than one constraint
-			if(count($sqlIntersectArray)>1){
+			if (count($sqlIntersectArray)>1) {
 				$c = 0;
 				foreach ($sqlIntersectArray as $key1 => $sqlI) {
 					$c++;
@@ -105,14 +106,11 @@ class MapSearch
 					}
 				} // end for
 
-				//echo "\nSQL intersect: ".$sqlIntersect;
-
 				$result1 = pg_query_params($dbconn, $sqlIntersect, $sqlParamsArray) or die('countTrResults: Query failed: incorrect parameters');
 
 				$trArrIntersect = pg_fetch_all($result1);
 
-				//print_r($trArrIntersect);
-				if(isset($trArrIntersect[0]['id'])){
+				if (isset($trArrIntersect[0]['id'])) {
 					$totIntersect = count($trArrIntersect);
 				} else {
 					$totIntersect = 0;
@@ -120,16 +118,14 @@ class MapSearch
 
 			} else {
 				// only one constraint
-				//$totIntersect = $trArr[0]['count'];
 				foreach ($filterResults as $key2 => $res) {
-					if($res['total']!=0){
+					if ($res['total']!=0) {
 						$totIntersect = $res['total'];
 					}
 				}
 			}
 
-
-			if($debugTrSearch){
+			if ($debugTrSearch) {
 				$resultA =  array(
 					"results"=>$filterResults,
 					"total"=>$totIntersect,
@@ -142,7 +138,6 @@ class MapSearch
 					"total"=>$totIntersect,
 				);
 			}
-
 		}
 
 		return $resultA;
