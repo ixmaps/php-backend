@@ -15,9 +15,6 @@
  * @author IXmaps.ca (Anto)
  *
  */
-/*
-
-*/
 header('Access-Control-Allow-Origin: *');
 $appPath = "/srv/www/website/application";
 include($appPath.'/config.php');

@@ -51,6 +51,7 @@ if (!isset($_POST) || count($_POST) == 0) {
     $tr_ids = Traceroute::getTraceRoute($dataArray);
   }
 
+  // CM: turning this off for now in a futile attempt to speed up query engine
   // $data = json_encode($dataArray);
   // $saveLog = Traceroute::saveSearch($data);
 

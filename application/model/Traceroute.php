@@ -495,16 +495,14 @@ class Traceroute
   {
     global $dbQueryHtml, $dbQuerySummary;
 
-    // if (NSAcondition) {
+    if ($qlArray[0]['constraint2'] == "viaNSACity") {
+      $sql = "select distinct(tr_item.traceroute_id) as id from tr_item TABLESAMPLE BERNOULLI (0.001) join ip_addr_info on tr_item.ip_addr = ip_addr_info.ip_addr where ip_addr_info.mm_city in ('San Francisco', 'Los Angeles', 'New York', 'Dallas', 'Washington', 'Ashburn', 'Seattle', 'San Jose', 'San Diego', 'Miami', 'Boston', 'Phoenix', 'Salt Lake City', 'Nashville', 'Denver', 'Saint Louis', 'Bridgeton', 'Bluffdale', 'Houston', 'Chicago', 'Atlanta', 'Portland') limit 20;";
+      return Traceroute::getTrSet($sql, "");
 
-    // }
-
-    if ($qlArray[0]['constraint2']=="lastSubmission") {
+    } else if ($qlArray[0]['constraint2'] == "lastSubmission") {
       $sql = "select id from traceroute order by sub_time desc limit 20";
       return Traceroute::getTrSet($sql, "");
-    } else if ($qlArray[0]['constraint2']=="recentRoutes") {
-      $sql = 'select id from traceroute order by id desc limit 50';
-      return Traceroute::getTrSet($sql, "");
+
     } else {
       return array();
     }

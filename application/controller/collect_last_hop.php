@@ -1,22 +1,19 @@
 <?php
 /**
- * Update the two 'helper' tables that are used by the query engine:
+ * Update the a 'helper' tables that is used by the query engine:
  * -- tr_last_hop --
  * Shows last hop of traceroutes. This is needed for the new approach in query search,
  * as the destination is now calculated using last hop and not destination ip.
- * -- traceroutes_of_interest --
- * 
  * 
  *
  * @param Triggered by cron (check if there are new traceroutes every 20 minute)
  *
- * @return None (updated tables tr_last_hop and traceoutes_of_interest)
+ * @return None (updated tables tr_last_hop)
  *
  * @since Updated Oct 2019
  * @author IXmaps.ca (Anto, Colin)
  *
  */
-
 require_once('../config.php');
 
 $lastTrId = getLastTrIdGen();
