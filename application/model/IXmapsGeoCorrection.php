@@ -7,22 +7,11 @@ class IXmapsGeoCorrection
     global $dbconn;
 
     // select last ip
-    if($type==0){
+    if ($type==0) {
 
       /*New approch: select recently added ips by searching those that do not exist yet in log_ip_addr_info*/
       $sql1 = "SELECT * FROM ip_addr_info l WHERE  NOT EXISTS (SELECT 1 FROM log_ip_addr_info i WHERE l.ip_addr = i.ip_addr) ORDER BY ip_addr LIMIT $limit;";
 
-      /*// check last ip
-      $sql = "SELECT ip_addr FROM log_ip_addr_info ORDER BY ip_addr DESC LIMIT 1";
-      $result = pg_query($dbconn, $sql);
-      $lastIp = pg_fetch_all($result);
-      //var_dump($lastIp);
-
-      if($lastIp==false){
-        $sql1 = "SELECT * FROM ip_addr_info ORDER BY ip_addr LIMIT $limit";
-      } else {
-        $sql1 = "SELECT * FROM ip_addr_info WHERE ip_addr > '".$lastIp[0]['ip_addr']."' ORDER BY ip_addr LIMIT $limit";
-      }*/
 
     // select geo-corrected ips
     } else if($type==1) {
@@ -131,55 +120,6 @@ class IXmapsGeoCorrection
   }
 
   /**
-   * Collect the most recurrent geodata for a set ip geo matches - legacy?
-   */
-  // public static function getBestMatchforGeoData($geodata)
-  // {
-  //   $bestMatchCountry = array ();
-  //   $bestMatchRegion = array ();
-  //   $bestMatchCity = array ();
-
-  //   foreach ($geodata as $key1 => $geoLocMatch) {
-  //     // Exclude null region names
-  //     if($geoLocMatch['region']!=""){
-  //       if(!isset($bestMatchCountry[$geoLocMatch['region']])){
-  //         $bestMatchRegion[$geoLocMatch['region']] = 1;
-  //       } else {
-  //         $bestMatchRegion[$geoLocMatch['region']] += 1;
-  //       }
-  //     }
-  //     // Exclude null country names
-  //     if($geoLocMatch['country']!=""){
-  //       if(!isset($bestMatchCountry[$geoLocMatch['country']])){
-  //         $bestMatchCountry[$geoLocMatch['country']] = 1;
-  //       } else {
-  //         $bestMatchCountry[$geoLocMatch['country']] += 1;
-  //       }
-  //     }
-  //     // Exclude null city names
-  //     if($geoLocMatch['city']!=""){
-  //       if(!isset($bestMatchCity[$geoLocMatch['city']])){
-  //         $bestMatchCity[$geoLocMatch['city']] = 1;
-  //       } else {
-  //         $bestMatchCity[$geoLocMatch['city']] += 1;
-  //       }
-  //     }
-
-  //   } // end for find best match
-
-  //   arsort($bestMatchCountry);
-  //   arsort($bestMatchRegion);
-  //   arsort($bestMatchCity);
-
-  //   $bestMatch = array(
-  //     "country"=>key($bestMatchCountry),
-  //     "region"=>key($bestMatchRegion),
-  //     "city"=>key($bestMatchCity),
-  //     );
-  //   return $bestMatch;
-  // }
-
-  /**
    * Updates country, region, and city in ip_addr_info table
    * @param array $ipData Geodata
    * @param string $p_status target p_status for the update
@@ -205,11 +145,6 @@ class IXmapsGeoCorrection
 
     // select ips
     $sql = "SELECT ip_addr FROM log_ip_addr_info WHERE asnum = 6939 and arin_updated = 0 ORDER BY ip_addr";
-
-    // test
-    //$sql = "SELECT ip_addr FROM log_ip_addr_info WHERE asnum = 6939 and ip_addr='216.218.224.70' ORDER BY ip_addr";
-
-    //$sql = "SELECT ip_addr FROM log_ip_addr_info WHERE asnum = 6939 and ip_addr='209.51.163.186' ORDER BY ip_addr";
 
     $result = pg_query($dbconn, $sql);
     $ipAddrInfo = pg_fetch_all($result);

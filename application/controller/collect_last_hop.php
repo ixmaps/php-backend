@@ -99,4 +99,3 @@ function getLastTrIdGen() {
   $lastId = $lastTRId[0]['traceroute_id_lh'];
   return $lastId;
 }
-?>
