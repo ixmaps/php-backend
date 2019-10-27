@@ -46,16 +46,19 @@ if (!isset($_POST) || count($_POST) == 0) {
   }
 
   if ($dataArray[0]['constraint1'] == "quickLink") {
-    $b = Traceroute::processQuickLink($dataArray);
+    $tr_ids = Traceroute::processQuickLink($dataArray);
   } else {
-    $b = Traceroute::getTraceRoute($dataArray);
+    $tr_ids = Traceroute::getTraceRoute($dataArray);
   }
 
   // $data = json_encode($dataArray);
   // $saveLog = Traceroute::saveSearch($data);
 
-  if (count($b) != 0) {
-    $ixMapsData = Traceroute::getIxMapsData($b);
+  // TODO: this is part of where the inefficiencies in query time come from
+  // getTraceRoute does a complicated join to get a set of ids, then getIxMapsData
+  // does essentially the same join with a where id = the previously gen'd set of ids.
+  if (count($tr_ids) != 0) {
+    $ixMapsData = Traceroute::getIxMapsData($tr_ids);
     $ixMapsDataT = Traceroute::dataTransform($ixMapsData);
     $ixMapsDataStats = Traceroute::generateDataForGoogleMaps($ixMapsDataT);
     $trHtmlTable = Traceroute::renderTrSets($ixMapsDataT);

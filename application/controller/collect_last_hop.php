@@ -1,4 +1,22 @@
 <?php
+/**
+ * Update the two 'helper' tables that are used by the query engine:
+ * -- tr_last_hop --
+ * Shows last hop of traceroutes. This is needed for the new approach in query search,
+ * as the destination is now calculated using last hop and not destination ip.
+ * -- traceroutes_of_interest --
+ * 
+ * 
+ *
+ * @param Triggered by cron (check if there are new traceroutes every 20 minute)
+ *
+ * @return None (updated tables tr_last_hop and traceoutes_of_interest)
+ *
+ * @since Updated Oct 2019
+ * @author IXmaps.ca (Anto, Colin)
+ *
+ */
+
 require_once('../config.php');
 
 $lastTrId = getLastTrIdGen();
@@ -6,7 +24,7 @@ echo 'Last TRid generated: '.$lastTrId;
 collectLastHop($lastTrId);
 
 /**
-  Iterates for all Traceroutes and collects last hop data and generates a SQL file
+  Iterates over all Traceroutes and collects last hop data and generates a SQL file
   This is needed for the new approach in query search. The destination is now calculated using last hop and not destination ip.
 */
 function collectLastHop($trIdLast)
@@ -15,7 +33,7 @@ function collectLastHop($trIdLast)
 
   $start = microtime(true);
 
-  $sqlCo='';
+  $sqlCo = '';
 
   // production approach
   $sql = "SELECT traceroute.id FROM traceroute WHERE traceroute.id > ".$trIdLast." order by traceroute.id LIMIT 200";
@@ -61,7 +79,7 @@ function collectLastHop($trIdLast)
 
   $time_elapsed_secs = microtime(true) - $start;
 
-  if($connGen==0){
+  if ($connGen == 0) {
     echo "Nothing to do for now\n";
   } else {
     echo "\nStarting at : ".$trIdLast.". \n". $connGen. " TRs last hop generated.

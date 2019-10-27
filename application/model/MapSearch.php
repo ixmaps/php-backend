@@ -1,10 +1,15 @@
 <?php
 
-/*
-	This Model is strangely named - it does not relate to Map and Search.
-	Rather, it is used to gather some data for the initial model that pops
-	up when a user first visits the map page
-*/
+/**
+ *
+ * 	This Model is strangely named - it does not relate to Map and Search.
+ * 	Rather, it is used to gather some data for the initial model that pops
+ *	up when a user first visits the map page
+ *
+ * @author IXmaps.ca (Antonio)
+ * @since ?
+ *
+ */	
 
 
 class MapSearch
