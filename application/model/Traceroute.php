@@ -150,20 +150,6 @@ class Traceroute
 
     }
 
-    /* string of int ? */
-    /*if (($field=='asnum') || ($field=='id'))
-    {
-      $w.=" AND $table.$field $selector_i $constraint_value";
-      //$w.="  $selector $table.$field $operand_i $constraint_value";
-    } else if ($field=='ip_addr') {
-      $w.=" AND $table.$field $selector_i '".$constraint_value."'";
-    } else {
-      $w.=" AND $table.$field $selector_s '%".$constraint_value."%'";
-    }
-
-    return $w;
-    */
-
     // Using pg_query_params
     if (($field=='asnum') || ($field=='id') || ($field=='ip_addr')) {
       $w.=" AND $table.$field $selector_i $".$paramNum;
@@ -185,7 +171,7 @@ class Traceroute
     $trSet = array();
 
     // old approach: used only for quick links
-    if ($wParam=="") {
+    if ($wParam == "") {
       $result = pg_query($dbconn, $sql) or die('Query failed: ' . pg_last_error());
     } else {
       $result = pg_query_params($dbconn, $sql, array($wParam)) or die('Query failed: incorrect parameters');
@@ -197,11 +183,11 @@ class Traceroute
     $c = 0;
     while ($line = pg_fetch_array($result, null, PGSQL_ASSOC)) {
       $c++;
-      $id=$line['id'];
-      if ($id!=$id_last) {
-        $data[]=$id;
+      $id = $line['id'];
+      if ($id != $id_last) {
+        $data[] = $id;
       }
-      $id_last=$id;
+      $id_last = $id;
     }
     $data1 = array_unique($data);
     $dbQuerySummary .= " | Traceroutes: <b>".count($data1).'</b>';
@@ -342,7 +328,7 @@ class Traceroute
     // loop over the constraints
     foreach($data as $constraint)
     {
-      if ($conn>0) {
+      if ($conn > 0) {
         $dbQuerySummary .= '<br>';
       }
       $dbQuerySummary .= '<b>'.$constraint['constraint1'].' : '.$constraint['constraint2'].' : '.$constraint['constraint3'].' : '.$constraint['constraint4'].' : '.$constraint['constraint5'].'</b>';
@@ -422,7 +408,6 @@ class Traceroute
         }
 
         $sql .=$w.$sqlOrder;
-        //  echo "<hr/>".$sql;
 
         $trSets[$conn] = Traceroute::getTrSet($sql, $wParams[1]);
         $operands[$conn]=$constraint['constraint5'];
@@ -486,7 +471,7 @@ class Traceroute
   /**
     * Process the quicklinks with canned SQL
     *
-    * @param type of quicklink
+    * @param constraint object that defines type of quicklink
     *
     * @return array of tr_ids
     *
@@ -496,7 +481,7 @@ class Traceroute
     global $dbQueryHtml, $dbQuerySummary;
 
     if ($qlArray[0]['constraint2'] == "viaNSACity") {
-      $sql = "select distinct(tr_item.traceroute_id) as id from tr_item TABLESAMPLE BERNOULLI (0.001) join ip_addr_info on tr_item.ip_addr = ip_addr_info.ip_addr where ip_addr_info.mm_city in ('San Francisco', 'Los Angeles', 'New York', 'Dallas', 'Washington', 'Ashburn', 'Seattle', 'San Jose', 'San Diego', 'Miami', 'Boston', 'Phoenix', 'Salt Lake City', 'Nashville', 'Denver', 'Saint Louis', 'Bridgeton', 'Bluffdale', 'Houston', 'Chicago', 'Atlanta', 'Portland') limit 20;";
+      $sql = "select distinct(tr_item.traceroute_id) as id from tr_item join ip_addr_info on tr_item.ip_addr = ip_addr_info.ip_addr where ip_addr_info.mm_city in ('San Francisco', 'Los Angeles', 'New York', 'Dallas', 'Washington', 'Ashburn', 'Seattle', 'San Jose', 'San Diego', 'Miami', 'Boston', 'Phoenix', 'Salt Lake City', 'Nashville', 'Denver', 'Saint Louis', 'Bridgeton', 'Bluffdale', 'Houston', 'Chicago', 'Atlanta', 'Portland');";
       return Traceroute::getTrSet($sql, "");
 
     } else if ($qlArray[0]['constraint2'] == "lastSubmission") {
@@ -524,7 +509,7 @@ class Traceroute
     $totTrFound = $totTrs;
 
     // set index increase if total traceroutes is > $trNumLimit
-    if ($totTrs>$trNumLimit) {
+    if ($totTrs > $trNumLimit) {
       $indexJump = $totTrs/$trNumLimit;
       $indexJump = intval($indexJump) + 1;
     } else {
