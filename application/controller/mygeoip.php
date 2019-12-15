@@ -33,6 +33,7 @@ $result = array(
   "myCountry" => $mm->getCountryCode(),
   "myCountryName" => $mm->getCountry(),
   "myCity" => $mm->getCity(),
+  "myPostalCode" => $mm->getPostalCode(),
   "myAsn" => $mm->getASNum(),
   "myIsp" => $mm->getASName(),
   "myLat" => $mm->getLat(),
