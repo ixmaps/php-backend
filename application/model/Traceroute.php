@@ -553,7 +553,7 @@ class Traceroute
     $sql.=" order by tr_item.traceroute_id, tr_item.hop, tr_item.attempt";
 
     // free some memory
-    $wTrs='';
+    $wTrs = '';
 
     $result = pg_query($dbconn, $sql) or die('Query failed: ' . pg_last_error());
     $trArr = pg_fetch_all($result);
@@ -714,6 +714,9 @@ class Traceroute
       // loop 2: hops in a TRid
       $totHopsAll = 0;
 
+      // determine last hop, which is just set to 0 currently (in previous func)
+      $lastHopIp = end($hops)[0];
+
       for ($r = 0; $r < count($hops); $r++) {
         $totHopsAll++;
 
@@ -737,14 +740,14 @@ class Traceroute
           'mmCity'=>$mm_city,
           'mmCountry'=>$hops[$r][11],
           'subTime'=>$hops[$r][12],
-          'rtt_ms'=>$hops[$r][13],
+          'firstAttemptLatency'=>$hops[$r][13],
           'glOverride'=>$hops[$r][14],
           'distFromOrigin'=>$hops[$r][15],
           'impDist'=>$hops[$r][16],
           'timeLight'=>$hops[$r][17],
           'latOrigin'=>$hops[$r][18],
           'longOrigin'=>$hops[$r][19],
-          'lastHopIp'=>$hops[$r][20],
+          'lastHopIp'=>$lastHopIp,
           'flagged'=>$hops[$r][21],
           'hostname'=>$hops[$r][22],
           'zipCode'=>$hops[$r][23],
@@ -888,7 +891,7 @@ class Traceroute
 
   //////////////////////////
     // start loop over tr data array, where $i is an index of joined traceroute and tr_item tables
-    for ($i=0; $i < count($trArr); $i++) {
+    for ($i = 0; $i < count($trArr); $i++) {
       //echo '****************************'.$trArr[$i]['hostname'];
 
       // key data for google display
@@ -932,11 +935,11 @@ class Traceroute
       $rtt_ms = $trArr[$i]['rtt_ms'];
 
       // new approach: use min latency out of the 4 attempts and correct it relative to the min latency of subsequent hops. This seems to be working quite well ;) There seems to be
-      // Stil under development, causing a too much processing for Anto standards ;)
+      // Still under development, causing a too much processing for Anto standards ;)
       //$rtt_ms = $latenciesArrayCalculated[$hop];
 
-      // calculate origin assuming it does have a hop number = 1; Note this is not 100% acurate as there might be traceroutes that have missed it and start on a number > 1
-      if ($hop==1) {
+      // calculate origin assuming it does have a hop number = 1; Note this is not 100% accurate as there might be traceroutes that have missed it and start on a number > 1
+      if ($hop == 1) {
         $latOrigin = $lat;
         $longOrigin = $long;
         $originAsn = $num;
