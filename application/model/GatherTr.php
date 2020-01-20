@@ -92,7 +92,7 @@ class GatherTr
       $pg_error = "saveTrContribution: Incorrect parameters: ".pg_last_error();
       $tr_c_id = 0;
     } else {
-      $pg_error= "" ;
+      $pg_error = "" ;
       //$result = pg_query($dbconn, $sql1) or die('saveContribution: Query failed: incorrect parameters'.pg_last_error());
       $lastId = pg_fetch_all($result);
       $tr_c_id = $lastId[0]['tr_c_id'];
@@ -472,12 +472,10 @@ class GatherTr
 
     // hops
     foreach ($data['ip_analysis']['hops'] as $key => $hop) {
-      //echo "\n---- Hop data";
-      //print_r($hop);
       // skip local ips, include empty ips
-      if(!GatherTr::checkIpIsPrivate($hop['winIp']) || $hop['winIp']==""){
+      if (!GatherTr::checkIpIsPrivate($hop['winIp']) || $hop['winIp']=="") {
 
-        if($hop['winIp']!=""){
+        if ($hop['winIp']!="") {
           $validPublicIPs++; // count # of valid public ips
         }
 
@@ -521,7 +519,7 @@ class GatherTr
             $status="r";
           }
 
-          /*Collect TR items for insert*/
+          // Collect TR items for insert
           $trInsertData["trItems"][$hopCount][]=array(
             "ip"=>$hop['winIp'],
             "status"=>$status,

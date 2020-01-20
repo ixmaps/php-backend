@@ -703,7 +703,7 @@ class Traceroute
     */
   public static function generateDataForGoogleMaps($data)
   {
-    global $coordExclude, $webUrl, $savePath, $as_num_color;
+    global $webUrl, $savePath, $as_num_color;
 
     $trDataToJson = array();
 

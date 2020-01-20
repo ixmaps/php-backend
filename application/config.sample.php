@@ -31,21 +31,4 @@ $trNumLimit = 500;
 $ixmaps_debug_mode = true;
 $ixmaps_hands_off_config = array();
 
-//////////////////////////////////////////////////////////
-/*
-  CA
-  CA
-  US
-  US
-  EU
-  ASIA
-*/
-$coordExclude = array(
-  '60, -95',
-  '43.6319, -79.3716',
-  '38, -97',
-  '37.751, -97.822',
-  '47, 8',
-  '35, 105'
-);
 ?>
