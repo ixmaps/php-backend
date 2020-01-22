@@ -195,6 +195,7 @@ class Traceroute
     // Closing connection ??
     //pg_close($dbconn);
     unset($data);
+
     return $data1;
   }
 
@@ -320,8 +321,6 @@ class Traceroute
     $result = array();
     $trSets = array();
     $conn = 0;
-    $limit1 = 4500;
-    $limit2 = 5000;
     $offset = 0;
     $doesNotChk = false;
 
@@ -340,8 +339,6 @@ class Traceroute
 
       $sqlOrder = ' order by tr_item.traceroute_id, tr_item.hop, tr_item.attempt';
 
-      $aa = 0;
-      
 
       // adding exception for doesnot cases
       if ($constraint['constraint1'] == 'doesNot' && $constraint['constraint2'] != 'originate' && $constraint['constraint2'] != 'terminate') {
@@ -388,11 +385,8 @@ class Traceroute
 
           $w.=" AND (traceroute.dest_ip=ip_addr_info.ip_addr) AND tr_item.attempt = 1 AND tr_item.hop > 1";
 
-          //$w.=''.Traceroute::buildWhere($constraint);
           $wParams = Traceroute::buildWhere($constraint);
           $w.=''.$wParams[0];
-
-          //$dbQuerySummary.='<BR/>CASE B:';
 
         } else if ($tApproach==1) {
           // new approach: using tr_last_hops
@@ -429,15 +423,14 @@ class Traceroute
 
     $trSetResult = array();
 
-    for ($i=0;$i<$conn;$i++)
-    {
+    for ($i = 0; $i<$conn; $i++) {
       $trSetResultTemp = array();
       // only one constraint
-      if ($i==0) {
+      if ($i == 0) {
         $trSetResult = array_merge($trSetResult, $trSets[0]);
 
       // all in between
-      } else if ($i>0) {
+      } else if ($i > 0) {
         // OR cases
         if ($data[$i-1]['constraint5']=='OR') {
           $trSetResultTemp = array_merge($trSetResult,$trSets[$i]);
@@ -488,6 +481,10 @@ class Traceroute
       $sql = "select id from traceroute order by sub_time desc limit 20";
       return Traceroute::getTrSet($sql, "");
 
+    } else if ($qlArray[0]['constraint2'] == "singleRoute") {
+      $sql = "select id from traceroute where id = ".$qlArray[0]['constraint3'];
+      return Traceroute::getTrSet($sql, "");
+
     } else {
       return array();
     }
@@ -510,7 +507,7 @@ class Traceroute
 
     // set index increase if total traceroutes is > $trNumLimit
     if ($totTrs > $trNumLimit) {
-      $indexJump = $totTrs/$trNumLimit;
+      $indexJump = $totTrs / $trNumLimit;
       $indexJump = intval($indexJump) + 1;
     } else {
       $indexJump = 1;
@@ -1116,6 +1113,29 @@ class Traceroute
 
     $html .='</tbody></table>';
     return $html;
+  }
+
+  /**
+    * Retrieves latencies for a single traceroute
+    *
+    * @param traceroute id
+    *
+    * @return array of latencies, structured for TR Details
+    *
+    */
+  public static function getLatenciesForTraceroute($trId)
+  {
+    global $dbconn;
+    
+    $sql = "SELECT hop, rtt_ms FROM tr_item WHERE traceroute_id = ".$trId." order by hop, attempt";
+    $result = pg_query($dbconn, $sql) or die('Query failed on getLatenciesForTraceroute');
+
+    $formattedLatencies = array();
+    while ($row = pg_fetch_array($result, null, PGSQL_ASSOC)) {
+      $formattedLatencies[$row['hop']-1] .= $row['rtt_ms'] .= ' ';
+    }
+
+    return $formattedLatencies;
   }
 
   /**
