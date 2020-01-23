@@ -45,11 +45,11 @@ class MapSearch
 			// sql for intersect constraints
 			$sql1 = "SELECT DISTINCT traceroute.id FROM as_users, tr_item, traceroute, ip_addr_info WHERE (tr_item.traceroute_id=traceroute.id) AND (ip_addr_info.ip_addr=tr_item.ip_addr) AND (as_users.num=ip_addr_info.asnum)";
 
-			$paramsCounter=0;
+			$paramsCounter = 0;
 			$sqlParamsArray = array();
 
-			$doesNotChk=false;
-			$params = array(); // build count independet constraint
+			$doesNotChk = false;
+			$params = array(); // build count independent constraint
 			$params1 = array(); // build count intersect all constraints
 			$sqlRun = "";
 			$sqlIntersectArray = array();

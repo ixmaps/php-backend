@@ -1,9 +1,4 @@
 <?php
-
-
-// FIXME - make minimal (check on frontend too)
-// localhost:8000 issue?
-
 /**
  *
  * This handles queries from the tr-details frontend requests

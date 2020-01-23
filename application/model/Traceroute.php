@@ -1120,7 +1120,7 @@ class Traceroute
     *
     * @param traceroute id
     *
-    * @return array of latencies, structured for TR Details
+    * @return array of latency strings, structured for TR Details
     *
     */
   public static function getLatenciesForTraceroute($trId)
@@ -1134,6 +1134,9 @@ class Traceroute
     while ($row = pg_fetch_array($result, null, PGSQL_ASSOC)) {
       $formattedLatencies[$row['hop']-1] .= $row['rtt_ms'] .= ' ';
     }
+
+    pg_free_result($result);
+    pg_close($dbconn);
 
     return $formattedLatencies;
   }
@@ -1294,77 +1297,61 @@ class Traceroute
   }
 
   // functions for autocomplete ajax calls
-  public static function getAutoCompleteData($sField, $sKeyword)
+  public static function getAutoCompleteData($sField)
   {
     global $dbconn;
 
-    // query ip_add_info table
-    $minL = 0;
+    $tColumn = "";
+    $tTable = "ip_addr_info";
+    $tOrder = "";
+    $tWhere = "";
+    $tSelect = 'SELECT';
 
-    // proceed only if length is > $minL
-    if (strlen($sKeyword) > $minL) {
-      $tColumn = "";
-      $tTable = "ip_addr_info";
-      $tOrder = "";
+    if ($sField == "country") {
+      $tColumn = 'mm_country';
+      $tOrder = $tColumn;
+    } else if ($sField == "region") {
+      $tColumn = 'mm_region';
+      $tOrder = $tColumn;
+    } else if ($sField == "city") {
+      $tColumn = 'mm_city';
+      $tOrder = $tColumn;
+    } else if ($sField == "zipCode") {
+      $tColumn = 'mm_postal';
+      $tOrder = $tColumn;
+    } else if ($sField == "ISP") {
+      $tColumn = 'num, name';
+      $tOrder = "name";
+      $tTable = "as_users";
+      $tWhere = "WHERE short_name is not null";
+    } else if ($sField == "submitter") {
+      $tSelect = 'SELECT distinct';
+      $tColumn = 'submitter';
+      $tOrder = "submitter";
+      $tTable = "traceroute";
       $tWhere = "";
-      $tSelect = 'SELECT';
+    }
 
-      if ($sField == "country") {
-        $tColumn = 'mm_country';
-        $sKeyword = strtoupper($sKeyword);
-        $tOrder = $tColumn;
-      } else if ($sField == "region") {
-        $tColumn = 'mm_region';
-        $sKeyword = ucwords(strtolower($sKeyword));
-        $tOrder = $tColumn;
-      } else if ($sField == "city") {
-        $tColumn = 'mm_city';
-        $sKeyword = ucwords(strtolower($sKeyword));
-        $tOrder = $tColumn;
-      } else if ($sField == "zipCode") {
-        $tColumn = 'mm_postal';
-        $sKeyword = ucwords(strtolower($sKeyword));
-        $tOrder = $tColumn;
-      } else if ($sField == "ISP") {
-        $tColumn = 'num, name';
-        $sKeyword = ucwords(strtolower($sKeyword));
-        $tOrder = "name";
-        $tTable = "as_users";
-        $tWhere = "WHERE short_name is not null";
-      } else if ($sField == "submitter") {
-        $tSelect = 'SELECT distinct';
-        $tColumn = 'submitter';
-        $sKeyword = $sKeyword;
-        $tOrder = "submitter";
-        $tTable = "traceroute";
-        $tWhere = "";//WHERE submitter NOT LIKE '%$%'";
-        //select distinct submitter from traceroute order by submitter
+    // loading all approach
+    $sql = "$tSelect $tColumn FROM $tTable $tWhere ORDER BY $tOrder";
+    $result = array();
+    $autoC = array();
+
+    $result = pg_query($dbconn, $sql) or die('Query failed: ' . pg_last_error());
+
+    while ($line = pg_fetch_array($result, null, PGSQL_ASSOC)) {
+      if ($sField == "ISP") {
+        $autoC[$line['num']] = $line['name'];
+      } else {
+        $autoC[] = $line[$tColumn];
       }
+    }
+    $unique = array_unique($autoC);
+    sort($unique);
+    pg_free_result($result);
+    pg_close($dbconn);
 
-      // loading all approach
-      $sql = "$tSelect $tColumn FROM $tTable $tWhere ORDER BY $tOrder";
-      $result = array();
-      $autoC = array();
-
-      $result = pg_query($dbconn, $sql) or die('Query failed: ' . pg_last_error());
-
-      while ($line = pg_fetch_array($result, null, PGSQL_ASSOC)) {
-        if ($sField == "ISP") {
-          $autoC[$line['num']] = $line['name'];
-        } else {
-          $autoC[] = $line[$tColumn];
-        }
-      }
-      $unique = array_unique($autoC);
-      sort($unique);
-      pg_free_result($result);
-      pg_close($dbconn);
-
-      return json_encode($unique);
-
-    } else {
-      echo 'keyword is too short';
-    }// end if
+    return json_encode($unique);
   }
 } // end class
 
