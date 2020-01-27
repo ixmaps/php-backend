@@ -5,7 +5,7 @@
  * 
  * @param $_POST traceroute id
  *
- * @return array of latency strings, formatted for tr details
+ * @return two arrays of latency strings, formatted for tr details
  *
  * @author IXmaps.ca (Colin)
  *

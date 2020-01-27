@@ -1120,25 +1120,64 @@ class Traceroute
     *
     * @param traceroute id
     *
-    * @return array of latency strings, structured for TR Details
+    * @return two arrays of latency strings, structured for TR Details
     *
     */
   public static function getLatenciesForTraceroute($trId)
   {
     global $dbconn;
+
+    /* NB: this skips hops where ip_addr is null, to sync up with how we generate the traceroute data for the map (see the first join on ip_addr_info.ip_addr=tr_item.ip_addr in getTraceroute and getIxMapsData). This may not be optimal long run, since it could be better to deliver the entire route to the front end and let it decide on how to handle funky hops */
     
-    $sql = "SELECT hop, rtt_ms FROM tr_item WHERE traceroute_id = ".$trId." order by hop, attempt";
+    $sql = "SELECT hop, rtt_ms FROM tr_item WHERE traceroute_id = ".$trId." and ip_addr is not null order by hop, attempt";
     $result = pg_query($dbconn, $sql) or die('Query failed on getLatenciesForTraceroute');
 
     $formattedLatencies = array();
+    $hopLatencies = array();
     while ($row = pg_fetch_array($result, null, PGSQL_ASSOC)) {
+      // flatten the arrays
+      $hopLatencies[$row['hop']-1][] = $row['rtt_ms'];
+      // note that this mutates the $result var, so it must come last
       $formattedLatencies[$row['hop']-1] .= $row['rtt_ms'] .= ' ';
     }
+    // removing the key, since it's misleading at best
+    $cleanedFormattedLatencies = array_values($formattedLatencies);
+
+    $minLatencies = array();
+    // arbitrary starting value that should be higher than any latency
+    $lowestLat = 9999;
+    // go backwards through the array, starting on last hop
+    foreach (array_reverse($hopLatencies) as $hopLat) {
+      // exclude the -1s
+      $filteredHopLat = array_diff($hopLat, array(-1));
+
+      // if there is at least one non -1 value in the hop
+      if ($filteredHopLat) {
+        $lat = min($filteredHopLat);
+
+        // if this hop lat is lower than previous hop lats
+        if ($lat < $lowestLat) {
+          $lowestLat = $lat;
+          $minLatencies[] = $lat;
+        // otherwise we use the previously lowest value
+        } else {
+          $minLatencies[] = $lowestLat;
+        }
+      } else {
+        $minLatencies[] = "-1";
+      }
+    }
+
+    // package the two arrays up in a list
+    $packagedLatencies = array (
+      "latencies" => $cleanedFormattedLatencies,
+      "minLatencies" => array_reverse($minLatencies)
+    );
 
     pg_free_result($result);
     pg_close($dbconn);
 
-    return $formattedLatencies;
+    return $packagedLatencies;
   }
 
   /**
