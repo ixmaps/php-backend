@@ -1,6 +1,6 @@
 <?php
 /**
- * Update the a 'helper' tables that is used by the query engine:
+ * Update the 'helper' tables that is used by the query engine:
  * -- tr_last_hop --
  * Shows last hop of traceroutes. This is needed for the new approach in query search,
  * as the destination is now calculated using last hop and not destination ip.
@@ -14,6 +14,7 @@
  * @author IXmaps.ca (Anto, Colin)
  *
  */
+chdir(dirname(__FILE__));
 require_once('../config.php');
 
 $lastTrId = getLastTrIdGen();
