@@ -511,9 +511,9 @@ class GatherTr
         foreach ($hop['latencies'] as $key1 => $latency) {
           $latencyCount++;
 
-          $rtt_ms=0;
+          $rtt_ms = 0;
 
-          if ($latency==-1) {
+          if ($latency == -1) {
             $status="t";
           } else {
             $status="r";
@@ -526,7 +526,7 @@ class GatherTr
             "rtt_ms"=>round($latency),
             "attempt"=>$latencyCount,
             "hop"=>$hopCount,
-            );
+          );
         }
 
       } else {
@@ -546,10 +546,10 @@ class GatherTr
     );
 
     if ($publishControl) {
-      /* Insert Traceroute */
+      /* Insert traceroutes */
       $newTrId = GatherTr::saveTraceroute($trInsertData["trData"]);
 
-      /* Insert TrItems */
+      /* Insert tr_items */
       if ($newTrId != 0) {
         GatherTr::manageNewIps($newTrId, $trInsertData["trItems"]);
         $resultArray['trId'] = $newTrId;
@@ -559,160 +559,42 @@ class GatherTr
     return $resultArray;
   }
 
+
   /**
-    Publish TR data: old version using python cgi. No longer used
+    Insert relevant values from newly created route into tr_last_hops
+    NB: now called from tr_gather instead of the old cron approach
   */
-  // public static function publishTracerouteCgi($data)
-  // {
-  //   global $dbconn, $ixmaps_debug_mode, $gatherTrUri;
-  //   $publishControl = false;
-  //   $validPublicIPs = 0;
-  //   $trSubString = "";
-  //   $trString ="";
+  public static function publishLastHop($trId)
+  {
+    global $dbconn;
 
-  //   /*check tr status: does the TR reach its destination?*/
-  //   end($data['ip_analysis']['hops']);
-  //   $lastKey = key($data['ip_analysis']['hops']);
-  //   $lastIp = $data['ip_analysis']['hops'][$lastKey]['winIp'];
-  //   //echo "LastIP: ".$lastIp;
+    $sqlLastHop = "SELECT tr_item.hop, tr_item.traceroute_id, traceroute.id, traceroute.dest, traceroute.dest_ip, ip_addr_info.ip_addr FROM tr_item, traceroute, ip_addr_info WHERE (tr_item.traceroute_id = traceroute.id) AND (ip_addr_info.ip_addr = tr_item.ip_addr) AND tr_item.attempt = 1 AND tr_item.hop > 1 and traceroute.id = ".$trId." order by tr_item.hop DESC LIMIT 1";
 
-  //   if($data['dest_ip']==$lastIp){
-  //     $trStatus = "c";
-  //   } else {
-  //     $trStatus = "i";
-  //   }
+    $result = pg_query($dbconn, $sqlLastHop) or die('Query failed: ' . pg_last_error());
+    $lastHopArr = pg_fetch_all($result);
 
-  //   // Collecting the protocol used in the submission data_type = json
-  //   foreach ($data['traceroute_submissions'] as $sub_data) {
-  //     if($sub_data['data_type']=="json"){
-  //       // convert to lowercase before comparison
-  //       $sub_data['protocol'] = strtolower($sub_data['protocol']);
-  //       if($sub_data['protocol']=="icmp"){
-  //         $protocol = "i";
-  //       } else if($sub_data['protocol']=="udp"){
-  //         $protocol = "u";
-  //       } else if($sub_data['protocol']=="tcp"){
-  //         $protocol = "t";
-  //       }
-  //     }
-  //   }
+    $reached = 1;
+    if ($lastHopArr[0]["ip_addr"] != $lastHopArr[0]["dest_ip"]) {
+      $reached = 0;
+    }
 
-  //   // TODO: check for null fields
+    $sqlInsert = "INSERT INTO tr_last_hops VALUES (".$lastHopArr[0]["traceroute_id"].", ".$lastHopArr[0]["hop"].", '".$lastHopArr[0]["ip_addr"]."', ".$reached.");";
 
-  //   // convert timeout to seconds
-  //   $data['timeout'] = round($data['timeout']/1000);
+    // this is a bit redundant (since this check already happened in gather_tr, but safe
+    try {
+      if ($sqlInsert != "INSERT INTO tr_last_hops VALUES (, , '', 1);") {
+        pg_query($dbconn, $sqlInsert) or die('Query failed: ' . pg_last_error());
+      } else {
+        echo "<br/>This TR has no hops. Empty record...";
+      }
 
-  //   $trString = "dest=".$data['dest']."&dest_ip=".$data['dest_ip']."&submitter=".urlencode($data['submitter'])."&zip_code=".urlencode($data['postal_code'])."&client=".urlencode($data['traceroute_submissions'][0]['client'])."&cl_ver=1.0&privacy=8&timeout=".$data['timeout']."&protocol=".$protocol."&maxhops=".$data['maxhops']."&attempts=".$data['queries']."&status=".$trStatus;
+    } catch(Exception $e) {
+      echo "db error on tr_last_hops insert";
+    }
 
-  //   $hopCount=0;
-  //   $foundFirstValidIp = false;
+    pg_free_result($result);
+  }
 
-  //   // hops
-  //   foreach ($data['ip_analysis']['hops'] as $key => $hop) {
-
-  //     // skip local ips, include empty ips
-  //     if(!GatherTr::checkIpIsPrivate($hop['winIp']) || $hop['winIp']==""){
-
-  //       if($hop['winIp']!=""){
-  //         $validPublicIPs++; // count # of valid public ips
-  //       }
-
-  //       /*
-  //         anonymize first valid and public ip.
-
-  //         This approach applies for the first not private ip, which is not necessarily user's public ip, but since the first public ip can be missing from the data, this approach in some cases will anonymize ips that don't need to be anonymized. (Requires further discussion)
-  //       */
-  //       if(!$foundFirstValidIp && $hop['winIp']!=""){
-  //         $foundFirstValidIp=true;
-  //         //echo "\n First Valid IP: ".$hop['winIp'];
-  //         $ipQuads = explode('.', $hop['winIp']);
-  //         $ipAmonim = "";
-
-  //         for ($i=0; $i < count($ipQuads); $i++) {
-  //           if($i==count($ipQuads)-1){
-  //             $ipAmonim.=".0";
-
-  //           } else if ($i==0) {
-  //             $ipAmonim.= "".$ipQuads[$i];
-
-  //           } else {
-  //             $ipAmonim.= ".".$ipQuads[$i];
-  //           }
-  //         }
-  //         $hop['winIp'] = $ipAmonim;
-  //       }
-
-  //       $hopCount++;
-  //       $latencyCount = 0;
-  //       // latencies
-  //       foreach ($hop['latencies'] as $key1 => $latency) {
-  //         $latencyCount++;
-
-  //         $rtt_ms=0;
-
-  //         if($latency==-1)
-  //         {
-  //           $status="t";
-  //         } else {
-  //           $status="r";
-  //         }
-
-  //         $trString .= "&status_".$hopCount."_".$latencyCount."=".$status."&ip_addr_".$hopCount."_".$latencyCount."=".$hop['winIp']."&rtt_ms_".$hopCount."_".$latencyCount."=".round($latency);
-  //       }
-
-
-  //     } else {
-  //       //echo "\n skiping ip: ".$hop['winIp']; // used for debug only
-  //     } // end skip local ip
-
-  //   }
-  //   $totItems = $hopCount*$data['queries'];
-  //   $trString .= "&n_items=".$totItems;
-
-  //   /*Enables publication of current TR data if there are at least 2 valid public IP addresses*/
-  //   if($validPublicIPs>=2){
-  //     $publishControl = true;
-  //   }
-
-  //   $resultArray = array(
-  //     "trId"=>0,
-  //     "publishControl"=>$publishControl,
-  //     "tot_hops"=>$validPublicIPs);
-
-  //   if($publishControl){
-  //     /*echo "\n".$trString."";
-  //     $resultArray['trId'] = 0;*/ // For debug
-
-  //     // adding exceptions for SSL certificate
-  //     $arrContextOptions=array(
-  //         "ssl"=>array(
-  //             "verify_peer"=>false,
-  //             "verify_peer_name"=>false,
-  //         ),
-  //     );
-
-  //     /* Publish TR data */
-
-  //     /* commenting this out for the moment: it's not needed to collect contributions from IXmapsClient*/
-  //     /*$trResult = file_get_contents($gatherTrUri."?".$trString, false, stream_context_create($arrContextOptions));*/
-  //     $trResult = file_get_contents($gatherTrUri."?".$trString);
-
-  //     $search      = "new traceroute ID";
-  //     $line_number = false;
-  //     $tr_id_arr = explode("\n", $trResult);
-  //     while (list($key, $line) = each($tr_id_arr) and !$line_number) {
-  //        $line_number = (strpos($line, $search) !== FALSE) ? $key + 1 : $line_number;
-  //     }
-  //     $tr_id_line = explode("=", $tr_id_arr[$line_number-1]);
-  //     //echo "\nTR ID: ".$tr_id_line[1];
-  //     if(count($tr_id_line)==2 && $tr_id_line[1]!=0){
-  //       $resultArray['trId'] = $tr_id_line[1];
-  //     } else {
-  //       $resultArray['trId'] = 0; // error collecting trId
-  //     }
-  //   }
-  //   return $resultArray;
-  // }
 
   /**
     Determine if the IP is Private/Reserved

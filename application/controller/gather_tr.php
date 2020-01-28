@@ -48,7 +48,9 @@ if (isset($_POST['dest_ip']) && $_POST['dest_ip'] != "") {
     $trGatherMessage.=" ".$saveTrResult['error'];
   }
 
+  // throws some json of the route into a table - not mission critical at all (remove?)
   $b = GatherTr::saveTrContributionData($_POST, $tr_c_id);
+  // inserts into tr_contributions table. Very useful.
   $trData = GatherTr::getTrContribution($tr_c_id);
   $trByHop = GatherTr::analyzeIfInconsistentPasses($trData);
 
@@ -77,6 +79,7 @@ if (isset($_POST['dest_ip']) && $_POST['dest_ip'] != "") {
       // Success: tr_flag = 2 or 3
       $trGatherMessage = "Traceroute data saved successfully. ".$publishResult['tot_hops']." Hops were found.";
       $trId = $publishResult['trId'];
+      GatherTr::publishLastHop($trId);
     }
   }
 

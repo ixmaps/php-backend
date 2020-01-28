@@ -1,5 +1,8 @@
 <?php
 /**
+ * We no longer use this. The functionality has been added to gather_tr, so that the
+ * tr_last_hops inserts happen when a new route is submitted by the client.
+ *
  * Update the 'helper' tables that is used by the query engine:
  * -- tr_last_hop --
  * Shows last hop of traceroutes. This is needed for the new approach in query search,
