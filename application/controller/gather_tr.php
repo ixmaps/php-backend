@@ -48,7 +48,7 @@ if (isset($_POST['dest_ip']) && $_POST['dest_ip'] != "") {
     $trGatherMessage.=" ".$saveTrResult['error'];
   }
 
-  // throws some json of the route into a table - not mission critical at all (remove?)
+  // throws some json of the route into a confusingly named table
   $b = GatherTr::saveTrContributionData($_POST, $tr_c_id);
   // inserts into tr_contributions table. Very useful.
   $trData = GatherTr::getTrContribution($tr_c_id);

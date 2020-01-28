@@ -84,7 +84,6 @@ class GatherTr
 
     $trData = array($data['dest'], $data['dest_ip'], $data['city'], $data['country'], $data['submitter'], $data['submitter_ip'], $data['os'], $data['postal_code'], $data['privacy'], $data['timeout'], $data['queries'], $data['maxhops'], 0, $data['error'], $data['client_params'], $data['submitter_asnum'], $data['metadata']);
 
-    //$result = pg_query_params($dbconn, $sql, $trData) or die('saveTrContribution: Query failed: incorrect parameters: '.pg_last_error());
     $result = pg_query_params($dbconn, $sql, $trData);
 
     // catch errors
@@ -93,7 +92,6 @@ class GatherTr
       $tr_c_id = 0;
     } else {
       $pg_error = "" ;
-      //$result = pg_query($dbconn, $sql1) or die('saveContribution: Query failed: incorrect parameters'.pg_last_error());
       $lastId = pg_fetch_all($result);
       $tr_c_id = $lastId[0]['tr_c_id'];
       pg_free_result($result);
@@ -421,7 +419,6 @@ class GatherTr
     end($data['ip_analysis']['hops']);
     $lastKey = key($data['ip_analysis']['hops']);
     $lastIp = $data['ip_analysis']['hops'][$lastKey]['winIp'];
-    //echo "LastIP: ".$lastIp;
 
     // NB - c means complete, i means incomplete
     if ($data['dest_ip']==$lastIp) {
@@ -733,8 +730,7 @@ class GatherTr
 
             $hopIndex++;
           }
-          //echo "\nBest Pass Data---";
-          //print_r($TrByHop); // !!OK
+
           return array(
             "tr_by_hop"=>$TrByHop,
             "tr_flag"=>3 // different #  of hops in at least two passes
