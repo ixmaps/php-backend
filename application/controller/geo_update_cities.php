@@ -11,23 +11,23 @@
  *
  * @return None (updated table ip_addr_info)
  *
- * @since Updated Oct 2019
- * @author IXmaps.ca (Anto)
+ * @since Updated Apr 2020
+ * @author IXmaps.ca (Anto, Colin)
  *
  */
 header('Access-Control-Allow-Origin: *');
-$appPath = "/srv/www/website/application";
-include($appPath.'/config.php');
-include($appPath.'/model/IXmapsGeoCorrection.php');
+require_once('../config.php');
+require_once('../model/IXmapsGeoCorrection.php');
 
 // Get test IP
-if (isset($_GET['ip'])) {
-  $testIp = $_GET['ip'];
-  $ipAddrData = IXmapsGeoCorrection::getIpAddrInfo(0, 2, $testIp);
-} else {
-  // Get corrected IPs
-  $ipAddrData = IXmapsGeoCorrection::getIpAddrInfo(100, 1);
-}
+// if (isset($_GET['ip'])) {
+//   $testIp = $_GET['ip'];
+//   $ipAddrData = IXmapsGeoCorrection::getIpAddrInfo(0, 2, $testIp);
+// } else {
+//   // Get corrected IPs
+//   $ipAddrData = IXmapsGeoCorrection::getIpAddrInfo(100, 1);
+// }
+$ipAddrData = IXmapsGeoCorrection::getIpAddrInfo(100, 1);
 
 if (isset($_GET['m'])) {
   $matchLimit = $_GET['m'];
