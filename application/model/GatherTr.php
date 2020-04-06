@@ -624,20 +624,22 @@ class GatherTr
 
   /**
     Get an ASN for an IP: Using local DBs
+    NOT USED CURRENTLY, COULD STILL BE USEFUL TO ADAPT SOMEDAY
+    We no longer have have asn_netmask or asn_carrier (though as_users should do fine for the latter)
   */
-  public static function getIpForAsn($ip='')
-  {
-    global $dbconn, $ixmaps_debug_mode;
-    $sql = "SELECT asn_netmask.*, asn_carrier.name FROM asn_netmask, asn_carrier WHERE (asn_carrier.num=asn_netmask.asn) AND asn_netmask.netmask >>= inet('".$ip."');";
-    //echo $sql;
-    //$trParams = array($ip);
-    //$result = pg_query_params($dbconn, $sql, $trParams) or die('getIpForAsn: Query failed'.pg_last_error());
-    $result = pg_query($dbconn, $sql) or die('getIpForAsn: Query failed'.pg_last_error());
-    $asnData = pg_fetch_all($result);
-    //print_r($asnData);
-    pg_free_result($result);
-    return $asnData;
-  }
+  // public static function getIpForAsn($ip='')
+  // {
+  //   global $dbconn, $ixmaps_debug_mode;
+  //   $sql = "SELECT asn_netmask.*, asn_carrier.name FROM asn_netmask, asn_carrier WHERE (asn_carrier.num=asn_netmask.asn) AND asn_netmask.netmask >>= inet('".$ip."');";
+  //   //echo $sql;
+  //   //$trParams = array($ip);
+  //   //$result = pg_query_params($dbconn, $sql, $trParams) or die('getIpForAsn: Query failed'.pg_last_error());
+  //   $result = pg_query($dbconn, $sql) or die('getIpForAsn: Query failed'.pg_last_error());
+  //   $asnData = pg_fetch_all($result);
+  //   //print_r($asnData);
+  //   pg_free_result($result);
+  //   return $asnData;
+  // }
 
   /**
     Checks TR submission for different number of hops and extracts the longest TR (unique routers)

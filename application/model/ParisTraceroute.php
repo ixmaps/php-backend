@@ -28,7 +28,6 @@ class ParisTraceroute {
       if(property_exists(__CLASS__, $key)) {
         $this->$key = $val;
       }
-
     }
     $this->saveData($postArr);
   }

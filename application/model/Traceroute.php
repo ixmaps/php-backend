@@ -794,7 +794,7 @@ class Traceroute
 
     $trData = array();
 
-    // distance speed of light in KM per 1 milsec
+    // speed of light in fibre KM per 1 milsec
     $SL = 200;
     //$SL = 86;
 

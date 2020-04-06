@@ -14,7 +14,7 @@ class IXmapsGeoCorrection
     } else if ($type == 2) {
       $sql1 = "SELECT ip_addr, asnum, hostname, lat, long, mm_country, mm_region, mm_city FROM ip_addr_info WHERE ip_addr = '".$ip."';";
 
-    // select ips not geo corrected, with valid coordinates, but with not city name
+    // select ips not geo corrected, with valid coordinates, but with no city name
     } else if ($type == 3) {
       $sql1 = "SELECT ip_addr, gl_override, p_status, asnum, hostname, lat, long, mm_country, mm_region, mm_city FROM ip_addr_info WHERE mm_city = '' and p_status<>'F' and p_status<>'G' and p_status<>'U' and lat <> 0 and gl_override is not null order by ip_addr OFFSET $offset LIMIT $limit;";
 
@@ -129,39 +129,26 @@ class IXmapsGeoCorrection
     return 1;
   }
 
-
-  public static function getLogIpAddrInfo()
-  {
-    global $dbconn;
-
-    // select ips
-    $sql = "SELECT ip_addr FROM log_ip_addr_info WHERE asnum = 6939 and arin_updated = 0 ORDER BY ip_addr";
-
-    $result = pg_query($dbconn, $sql);
-    $ipAddrInfo = pg_fetch_all($result);
-    //print_r($ipAddrInfo);
-    return $ipAddrInfo;
-  }
-
   /**
    * Updates arin whois data on table log_ip_addr_info
+   * CURRENTLY NOT USED
    */
-  public static function updateArinWhois($whoisData)
-  {
-    global $dbconn;
+  // public static function updateArinWhois($whoisData)
+  // {
+  //   global $dbconn;
 
-    $sql = "UPDATE log_ip_addr_info SET arin_net_name='".$whoisData['arin_net_name']."', arin_country = '".$whoisData['arin_country']."', arin_city = '".$whoisData['arin_city']."',  arin_contact = '".json_encode($whoisData['contact'])."', arin_updated=1 WHERE ip_addr = '".$whoisData['ip_addr']."';";
-    //echo "\n".$sql."\n";
+  //   $sql = "UPDATE log_ip_addr_info SET arin_net_name='".$whoisData['arin_net_name']."', arin_country = '".$whoisData['arin_country']."', arin_city = '".$whoisData['arin_city']."',  arin_contact = '".json_encode($whoisData['contact'])."', arin_updated=1 WHERE ip_addr = '".$whoisData['ip_addr']."';";
 
-    $result = pg_query($dbconn, $sql) or die('updateArinWhois failed'.pg_last_error());
+  //   $result = pg_query($dbconn, $sql) or die('updateArinWhois failed'.pg_last_error());
 
-    pg_free_result($result);
-  }
+  //   pg_free_result($result);
+  // }
 
   /**
    * Queries WHOIS db and extract all: Name, Country-Code, and City data
    * @param inet $ip IP address
    * @return array of country and city data
+   * CURRENTLY NOT USED
    */
   public static function getWhoisData($ip, $whoisHost="")
   {
@@ -170,7 +157,6 @@ class IXmapsGeoCorrection
     echo "\n------------------------\n";
     echo "\n------------------------\n".$whoisOutput;
 
-    // skip if "Connection reset by peer"
     if (strpos($whoisOutput, 'Connection reset by peer') !== false) {
       echo "\nError with whois request";
       return 0;
@@ -186,80 +172,62 @@ class IXmapsGeoCorrection
         "arin_city"=>"",
         "contact" => array()
         );
+
       foreach ($whoisOutputArr as $key => $line) {
 
-          if (strpos($line, 'NetName: ') !== false) {
-            //echo "\n".$line;
-            //NetName:        LINODE-US
-            $dArray = explode(":", $line);
-            $data = $dArray[1];
-            //print_r($dArray);
-            $data = trim($data);
-            $itemArray["arin_net_name"] = $data;
-          }
+        if (strpos($line, 'NetName: ') !== false) {
+          $dArray = explode(":", $line);
+          $data = $dArray[1];
+          $data = trim($data);
+          $itemArray["arin_net_name"] = $data;
+        }
 
-          if (strpos($line, 'Country: ') !== false) {
-            //echo "\n".$line;
-            // Country:        US
-            $dArray = explode(":", $line);
-            $data = $dArray[1];
-            //print_r($dArray);
-            $data = trim($data);
-            $itemArray["arin_country"] = $data;
-          }
+        if (strpos($line, 'Country: ') !== false) {
+          $dArray = explode(":", $line);
+          $data = $dArray[1];
+          $data = trim($data);
+          $itemArray["arin_country"] = $data;
+        }
 
-          if (strpos($line, 'City: ') !== false) {
-            //echo "\n".$line;
-            //City:           Galloway
-            $dArray = explode(":", $line);
-            $data = $dArray[1];
-            //print_r($dArray);
-            $data = str_replace("'", " ", $data);
-            $data = trim($data);
-            $itemArray["arin_city"] = $data;
-          }
-          //contact:Name:
-          //contact:Company:
+        if (strpos($line, 'City: ') !== false) {
+          $dArray = explode(":", $line);
+          $data = $dArray[1];
+          $data = str_replace("'", " ", $data);
+          $data = trim($data);
+          $itemArray["arin_city"] = $data;
+        }
 
-          if (strpos($line, 'contact:Name:') !== false) {
-            //if($contactCounter!=0){
-            $contactCounter++; //!!
-            //}
-            //echo "\n".$line;
-            $dArray = explode(":", $line);
-            $data = $dArray[2];
-            //print_r($dArray);
-            $data = trim($data);
-            $data = str_replace("'", " ", $data);
-            $itemArray["contact"][$contactCounter]['name'] = $data;
-          }
+        if (strpos($line, 'contact:Name:') !== false) {
+          $contactCounter++; //!!
+          $dArray = explode(":", $line);
+          $data = $dArray[2];
+          $data = trim($data);
+          $data = str_replace("'", " ", $data);
+          $itemArray["contact"][$contactCounter]['name'] = $data;
+        }
 
-          if (strpos($line, 'contact:Company:') !== false) {
-            //echo "\n".$line;
-            $dArray = explode(":", $line);
-            $data = $dArray[2];
-            $data = trim($data);
-            $data = str_replace("'", " ", $data);
-            $itemArray["contact"][$contactCounter]['company'] = $data;
-          }
+        if (strpos($line, 'contact:Company:') !== false) {
+          $dArray = explode(":", $line);
+          $data = $dArray[2];
+          $data = trim($data);
+          $data = str_replace("'", " ", $data);
+          $itemArray["contact"][$contactCounter]['company'] = $data;
+        }
 
-          if (strpos($line, 'contact:Country-Code:') !== false) {
-            //echo "\n".$line;
-            $dArray = explode(":", $line);
-            $data = $dArray[2];
-            $data = trim($data);
-            $itemArray["contact"][$contactCounter]['country'] = $data;
-          }
+        if (strpos($line, 'contact:Country-Code:') !== false) {
+          $dArray = explode(":", $line);
+          $data = $dArray[2];
+          $data = trim($data);
+          $itemArray["contact"][$contactCounter]['country'] = $data;
+        }
 
-          if (strpos($line, 'contact:City:') !== false) {
-            $dArray = explode(":", $line);
-            $data = $dArray[2];
-            $data = trim($data);
-            $data = str_replace("'", " ", $data);
-            $itemArray["contact"][$contactCounter]['city'] = $data;
-          }
-          //print_r($itemArray);
-          //$dataArray[]=$itemArray;
+        if (strpos($line, 'contact:City:') !== false) {
+          $dArray = explode(":", $line);
+          $data = $dArray[2];
+          $data = trim($data);
+          $data = str_replace("'", " ", $data);
+          $itemArray["contact"][$contactCounter]['city'] = $data;
+        }
       }
       echo "\n";
       print_r($itemArray);
@@ -267,8 +235,90 @@ class IXmapsGeoCorrection
 
       return $itemArray;
     } // end if skip
+  }
 
+  /**
+   * Uses distance and time to calculate if the hop was faster than speed of light (from origin)
+   * @param float $lat1 Latitude of location 1
+   * @param float $long1 Longitude of location 1
+   * @param float $lat1 Latitude of location 2
+   * @param float $long1 Longitude of location 2
+   * @param integer $rtt Delta of rtt between to locations (origin rtt is 0)
+   * @return boolean if the hop violates speed of light, return true
+   */
+  public static function doesViolateSol($lat1, $long1, $lat2, $long2, $rtt)
+  {
+    // Speed of light = 300000 meters / millisecond
+    // Speed of light in fiber = 200000 meters / millisecond
+    // Speed of light in fiber going both directions (as an rtt) = 100000 meters / millisecond
+    $SoL = 100000;
+    $distanceMeters = IXmapsGeoCorrection::distanceBetweenCoords($lat1, $long1, $lat2, $long2);
 
+    // Excluding rtt delta of 0 both for div by zero, but also cause that would flag way too many hops
+    if ($rtt > 0 && ($distanceMeters/$rtt > $SoL)) {
+      return true;  
+    } else {
+      return false;
+    }
+  }
+
+  /**
+   * Truth value for hop jitteriness (subjective as hell)
+   * @param 'hop' object - TODO: update to a properly fleshed out model
+   * @return boolean if the hop 'is too jittery', return true
+   */
+  public static function hopHasExcessiveJitter($hop)
+  {
+    // NEED TO TEST THIS WITH ALL -1s, BLANK RTTS, ETC.
+
+    $rttArr = [$hop["rtt1"], $hop["rtt2"], $hop["rtt3"], $hop["rtt4"]];
+    // removing all -1s
+    $rttArr = array_diff($rttArr, [-1]);
+    $rttArr = array_diff($rttArr, [NULL]);
+
+    $minRtt = min($rttArr);
+    rsort($rttArr);
+    array_pop($rttArr);
+    $diffArr = array();
+
+    foreach ($rttArr as $rtt) {
+      array_push($diffArr, ($rtt - $minRtt));
+    } 
+    // $diff1 = $rttArr[0] - $minRtt;
+    // $diff2 = $rttArr[1] - $minRtt;
+    // $diff3 = $rttArr[2] - $minRtt;
+    // var_dump($rttArr);
+    // var_dump($diffArr);
+    // echo "min: ".$minRtt."\n";
+    // echo "sqr min: ".sqrt($minRtt)."\n";
+
+    // $counter = 0;
+    // if (sqrt($minRtt) < $diff1) {
+    //   $counter++;
+    // }
+    // if (sqrt($minRtt) < $diff2) {
+    //   $counter++;
+    // }
+    // if (sqrt($minRtt) < $diff3) {
+    //   $counter++;
+    // }
+    // echo ($minRtt)."\n";
+    // echo var_dump($rttArr);
+    // echo "\n";
+    // echo var_dump($diffArr);
+    // echo "\n";
+    // echo max($diffArr);
+    // echo "\n";
+    // If any one of the differences is <= to the sqrt of the min, it is not jittery
+    if (min($diffArr) <= sqrt($minRtt)) {
+      return false;
+    } else {
+      echo "JITTERY!\n";
+      return true;
+    }
+
+    // another option is to just use an abs value of eg 2 for the differences (on all hops)
+    // TODO - try me out and compare
 
   }
 
@@ -280,7 +330,7 @@ class IXmapsGeoCorrection
    * @param float $latitudeTo Latitude of target point in [deg decimal]
    * @param float $longitudeTo Longitude of target point in [deg decimal]
    * @param float $earthRadius Mean earth radius in [m]
-   * @return float Distance between points in [m] (same as earthRadius)
+   * @return float Distance between points in [m]
    */
   public static function distanceBetweenCoords(
     $latitudeFrom, $longitudeFrom, $latitudeTo, $longitudeTo, $earthRadius = 6371000)
