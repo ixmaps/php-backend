@@ -310,7 +310,7 @@ class IXmapsGeoCorrection
     // echo max($diffArr);
     // echo "\n";
     // If any one of the differences is <= to the sqrt of the min, it is not jittery
-    if (min($diffArr) <= sqrt($minRtt)) {
+    if (count($diffArr) > 0 && min($diffArr) <= sqrt($minRtt)) {
       return false;
     } else {
       echo "JITTERY!\n";
