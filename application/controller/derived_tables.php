@@ -339,7 +339,7 @@ function updateTracerouteTraitsForTrId($trId) {
     $num_default_mm_location_hops = 0;
     $abaTracker = array();
     $num_aba_hops = 0;
-    $solViolationsTracker = array();
+    $solViolationsTracker = array("lat" => null, "long" => null, "minRtt" => null);
     $num_prev_hop_sol_violation_hops = 0;
     $num_origin_sol_violation_hops = 0;
     $num_jittery_hops = 0;
@@ -468,7 +468,7 @@ function updateTracerouteTraitsForTrId($trId) {
 
 
     $terminated = true;
-    if ($last_hop_ip != $tracerouteArr[0]["dest_ip_addr"]) {
+    if ($last_hop_ip != $tracerouteArr[0]["dest_ip"]) {
       $terminated = false;
     }
 
