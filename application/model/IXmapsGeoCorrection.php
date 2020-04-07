@@ -269,57 +269,36 @@ class IXmapsGeoCorrection
    */
   public static function hopHasExcessiveJitter($hop)
   {
-    // NEED TO TEST THIS WITH ALL -1s, BLANK RTTS, ETC.
-
     $rttArr = [$hop["rtt1"], $hop["rtt2"], $hop["rtt3"], $hop["rtt4"]];
     // removing all -1s
     $rttArr = array_diff($rttArr, [-1]);
     $rttArr = array_diff($rttArr, [NULL]);
 
-    $minRtt = min($rttArr);
-    rsort($rttArr);
-    array_pop($rttArr);
-    $diffArr = array();
+    if (count($rttArr) > 0) {
+      $minRtt = min($rttArr);
+      rsort($rttArr);
+      array_pop($rttArr);
+      $diffArr = array();
 
-    foreach ($rttArr as $rtt) {
-      array_push($diffArr, ($rtt - $minRtt));
-    } 
-    // $diff1 = $rttArr[0] - $minRtt;
-    // $diff2 = $rttArr[1] - $minRtt;
-    // $diff3 = $rttArr[2] - $minRtt;
-    // var_dump($rttArr);
-    // var_dump($diffArr);
-    // echo "min: ".$minRtt."\n";
-    // echo "sqr min: ".sqrt($minRtt)."\n";
+      foreach ($rttArr as $rtt) {
+        array_push($diffArr, ($rtt - $minRtt));
+      }
 
-    // $counter = 0;
-    // if (sqrt($minRtt) < $diff1) {
-    //   $counter++;
-    // }
-    // if (sqrt($minRtt) < $diff2) {
-    //   $counter++;
-    // }
-    // if (sqrt($minRtt) < $diff3) {
-    //   $counter++;
-    // }
-    // echo ($minRtt)."\n";
-    // echo var_dump($rttArr);
-    // echo "\n";
-    // echo var_dump($diffArr);
-    // echo "\n";
-    // echo max($diffArr);
-    // echo "\n";
-    // If any one of the differences is <= to the sqrt of the min, it is not jittery
-    if (count($diffArr) > 0 && min($diffArr) <= sqrt($minRtt)) {
-      return false;
+      // If any one of the differences is <= to the sqrt of the min, it is not jittery
+      if (count($diffArr) > 0 && min($diffArr) <= 2) {
+        return false;
+      } else {
+        return true;
+      }
     } else {
-      echo "JITTERY!\n";
-      return true;
+      // I guess a hop with all rtts = -1 or null is not jittery...
+      return false;
     }
 
-    // another option is to just use an abs value of eg 2 for the differences (on all hops)
-    // TODO - try me out and compare
 
+    // Another option is to just use an abs value of eg 2 for the differences (on all hops)
+    // This captures 3442 jittery hops vs sqrt method's 2864 (in first 1000 routes)
+    // Sticking with sqrt method for now...
   }
 
   /**

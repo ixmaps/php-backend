@@ -1,80 +1,9 @@
 <?php
 /**
+ * Functionality to update the annotated_traceroutes and traceroute_traits tables
  *
- * Update the derived tables that are used by the query engine:
- * -- traceroute_traits --
- * traceroute_id 
- * num_hops 
- * submitter 
- * sub_time 
- * submitter_zip_code 
- * origin_ip_addr 
- * origin_asnum 
- * origin_asname 
- * origin_city 
- * origin_country 
- * dest 
- * dest_ip_addr 
- * dest_asnum 
- * dest_asname 
- * dest_city 
- * dest_country 
- * first_hop_ip_addr 
- * first_hop_asnum 
- * first_hop_asname 
- * first_hop_city 
- * first_hop_country 
- * last_hop_num 
- * last_hop_ip_addr 
- * last_hop_asnum 
- * last_hop_asname 
- * last_hop_city 
- * last_hop_country 
- * terminated 
- * nsa 
- * boomerang 
- * boomerang_ca_us_ca 
- * transits_us 
- * num_transited_countries 
- * num_transited_asnums 
- * list_transited_countries 
- * list_transited_asnums 
- * num_skipped_hops 
- * num_default_mm_location_hops 
- * num_gl_override_hops 
- * num_aba_hops 
- * num_prev_hop_sol_violation_hops 
- * num_origin_sol_violation_hops 
- * num_jittery_hops
- *
- * -- annotated_traceroutes --
- * traceroute_id
- * hop
- * ip_addr
- * hostname
- * asnum
- * asname
- * mm_lat
- * mm_long
- * lat
- * long
- * mm_city
- * mm_region
- * mm_country
- * mm_postal
- * gl_override
- * rtt1
- * rtt2
- * rtt3
- * rtt4
- * min_latency
- * transited_country
- * transited_asnum
- * prev_hop_sol_violation
- * origin_sol_violation
- * jittery 
- *
- * @param None
+ * @param None. Called manually to update the two tables. Called by gather-tr.php.
+ *        Called by cronjob triggered by ip_addr_info.modified_at changed in the last 24 hrs
  *
  * @return None (updated tables traceroute_traits and annotated_traceroutes)
  *
@@ -82,16 +11,18 @@
  * @author IXmaps.ca (Colin)
  *
  */
+
 chdir(dirname(__FILE__));
 require_once('../config.php');
+require_once('../model/DerivedTable.php');
+// remove these eventually
 require_once('../model/IXmapsGeoCorrection.php');
 require_once('../model/IXmapsMaxMind.php');
 
 // $lastTrId = getLastTrIdGen();
 // echo 'Last TRid generated: '.$lastTrId;
-
-$limit = 2000;
-getTracerouteIdsToUpdate(3248);
+$limit = 1;
+getTracerouteIdsToUpdate(5000);
 // getTracerouteIdsForModifiedIpAddr();
 
 /**
@@ -107,7 +38,7 @@ function getTracerouteIdsForModifiedIpAddr() {
 
   echo "\n".date("Y/m/d")."\n";
 
-  loopOverTrIdsForTracerouteTraits($trArr);
+  loopOverTrIdsForDerivedTable($trArr);
 
   pg_close($dbconn);
 }
@@ -119,12 +50,19 @@ function getTracerouteIdsForModifiedIpAddr() {
 function getTracerouteIdsToUpdate($trIdLast) {
   global $dbconn, $limit;
 
+  $sqlNsa = "SELECT city FROM nsa_cities;";
+  $result = pg_query($dbconn, $sqlNsa) or die('Query failed: ' . pg_last_error());
+  $nsaArr = pg_fetch_all($result);
+  pg_free_result($result);
+
+  var_dump(array_values($nsaArr));die;
+
   $sql = "SELECT traceroute.id FROM traceroute WHERE traceroute.id > ".$trIdLast." order by traceroute.id LIMIT ".$limit;
   $result = pg_query($dbconn, $sql) or die('TR ID query failed: ' . pg_last_error());
   $trArr = pg_fetch_all($result);
   pg_free_result($result);
 
-  loopOverTrIdsForTracerouteTraits($trArr);
+  loopOverTrIdsForDerivedTable($trArr);
 
   pg_close($dbconn);
 }
@@ -133,13 +71,14 @@ function getTracerouteIdsToUpdate($trIdLast) {
 /**
   Loops over all of the trs that are passed in, sending them on to updateTracerouteTraitsForTrId
 */
-function loopOverTrIdsForTracerouteTraits($trArr) {
+function loopOverTrIdsForDerivedTable($trArr) {
   $startTime = microtime(true);
   $connGen = 0;
   
   if ($trArr) {
     foreach ($trArr as $key => $trId) {
-      updateTracerouteTraitsForTrId($trId["id"]);
+      // DerivedTable::updateForTrId($trId["id"]);
+      updateForTrId($trId["id"]);
       $connGen++;
     }  
   }
@@ -154,7 +93,7 @@ function loopOverTrIdsForTracerouteTraits($trArr) {
   }
 }
 
-function updateTracerouteTraitsForTrId($trId) {
+function updateForTrId($trId) {
   global $dbconn, $genericMMLatLongs;
 
   echo "\n*** Traceroute id: ".$trId." ***\n";
@@ -227,7 +166,7 @@ function updateTracerouteTraitsForTrId($trId) {
   $dest_asnum = $destArr[0]["asnum"];
   $dest_city = pg_escape_string($destArr[0]["mm_city"]);
   $dest_country = pg_escape_string($destArr[0]["mm_country"]);
-  $dest_asname = getAsname($dest_asnum);
+  $dest_asname = DerivedTable::getAsname($dest_asnum);
   // echo "Submitter: {$submitter}\n";
   // echo "Submission time: {$sub_time}\n";
   // echo "Submitter zip code: {$submitter_zip_code}\n";
@@ -273,13 +212,13 @@ function updateTracerouteTraitsForTrId($trId) {
     origin_sol_violation
     jittery
   ****/
-
   $sqlTraversal = "SELECT * FROM full_routes_last_hop WHERE traceroute_id=".$trId." ORDER BY hop;";
   $result = pg_query($dbconn, $sqlTraversal) or die('Query failed: ' . pg_last_error());
   $tracerouteArr = pg_fetch_all($result);
   pg_free_result($result);
 
-  // is there a result to analyse?
+
+  // check if there is there a result to analyse
   if ($tracerouteArr && count($tracerouteArr) > 0) {
 
     // do the min latency array first (for later insert)
@@ -358,7 +297,6 @@ function updateTracerouteTraitsForTrId($trId) {
       $annotated_traceroute_prev_hop_sol_violation = false;
       $annotated_traceroute_origin_sol_violation = false;
       $annotated_traceroute_jittery = false;
-
 
       $num_hops++;
 
@@ -488,8 +426,8 @@ function updateTracerouteTraitsForTrId($trId) {
     $list_transited_asnums = implode(" > ", $list_transited_asnums);
 
     // we can only get asname after the loop is done
-    $first_hop_asname = getAsname($first_hop_asnum);
-    $last_hop_asname = getAsname($last_hop_asnum);
+    $first_hop_asname = DerivedTable::getAsname($first_hop_asnum);
+    $last_hop_asname = DerivedTable::getAsname($last_hop_asnum);
 
     // echo "First hop ip: {$first_hop_ip_addr}\n";
     // echo "First hop asnum: {$first_hop_asnum}\n";
@@ -517,7 +455,6 @@ function updateTracerouteTraitsForTrId($trId) {
     // echo "Number of transited ASNs: {$num_transited_asnums}\n";
     // echo "List of transited countries: {$list_transited_countries}\n";
     // echo "List of transited ASNs: {$list_transited_asnums}\n";
-
 
     // NB: traceroute_id, nsa not included here
     $sql = "UPDATE traceroute_traits SET (
@@ -638,13 +575,6 @@ function getAsname($num) {
   }
 
 }
-
-// This clearly belongs in the Hop model
-// this name is misleading - it's lowestRtt really
-// function getMinLatencyForHop($hop) {
-//   return min([$hop["rtt1"], $hop["rtt2"], $hop["rtt3"], $hop["rtt4"]]);
-// }
-
 
 // function getLastTrIdGen() {
 //   global $dbconn;

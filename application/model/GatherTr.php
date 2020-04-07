@@ -593,6 +593,11 @@ class GatherTr
   }
 
 
+  public static function publishMinimalDerivedTables($trId) {
+    
+  }
+
+
   /**
     Determine if the IP is Private/Reserved
   */

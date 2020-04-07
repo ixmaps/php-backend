@@ -79,7 +79,8 @@ if (isset($_POST['dest_ip']) && $_POST['dest_ip'] != "") {
       // Success: tr_flag = 2 or 3
       $trGatherMessage = "Traceroute data saved successfully. ".$publishResult['tot_hops']." Hops were found.";
       $trId = $publishResult['trId'];
-      GatherTr::publishLastHop($trId);
+      // GatherTr::publishLastHop($trId);
+      GatherTr::publishMinimalDerivedTables($trId);
     }
   }
 
