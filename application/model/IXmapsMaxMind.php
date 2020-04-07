@@ -1,7 +1,7 @@
 <?php
 /**
  *
- * Class to handle interaction with the Maxmind data objects (mmdbs)
+ * Class to handle interaction with the MaxMind data objects (mmdbs)
  * Entire rewrite to handle GeoLite2 and use proper getters instead of
  * implicit MM object getting passed around to various other classes
  *

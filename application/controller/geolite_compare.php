@@ -1,7 +1,7 @@
 <?php
 /**
  *
- * Little script designed to create a table to compare Maxmind values from GeoLite1 and Geolite2
+ * Little script designed to create a table to compare MaxMind values from GeoLite1 and Geolite2
  *
  * Created Sept 2019
  * @author Colin

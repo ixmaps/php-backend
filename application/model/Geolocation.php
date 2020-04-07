@@ -116,7 +116,7 @@ class Geolocation {
 
       }
 
-    // 2. Check Maxmind data
+    // 2. Check MaxMind data
     } else if ($mm->getCountryCode()) {
 
       // Insert new ip in IXmaps Db for logging purposes?

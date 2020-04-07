@@ -1,5 +1,4 @@
 <?php
-
 // turn ON/OFF global php error message
 ini_set( "display_errors", 0);
 
