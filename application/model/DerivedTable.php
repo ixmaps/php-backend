@@ -95,7 +95,7 @@ class DerivedTable
     echo "\n*** Traceroute id: ".$trId." ***\n";
 
     /*
-    
+
     When the script is done the initial pass, this updated version will take over (change in the controller).
 
     - change update to insert
@@ -274,7 +274,7 @@ class DerivedTable
       $first_hop_country = pg_escape_string($tracerouteArr[0]["mm_country"]);
       $first_hop_asnum = -1;
       if (strLen($tracerouteArr[0]["asnum"]) > 0) {
-        $first_hop_asnum = $tracerouteArr[0]["asnum"];  
+        $first_hop_asnum = $tracerouteArr[0]["asnum"];
       }
       $last_hop_num = end($tracerouteArr)["hop"];
       $last_hop_ip = end($tracerouteArr)["ip_addr"];
@@ -303,7 +303,7 @@ class DerivedTable
       $num_transited_asnums = 0;
       $list_transited_countries = array();
       $list_transited_asnums = array();
-      
+
       foreach ($tracerouteArr as $i => $hop) {
         // echo "\nHop: ".$hop["hop"]."\n";
 
@@ -366,7 +366,7 @@ class DerivedTable
           $num_jittery_hops++;
           $annotated_traceroute_jittery = true;
         }
-        
+
         // if this it not the first or last hop
         if ($hop["hop"] != $tracerouteArr[0]["hop"] && $hop["hop"] != $hop["hop_lh"]) {
           $mm_country = $hop["mm_country"];
@@ -374,7 +374,7 @@ class DerivedTable
 
           // checking not first or last because transited means not first/last
           if ($mm_country != $first_hop_country && $mm_country != $last_hop_country && end($list_transited_countries) !== $mm_country) {
-              
+
             $num_transited_countries++;
             array_push($list_transited_countries, $mm_country);
             $annotated_traceroute_transited_country = true;
@@ -389,7 +389,7 @@ class DerivedTable
           }
 
           if ($first_hop_country != "US" && $last_hop_country != "US" && $mm_country == "US") {
-            $transits_us = true;  
+            $transits_us = true;
           }
         }
 // TODO!
@@ -422,15 +422,14 @@ class DerivedTable
 
       } // end foreach over hops
 
-      // $nsa = false;
-      // $sqlNsa = "SELECT city FROM nsa_cities;";
-      // $result = pg_query($dbconn, $sqlNsa) or die('Query failed: ' . pg_last_error());
-      // $nsaArr = pg_fetch_all($result);
-      // pg_free_result($result);
+      $sqlNsa = "SELECT city FROM nsa_cities;";
+      $result = pg_query($dbconn, $sqlNsa) or die('Query failed: ' . pg_last_error());
+      $nsaArr = pg_fetch_all($result);
+      pg_free_result($result);
 
-      // $nsaArr[0]
-      // START HERE, move to test in other script
-      // $citiesInRoute
+      $intersection = array_intersect($citiesInRoute, array_column($nsaArr, "city"));
+
+      var_dump($intersection);die;
 
       $terminated = true;
       if ($last_hop_ip != $tracerouteArr[0]["dest_ip"]) {
@@ -486,92 +485,92 @@ class DerivedTable
       // NB: traceroute_id, nsa not included here
       $sql = "INSERT INTO traceroute_traits VALUES (
         traceroute_id,
-        num_hops, 
-        submitter, 
-        sub_time, 
+        num_hops,
+        submitter,
+        sub_time,
         submitter_zip_code,
         origin_ip_addr,
         origin_asnum,
         origin_asname,
         origin_city,
         origin_country,
-        dest, 
-        dest_ip_addr, 
-        dest_asnum, 
-        dest_asname, 
-        dest_city, 
-        dest_country, 
-        first_hop_ip_addr, 
-        first_hop_asnum, 
-        first_hop_asname, 
-        first_hop_city, 
-        first_hop_country, 
-        last_hop_num, 
-        last_hop_ip_addr, 
-        last_hop_asnum, 
-        last_hop_asname, 
-        last_hop_city, 
-        last_hop_country, 
+        dest,
+        dest_ip_addr,
+        dest_asnum,
+        dest_asname,
+        dest_city,
+        dest_country,
+        first_hop_ip_addr,
+        first_hop_asnum,
+        first_hop_asname,
+        first_hop_city,
+        first_hop_country,
+        last_hop_num,
+        last_hop_ip_addr,
+        last_hop_asnum,
+        last_hop_asname,
+        last_hop_city,
+        last_hop_country,
         terminated,
         nsa,
         boomerang,
         boomerang_ca_us_ca,
-        transits_us, 
-        num_transited_countries, 
-        num_transited_asnums, 
-        list_transited_countries, 
-        list_transited_asnums, 
-        num_skipped_hops, 
-        num_default_mm_location_hops, 
-        num_gl_override_hops, 
-        num_aba_hops, 
-        num_prev_hop_sol_violation_hops, 
-        num_origin_sol_violation_hops, 
+        transits_us,
+        num_transited_countries,
+        num_transited_asnums,
+        list_transited_countries,
+        list_transited_asnums,
+        num_skipped_hops,
+        num_default_mm_location_hops,
+        num_gl_override_hops,
+        num_aba_hops,
+        num_prev_hop_sol_violation_hops,
+        num_origin_sol_violation_hops,
         num_jittery_hops) = ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42)";
 
       $trData = array(
         $trId,
-        $num_hops, 
-        $submitter, 
-        $sub_time, 
-        $submitter_zip_code, 
+        $num_hops,
+        $submitter,
+        $sub_time,
+        $submitter_zip_code,
         $origin_ip_addr,
         $origin_asnum,
         $origin_asname,
         $origin_city,
         $origin_country,
-        $dest, 
-        $dest_ip_addr, 
-        $dest_asnum, 
-        $dest_asname, 
-        $dest_city, 
-        $dest_country, 
-        $first_hop_ip_addr, 
-        $first_hop_asnum, 
-        $first_hop_asname, 
-        $first_hop_city, 
-        $first_hop_country, 
-        $last_hop_num, 
-        $last_hop_ip_addr, 
-        $last_hop_asnum, 
-        $last_hop_asname, 
-        $last_hop_city, 
+        $dest,
+        $dest_ip_addr,
+        $dest_asnum,
+        $dest_asname,
+        $dest_city,
+        $dest_country,
+        $first_hop_ip_addr,
+        $first_hop_asnum,
+        $first_hop_asname,
+        $first_hop_city,
+        $first_hop_country,
+        $last_hop_num,
+        $last_hop_ip_addr,
+        $last_hop_asnum,
+        $last_hop_asname,
+        $last_hop_city,
         $last_hop_country,
         json_encode($terminated),
         json_encode($nsa),
         json_encode($boomerang),
         json_encode($boomerang_ca_us_ca),
-        json_encode($transits_us), 
-        $num_transited_countries, 
-        $num_transited_asnums, 
-        $list_transited_countries, 
-        $list_transited_asnums, 
-        $num_skipped_hops, 
-        $num_default_mm_location_hops, 
-        $num_gl_override_hops, 
-        $num_aba_hops, 
-        $num_prev_hop_sol_violation_hops, 
-        $num_origin_sol_violation_hops, 
+        json_encode($transits_us),
+        $num_transited_countries,
+        $num_transited_asnums,
+        $list_transited_countries,
+        $list_transited_asnums,
+        $num_skipped_hops,
+        $num_default_mm_location_hops,
+        $num_gl_override_hops,
+        $num_aba_hops,
+        $num_prev_hop_sol_violation_hops,
+        $num_origin_sol_violation_hops,
         $num_jittery_hops);
 
       $result = pg_query_params($dbconn, $sql, $trData);
