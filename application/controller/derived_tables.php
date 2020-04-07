@@ -90,8 +90,8 @@ require_once('../model/IXmapsMaxMind.php');
 // $lastTrId = getLastTrIdGen();
 // echo 'Last TRid generated: '.$lastTrId;
 
-$limit = 1000;
-getTracerouteIdsToUpdate(0);
+$limit = 2000;
+getTracerouteIdsToUpdate(3248);
 // getTracerouteIdsForModifiedIpAddr();
 
 /**
@@ -386,8 +386,6 @@ function updateTracerouteTraitsForTrId($trId) {
       // removing all -1s
       $rttArr = array_diff($rttArr, [-1]);
       $minRtt = min($rttArr);
-
-      array_push($minRtt);
       if (IXmapsGeoCorrection::doesViolateSol($tracerouteArr[0]["lat"], $tracerouteArr[0]["long"], $hop["lat"], $hop["long"], $minRtt)) {
 
         $num_origin_sol_violation_hops++;
