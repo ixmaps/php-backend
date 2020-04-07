@@ -1,4 +1,5 @@
 <?php
+error_reporting(E_ALL);
 /**
  * Functionality to update the annotated_traceroutes and traceroute_traits tables
  *
@@ -179,7 +180,7 @@ function updateForTrId($trId) {
     first_hop_city
     first_hop_country
     last_hop_num
-    last_hop_ip
+    last_hop_ip_addr
     last_hop_asnum
     last_hop_city
     last_hop_country
@@ -253,7 +254,7 @@ function updateForTrId($trId) {
       $first_hop_asnum = $tracerouteArr[0]["asnum"];
     }
     $last_hop_num = end($tracerouteArr)["hop"];
-    $last_hop_ip = end($tracerouteArr)["ip_addr"];
+    $last_hop_ip_addr = end($tracerouteArr)["ip_addr"];
     $last_hop_ip_addr = "0.0.0.0";
     if (strLen(end($tracerouteArr)["ip_addr"]) > 0) {
       $last_hop_ip_addr = end($tracerouteArr)["ip_addr"];
@@ -411,7 +412,7 @@ function updateForTrId($trId) {
     // echo json_encode($nsa);
 
     $terminated = true;
-    if ($last_hop_ip != $tracerouteArr[0]["dest_ip"]) {
+    if ($last_hop_ip_addr != $dest_ip_addr) {
       $terminated = false;
     }
 
@@ -440,7 +441,7 @@ function updateForTrId($trId) {
     // echo "First hop city: {$first_hop_city}\n";
     // echo "First hop country: {$first_hop_country}\n";
     // echo "Last hop num: {$last_hop_num}\n";
-    // echo "Last hop ip: {$last_hop_ip}\n";
+    // echo "Last hop ip: {$last_hop_ip_addr}\n";
     // echo "Last hop asnum: {$last_hop_asnum}\n";
     // echo "Last hop asname: {$last_hop_asname}\n";
     // echo "Last hop city: {$last_hop_city}\n";
