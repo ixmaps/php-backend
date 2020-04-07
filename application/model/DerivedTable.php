@@ -116,11 +116,6 @@ class DerivedTable
 
     */
 
-    // HANDLE
-    // nsa
-    // Handled by separate update queries
-    // UPDATE traceroute_traits SET nsa = true where traceroute_traits.traceroute_id in (select distinct(traceroute_id) from nsa_routes order by traceroute_id);
-
 
     // HANDLE
     // origin_ip_addr
@@ -227,11 +222,12 @@ class DerivedTable
       origin_sol_violation
       jittery
     ****/
-    $sqlTraversal = "SELECT * FROM full_routes_last_hop WHERE traceroute_id=".$trId." ORDER BY hop;";
+    // $sqlTraversal = "SELECT * FROM script_temp1 WHERE traceroute_id=".$trId." ORDER BY hop;";
+    $sqlTraversal = "SELECT ti.traceroute_id, ti.hop, r[1] rtt1, r[2] rtt2, r[3] rtt3, r[4] rtt4, ip.ip_addr, ip.asnum, ip.mm_city, ip.mm_country, ip.lat, ip.long, ip.gl_override FROM (select traceroute_id, hop, ip_addr, array_agg(rtt_ms) r from tr_item group by hop, 1, ip_addr order by 1) ti, traceroute tr, ip_addr_info ip WHERE ti.traceroute_id = tr.id AND ip.ip_addr = ti.ip_addr AND tr.id = 1";
+
     $result = pg_query($dbconn, $sqlTraversal) or die('Query failed: ' . pg_last_error());
     $tracerouteArr = pg_fetch_all($result);
     pg_free_result($result);
-
 
     // is there a result to analyse?
     if ($tracerouteArr && count($tracerouteArr) > 0) {
@@ -338,12 +334,11 @@ class DerivedTable
           array_push($abaTracker, $hop["mm_city"]);
         }
 
-        // TODO: we don't have originLat / originLong (see above), so doing this for now
         $rttArr = [$hop["rtt1"], $hop["rtt2"], $hop["rtt3"], $hop["rtt4"]];
         // removing all -1s
         $rttArr = array_diff($rttArr, [-1]);
         $minRtt = min($rttArr);
-        if (IXmapsGeoCorrection::doesViolateSol($tracerouteArr[0]["lat"], $tracerouteArr[0]["long"], $hop["lat"], $hop["long"], $minRtt)) {
+        if (IXmapsGeoCorrection::doesViolateSol($originLat, $originLong, $hop["long"], $minRtt)) {
 
           $num_origin_sol_violation_hops++;
           $annotated_traceroute_origin_sol_violation = true;
@@ -368,7 +363,7 @@ class DerivedTable
         }
 
         // if this it not the first or last hop
-        if ($hop["hop"] != $tracerouteArr[0]["hop"] && $hop["hop"] != $hop["hop_lh"]) {
+        if ($hop["hop"] != $tracerouteArr[0]["hop"] && $hop["hop"] != end($tracerouteArr)["hop"]) {
           $mm_country = $hop["mm_country"];
           $asnum = $hop["asnum"];
 
@@ -429,10 +424,13 @@ class DerivedTable
 
       $intersection = array_intersect($citiesInRoute, array_column($nsaArr, "city"));
 
-      var_dump($intersection);die;
+      $nsa = false;
+      if (count($intersection) > 0) {
+        $nsa = true;
+      }
 
       $terminated = true;
-      if ($last_hop_ip != $tracerouteArr[0]["dest_ip"]) {
+      if ($last_hop_ip_addr != $dest_ip_addr) {
         $terminated = false;
       }
 
@@ -482,7 +480,6 @@ class DerivedTable
       // echo "List of transited countries: {$list_transited_countries}\n";
       // echo "List of transited ASNs: {$list_transited_asnums}\n";
 
-      // NB: traceroute_id, nsa not included here
       $sql = "INSERT INTO traceroute_traits VALUES (
         traceroute_id,
         num_hops,

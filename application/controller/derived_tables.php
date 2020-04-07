@@ -22,8 +22,8 @@ require_once('../model/IXmapsMaxMind.php');
 
 // $lastTrId = getLastTrIdGen();
 // echo 'Last TRid generated: '.$lastTrId;
-$limit = 1;
-getTracerouteIdsToUpdate(14);
+$limit = 100;
+getTracerouteIdsToUpdate(300000);
 // getTracerouteIdsForModifiedIpAddr();
 
 /**
@@ -314,12 +314,11 @@ function updateForTrId($trId) {
         array_push($abaTracker, $hop["mm_city"]);
       }
 
-      // TODO: we don't have originLat / originLong (see above), so doing this for now
       $rttArr = [$hop["rtt1"], $hop["rtt2"], $hop["rtt3"], $hop["rtt4"]];
       // removing all -1s
       $rttArr = array_diff($rttArr, [-1]);
       $minRtt = min($rttArr);
-      if (IXmapsGeoCorrection::doesViolateSol($tracerouteArr[0]["lat"], $tracerouteArr[0]["long"], $hop["lat"], $hop["long"], $minRtt)) {
+      if (IXmapsGeoCorrection::doesViolateSol($originLat, $originLong, $hop["lat"], $hop["long"], $minRtt)) {
 
         $num_origin_sol_violation_hops++;
         $annotated_traceroute_origin_sol_violation = true;
@@ -398,19 +397,6 @@ function updateForTrId($trId) {
 
     } // end foreach over hops
 
-    // $sqlNsa = "SELECT city FROM nsa_cities;";
-    // $result = pg_query($dbconn, $sqlNsa) or die('Query failed: ' . pg_last_error());
-    // $nsaArr = pg_fetch_all($result);
-    // pg_free_result($result);
-
-    // $intersection = array_intersect($citiesInRoute, array_column($nsaArr, "city"));
-
-    // $nsa = false;
-    // if (count($intersection) > 0) {
-    //   $nsa = true;
-    // }
-    // echo json_encode($nsa);
-
     $terminated = true;
     if ($last_hop_ip_addr != $dest_ip_addr) {
       $terminated = false;
@@ -463,124 +449,104 @@ function updateForTrId($trId) {
     // echo "List of transited ASNs: {$list_transited_asnums}\n";
 
     // NB: traceroute_id, nsa not included here
-    // $sql = "UPDATE traceroute_traits SET (
-    //   num_hops,
-    //   submitter,
-    //   sub_time,
-    //   submitter_zip_code,
-    //   origin_ip_addr,
-    //   origin_asnum,
-    //   origin_asname,
-    //   origin_city,
-    //   origin_country,
-    //   dest,
-    //   dest_ip_addr,
-    //   dest_asnum,
-    //   dest_asname,
-    //   dest_city,
-    //   dest_country,
-    //   first_hop_ip_addr,
-    //   first_hop_asnum,
-    //   first_hop_asname,
-    //   first_hop_city,
-    //   first_hop_country,
-    //   last_hop_num,
-    //   last_hop_ip_addr,
-    //   last_hop_asnum,
-    //   last_hop_asname,
-    //   last_hop_city,
-    //   last_hop_country,
-    //   terminated,
-    //   boomerang,
-    //   boomerang_ca_us_ca,
-    //   transits_us,
-    //   num_transited_countries,
-    //   num_transited_asnums,
-    //   list_transited_countries,
-    //   list_transited_asnums,
-    //   num_skipped_hops,
-    //   num_default_mm_location_hops,
-    //   num_gl_override_hops,
-    //   num_aba_hops,
-    //   num_prev_hop_sol_violation_hops,
-    //   num_origin_sol_violation_hops,
-    //   num_jittery_hops) = ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41)
-    //   WHERE traceroute_id=".$trId;
+    $sql = "UPDATE traceroute_traits SET (
+      num_hops,
+      submitter,
+      sub_time,
+      submitter_zip_code,
+      origin_ip_addr,
+      origin_asnum,
+      origin_asname,
+      origin_city,
+      origin_country,
+      dest,
+      dest_ip_addr,
+      dest_asnum,
+      dest_asname,
+      dest_city,
+      dest_country,
+      first_hop_ip_addr,
+      first_hop_asnum,
+      first_hop_asname,
+      first_hop_city,
+      first_hop_country,
+      last_hop_num,
+      last_hop_ip_addr,
+      last_hop_asnum,
+      last_hop_asname,
+      last_hop_city,
+      last_hop_country,
+      terminated,
+      boomerang,
+      boomerang_ca_us_ca,
+      transits_us,
+      num_transited_countries,
+      num_transited_asnums,
+      list_transited_countries,
+      list_transited_asnums,
+      num_skipped_hops,
+      num_default_mm_location_hops,
+      num_gl_override_hops,
+      num_aba_hops,
+      num_prev_hop_sol_violation_hops,
+      num_origin_sol_violation_hops,
+      num_jittery_hops) = ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41)
+      WHERE traceroute_id=".$trId;
 
-    // $trData = array(
-    //   $num_hops,
-    //   $submitter,
-    //   $sub_time,
-    //   $submitter_zip_code,
-    //   $origin_ip_addr,
-    //   $origin_asnum,
-    //   $origin_asname,
-    //   $origin_city,
-    //   $origin_country,
-    //   $dest,
-    //   $dest_ip_addr,
-    //   $dest_asnum,
-    //   $dest_asname,
-    //   $dest_city,
-    //   $dest_country,
-    //   $first_hop_ip_addr,
-    //   $first_hop_asnum,
-    //   $first_hop_asname,
-    //   $first_hop_city,
-    //   $first_hop_country,
-    //   $last_hop_num,
-    //   $last_hop_ip_addr,
-    //   $last_hop_asnum,
-    //   $last_hop_asname,
-    //   $last_hop_city,
-    //   $last_hop_country,
-    //   json_encode($terminated),
-    //   json_encode($boomerang),
-    //   json_encode($boomerang_ca_us_ca),
-    //   json_encode($transits_us),
-    //   $num_transited_countries,
-    //   $num_transited_asnums,
-    //   $list_transited_countries,
-    //   $list_transited_asnums,
-    //   $num_skipped_hops,
-    //   $num_default_mm_location_hops,
-    //   $num_gl_override_hops,
-    //   $num_aba_hops,
-    //   $num_prev_hop_sol_violation_hops,
-    //   $num_origin_sol_violation_hops,
-    //   $num_jittery_hops);
+    $trData = array(
+      $num_hops,
+      $submitter,
+      $sub_time,
+      $submitter_zip_code,
+      $origin_ip_addr,
+      $origin_asnum,
+      $origin_asname,
+      $origin_city,
+      $origin_country,
+      $dest,
+      $dest_ip_addr,
+      $dest_asnum,
+      $dest_asname,
+      $dest_city,
+      $dest_country,
+      $first_hop_ip_addr,
+      $first_hop_asnum,
+      $first_hop_asname,
+      $first_hop_city,
+      $first_hop_country,
+      $last_hop_num,
+      $last_hop_ip_addr,
+      $last_hop_asnum,
+      $last_hop_asname,
+      $last_hop_city,
+      $last_hop_country,
+      json_encode($terminated),
+      json_encode($boomerang),
+      json_encode($boomerang_ca_us_ca),
+      json_encode($transits_us),
+      $num_transited_countries,
+      $num_transited_asnums,
+      $list_transited_countries,
+      $list_transited_asnums,
+      $num_skipped_hops,
+      $num_default_mm_location_hops,
+      $num_gl_override_hops,
+      $num_aba_hops,
+      $num_prev_hop_sol_violation_hops,
+      $num_origin_sol_violation_hops,
+      $num_jittery_hops);
 
-    // $result = pg_query_params($dbconn, $sql, $trData);
-    // if ($result === false) {
-    //   echo "traceroute_traits update query failed: " . pg_last_error();
-    // }
-    // pg_free_result($result);
+    $result = pg_query_params($dbconn, $sql, $trData);
+    if ($result === false) {
+      echo "traceroute_traits update query failed: " . pg_last_error();
+    }
+    pg_free_result($result);
 
   } else {
     echo "No valid result returned for ".$trId."\n";
   }
 }
 
-
-function getAsname($num) {
-  global $dbconn;
-
-  if (!$num) {
-    return null;
-  } else {
-    $sqlAsnames = "SELECT name, short_name FROM as_users WHERE num = ".$num;
-    $result = pg_query($dbconn, $sqlAsnames) or die('Query getAsname failed: ' . pg_last_error());
-    $asnameArr = pg_fetch_all($result);
-    pg_free_result($result);
-
-    if ($asnameArr[0]["short_name"] != null) {
-      return $asnameArr[0]["short_name"];
-    } else {
-      return $asnameArr[0]["name"];
-    }
-  }
-
-}
 
 // function getLastTrIdGen() {
 //   global $dbconn;
