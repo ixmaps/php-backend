@@ -50,13 +50,6 @@ function getTracerouteIdsForModifiedIpAddr() {
 function getTracerouteIdsToUpdate($trIdLast) {
   global $dbconn, $limit;
 
-  $sqlNsa = "SELECT city FROM nsa_cities;";
-  $result = pg_query($dbconn, $sqlNsa) or die('Query failed: ' . pg_last_error());
-  $nsaArr = pg_fetch_all($result);
-  pg_free_result($result);
-
-  var_dump(array_values($nsaArr));die;
-
   $sql = "SELECT traceroute.id FROM traceroute WHERE traceroute.id > ".$trIdLast." order by traceroute.id LIMIT ".$limit;
   $result = pg_query($dbconn, $sql) or die('TR ID query failed: ' . pg_last_error());
   $trArr = pg_fetch_all($result);
