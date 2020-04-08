@@ -210,7 +210,8 @@ class DerivedTable
     ****/
 
     // NB: this will skip all hops with null ip_addr, which I think is what we want...
-    $sqlTraversal = "SELECT ti.traceroute_id, ti.hop, r[1] rtt1, r[2] rtt2, r[3] rtt3, r[4] rtt4, ip.ip_addr, ip.hostname, ip.asnum, ip.mm_city, ip.mm_region, ip.mm_country, ip.mm_postal, ip.mm_lat, ip.mm_long, ip.lat, ip.long, ip.gl_override FROM (select traceroute_id, hop, ip_addr, array_agg(rtt_ms) r from tr_item group by hop, 1, ip_addr order by 1) ti, traceroute tr, ip_addr_info ip WHERE ti.traceroute_id = tr.id AND ip.ip_addr = ti.ip_addr AND tr.id = ".$trId;
+    $sqlTraversal = "SELECT * FROM derived_table_base WHERE traceroute_id=".$trId." ORDER BY hop;";
+    // $sqlTraversal = "SELECT ti.traceroute_id, ti.hop, r[1] rtt1, r[2] rtt2, r[3] rtt3, r[4] rtt4, ip.ip_addr, ip.hostname, ip.asnum, ip.mm_city, ip.mm_region, ip.mm_country, ip.mm_postal, ip.mm_lat, ip.mm_long, ip.lat, ip.long, ip.gl_override FROM (select traceroute_id, hop, ip_addr, array_agg(rtt_ms) r from tr_item group by hop, 1, ip_addr order by 1) ti, traceroute tr, ip_addr_info ip WHERE ti.traceroute_id = tr.id AND ip.ip_addr = ti.ip_addr AND tr.id = ".$trId;
     $result = pg_query($dbconn, $sqlTraversal) or die('Query failed: ' . pg_last_error());
     $tracerouteArr = pg_fetch_all($result);
     pg_free_result($result);

@@ -19,13 +19,10 @@ error_reporting(E_ALL);
 chdir(dirname(__FILE__));
 require_once('../config.php');
 require_once('../model/DerivedTable.php');
-// remove these eventually
-// require_once('../model/IXmapsGeoCorrection.php');
-// require_once('../model/IXmapsMaxMind.php');
 
 // BULK INSERTS
 $limit = 10;
-getTracerouteIdsToInsert(350228);
+getTracerouteIdsToInsert(350428);
 
 // CALLED BY CRONJOB
 // getTracerouteIdsToUpdate();
