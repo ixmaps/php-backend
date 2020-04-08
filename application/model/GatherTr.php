@@ -560,6 +560,7 @@ class GatherTr
   /**
     Insert relevant values from newly created route into tr_last_hops
     NB: now called from tr_gather instead of the old cron approach
+    LEGACY - no longer used now that we have DerivedTables
   */
   public static function publishLastHop($trId)
   {
@@ -590,11 +591,6 @@ class GatherTr
     }
 
     pg_free_result($result);
-  }
-
-
-  public static function publishMinimalDerivedTables($trId) {
-    
   }
 
 

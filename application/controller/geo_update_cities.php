@@ -5,7 +5,7 @@
  *
  * The script is called after a geo-correction has changed lat/long fields in
  * ip_addr_info table.
- * 
+ *
  *
  * @param None (triggered by cron every 20 min)
  *

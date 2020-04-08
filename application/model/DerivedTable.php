@@ -74,7 +74,7 @@
  * origin_sol_violation
  * jittery
  *
- * @param Called from derived_tables.php controller and from gather-tr.php?
+ * @param Called from derived_tables.php controller and from gather-tr.php controller
  *
  * @return None (updated tables traceroute_traits and annotated_traceroutes)
  *
@@ -94,28 +94,14 @@ class DerivedTable
 
     echo "\n*** Traceroute id: ".$trId." ***\n";
 
-    /*
-
-    When the script is done the initial pass, this updated version will take over (change in the controller).
-
-    - change update to insert
-    - pass trid into insert
-
-    - handle NSA (test in old version of this func)
-
-    - deal with all the full_route_last_hop selects
-
-    - handle annotated_traceroutes
-    INSERT INTO annotated_traceroutes(traceroute_id, hop, ip_addr, hostname, asnum, mm_lat, mm_long, lat, long, mm_city, mm_region, mm_country, mm_postal, gl_override, rtt1, rtt2, rtt3, rtt4) (select traceroute_id, hop, ip_addr, hostname, asnum, mm_lat, mm_long, lat, long, mm_city, mm_region, mm_country, mm_postal, gl_override, rtt1, rtt2, rtt3, rtt4 FROM script_temp1);
-
-    - handle the asnames
-
-
-
-
-
-    */
-
+    $sql = "SELECT traceroute_id FROM traceroute_traits WHERE traceroute_id=".$trId;
+    $result = pg_query($dbconn, $sql) or die('Query insert of update failed: ' . pg_last_error());
+    $traitsArr = pg_fetch_all($result);
+    pg_free_result($result);
+    $shouldUpdate = false;
+    if ($traitsArr) {
+      $shouldUpdate = true;
+    }
 
     // HANDLE
     // origin_ip_addr
@@ -164,7 +150,7 @@ class DerivedTable
       dest_country
     ****/
 
-    $sqlDest = "SELECT traceroute.submitter, traceroute.sub_time, traceroute.zip_code, traceroute.dest, traceroute.dest_ip, ip_addr_info.asnum, ip_addr_info.mm_city, ip_addr_info.mm_country FROM ip_addr_info, traceroute WHERE ip_addr_info.ip_addr=traceroute.dest_ip AND traceroute.id=".$trId;
+    $sqlDest = "SELECT traceroute.submitter, traceroute.sub_time, traceroute.zip_code, traceroute.dest, traceroute.dest_ip, ip_addr_info.asnum, ip_addr_info.mm_city, ip_addr_info.mm_country FROM traceroute LEFT JOIN ip_addr_info on traceroute.dest_ip=ip_addr_info.ip_addr WHERE traceroute.id=".$trId;
     $result = pg_query($dbconn, $sqlDest) or die('Query failed: ' . pg_last_error());
     $destArr = pg_fetch_all($result);
     pg_free_result($result);
@@ -222,9 +208,9 @@ class DerivedTable
       origin_sol_violation
       jittery
     ****/
-    // $sqlTraversal = "SELECT * FROM script_temp1 WHERE traceroute_id=".$trId." ORDER BY hop;";
-    $sqlTraversal = "SELECT ti.traceroute_id, ti.hop, r[1] rtt1, r[2] rtt2, r[3] rtt3, r[4] rtt4, ip.ip_addr, ip.asnum, ip.mm_city, ip.mm_country, ip.lat, ip.long, ip.gl_override FROM (select traceroute_id, hop, ip_addr, array_agg(rtt_ms) r from tr_item group by hop, 1, ip_addr order by 1) ti, traceroute tr, ip_addr_info ip WHERE ti.traceroute_id = tr.id AND ip.ip_addr = ti.ip_addr AND tr.id = 1";
 
+    // NB: this will skip all hops with null ip_addr, which I think is what we want...
+    $sqlTraversal = "SELECT ti.traceroute_id, ti.hop, r[1] rtt1, r[2] rtt2, r[3] rtt3, r[4] rtt4, ip.ip_addr, ip.hostname, ip.asnum, ip.mm_city, ip.mm_region, ip.mm_country, ip.mm_postal, ip.mm_lat, ip.mm_long, ip.lat, ip.long, ip.gl_override FROM (select traceroute_id, hop, ip_addr, array_agg(rtt_ms) r from tr_item group by hop, 1, ip_addr order by 1) ti, traceroute tr, ip_addr_info ip WHERE ti.traceroute_id = tr.id AND ip.ip_addr = ti.ip_addr AND tr.id = ".$trId;
     $result = pg_query($dbconn, $sqlTraversal) or die('Query failed: ' . pg_last_error());
     $tracerouteArr = pg_fetch_all($result);
     pg_free_result($result);
@@ -297,8 +283,10 @@ class DerivedTable
       $transits_us = false;
       $num_transited_countries = 0;
       $num_transited_asnums = 0;
-      $list_transited_countries = array();
-      $list_transited_asnums = array();
+      // for the first hop, prime the list_ values so they know what to compare to in the future
+      // these values will be removed later
+      $list_transited_countries = array($first_hop_country);
+      $list_transited_asnums = array($first_hop_asnum);
 
       foreach ($tracerouteArr as $i => $hop) {
         // echo "\nHop: ".$hop["hop"]."\n";
@@ -323,7 +311,7 @@ class DerivedTable
         }
 
         if ($hop["mm_city"] != NULL) {
-          array_push($hop["mm_city"], $citiesInRoute);
+          array_push($citiesInRoute, $hop["mm_city"]);
 
           if (count($abaTracker) == 2) {
             if ($hop["mm_city"] == $abaTracker[0] && $hop["mm_city"] != $abaTracker[1]) {
@@ -338,7 +326,7 @@ class DerivedTable
         // removing all -1s
         $rttArr = array_diff($rttArr, [-1]);
         $minRtt = min($rttArr);
-        if (IXmapsGeoCorrection::doesViolateSol($originLat, $originLong, $hop["long"], $minRtt)) {
+        if (IXmapsGeoCorrection::doesViolateSol($originLat, $originLong, $hop["lat"], $hop["long"], $minRtt)) {
 
           $num_origin_sol_violation_hops++;
           $annotated_traceroute_origin_sol_violation = true;
@@ -367,16 +355,25 @@ class DerivedTable
           $mm_country = $hop["mm_country"];
           $asnum = $hop["asnum"];
 
-          // checking not first or last because transited means not first/last
-          if ($mm_country != $first_hop_country && $mm_country != $last_hop_country && end($list_transited_countries) !== $mm_country) {
+          echo $mm_country;
+          echo "\n";
+          echo $asnum;
+          echo "\n";
+
+          if (end($list_transited_countries) !== $mm_country) {
+
+            echo "transited country";
+            echo "\n";
 
             $num_transited_countries++;
             array_push($list_transited_countries, $mm_country);
             $annotated_traceroute_transited_country = true;
           }
 
-          // checking not first or last because transited means not first/last
-          if ($asnum != $first_hop_asnum && $asnum != $last_hop_asnum && $asnum != -1 && end($list_transited_asnums) !== $asnum) {
+          if ($asnum != -1 && end($list_transited_asnums) !== $asnum) {
+
+            echo "transited asnum";
+            echo "\n";
 
             $num_transited_asnums++;
             array_push($list_transited_asnums, $asnum);
@@ -387,35 +384,59 @@ class DerivedTable
             $transits_us = true;
           }
         }
-// TODO!
-        // do the update for this hop (annotated_traceroutes)
-        // $sql = "UPDATE annotated_traceroutes SET (
-        //     min_latency,
-        //     transited_country,
-        //     transited_asnum,
-        //     prev_hop_sol_violation,
-        //     origin_sol_violation,
-        //     jittery
-        //   ) = ($1, $2, $3, $4, $5, $6)
-        //   WHERE traceroute_id=".$trId." and hop=".$hop["hop"];
 
-        // $trData = array(
-        //   $minLatencies[$i],
-        //   json_encode($annotated_traceroute_transited_country),
-        //   json_encode($annotated_traceroute_transited_asnum),
-        //   json_encode($annotated_traceroute_prev_hop_sol_violation),
-        //   json_encode($annotated_traceroute_origin_sol_violation),
-        //   json_encode($annotated_traceroute_jittery)
-        // );
+        // do the insert/update for this hop (annotated_traceroutes)
+        // UPDATE
+        if ($shouldUpdate) {
+          $data = array(
+            $hop["lat"],
+            $hop["long"],
+            $hop["mm_city"],
+            $hop["mm_region"],
+            $hop["mm_country"],
+            $hop["mm_postal"],
+            $hop["gl_override"],
+            json_encode($annotated_traceroute_transited_country),
+            json_encode($annotated_traceroute_prev_hop_sol_violation),
+            json_encode($annotated_traceroute_origin_sol_violation)
+          );
+          DerivedTable::updateAnnotatedTraceroute($trId, $hop["hop"], $data);
 
-        // $result = pg_query_params($dbconn, $sql, $trData);
+        // INSERT
+        } else {
+          $data = array(
+            $trId,
+            $hop["hop"],
+            $hop["ip_addr"],
+            $hop["hostname"],
+            $hop["asnum"],
+            DerivedTable::getAsname($hop["asnum"]),
+            $hop["mm_lat"],
+            $hop["mm_long"],
+            $hop["lat"],
+            $hop["long"],
+            $hop["mm_city"],
+            $hop["mm_region"],
+            $hop["mm_country"],
+            $hop["mm_postal"],
+            $hop["gl_override"],
+            $hop["rtt1"],
+            $hop["rtt2"],
+            $hop["rtt3"],
+            $hop["rtt4"],
+            $minLatencies[$i],
+            json_encode($annotated_traceroute_transited_country),
+            json_encode($annotated_traceroute_transited_asnum),
+            json_encode($annotated_traceroute_prev_hop_sol_violation),
+            json_encode($annotated_traceroute_origin_sol_violation),
+            json_encode($annotated_traceroute_jittery)
+          );
+          DerivedTable::insertAnnotatedTraceroute($data);
 
-        // if ($result === false) {
-        //   echo "annotated_traceroutes update query failed for tr ".$trId." hop ".$hop["hop"].": " . pg_last_error();
-        // }
-        // pg_free_result($result);
+        }
 
       } // end foreach over hops
+
 
       $sqlNsa = "SELECT city FROM nsa_cities;";
       $result = pg_query($dbconn, $sqlNsa) or die('Query failed: ' . pg_last_error());
@@ -445,6 +466,10 @@ class DerivedTable
         $boomerang_ca_us_ca = true;
       }
 
+      // remove the priming values for both lists (since it's not a transiting value, but
+      // only used to compare later values)
+      array_shift($list_transited_countries);
+      array_shift($list_transited_asnums);
       // yucky string lists for these
       $list_transited_countries = implode(" > ", $list_transited_countries);
       $list_transited_asnums = implode(" > ", $list_transited_asnums);
@@ -480,7 +505,157 @@ class DerivedTable
       // echo "List of transited countries: {$list_transited_countries}\n";
       // echo "List of transited ASNs: {$list_transited_asnums}\n";
 
-      $sql = "INSERT INTO traceroute_traits VALUES (
+      // UPDATE
+      if ($shouldUpdate) {
+        echo "Updating...\n";
+        $trData = array(
+          $origin_city,
+          $origin_country,
+          $dest_city,
+          $dest_country,
+          $first_hop_city,
+          $first_hop_country,
+          $last_hop_city,
+          $last_hop_country,
+          json_encode($nsa),
+          json_encode($boomerang),
+          json_encode($boomerang_ca_us_ca),
+          json_encode($transits_us),
+          $num_transited_countries,
+          $list_transited_countries,
+          $num_default_mm_location_hops,
+          $num_gl_override_hops,
+          $num_aba_hops,
+          $num_prev_hop_sol_violation_hops,
+          $num_origin_sol_violation_hops,
+        );
+        DerivedTable::updateTracerouteTrait($trId, $trData);
+
+      // INSERT
+      } else {
+        echo "Inserting...\n";
+        $trData = array(
+          $trId,
+          $num_hops,
+          $submitter,
+          $sub_time,
+          $submitter_zip_code,
+          $origin_ip_addr,
+          $origin_asnum,
+          $origin_asname,
+          $origin_city,
+          $origin_country,
+          $dest,
+          $dest_ip_addr,
+          $dest_asnum,
+          $dest_asname,
+          $dest_city,
+          $dest_country,
+          $first_hop_ip_addr,
+          $first_hop_asnum,
+          $first_hop_asname,
+          $first_hop_city,
+          $first_hop_country,
+          $last_hop_num,
+          $last_hop_ip_addr,
+          $last_hop_asnum,
+          $last_hop_asname,
+          $last_hop_city,
+          $last_hop_country,
+          json_encode($terminated),
+          json_encode($nsa),
+          json_encode($boomerang),
+          json_encode($boomerang_ca_us_ca),
+          json_encode($transits_us),
+          $num_transited_countries,
+          $num_transited_asnums,
+          $list_transited_countries,
+          $list_transited_asnums,
+          $num_skipped_hops,
+          $num_default_mm_location_hops,
+          $num_gl_override_hops,
+          $num_aba_hops,
+          $num_prev_hop_sol_violation_hops,
+          $num_origin_sol_violation_hops,
+          $num_jittery_hops
+        );
+        DerivedTable::insertTracerouteTrait($trData);
+      }
+
+    } else {
+      echo "No valid result returned for ".$trId."\n";
+    }
+  }
+
+
+  public static function insertAnnotatedTraceroute($data) {
+    global $dbconn;
+
+    $sql = "INSERT INTO annotated_traceroutes (
+        traceroute_id,
+        hop,
+        ip_addr,
+        hostname,
+        asnum,
+        asname,
+        mm_lat,
+        mm_long,
+        lat,
+        long,
+        mm_city,
+        mm_region,
+        mm_country,
+        mm_postal,
+        gl_override,
+        rtt1,
+        rtt2,
+        rtt3,
+        rtt4,
+        min_latency,
+        transited_country,
+        transited_asnum,
+        prev_hop_sol_violation,
+        origin_sol_violation,
+        jittery
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25)";
+
+    $result = pg_query_params($dbconn, $sql, $data);
+
+    if ($result === false) {
+      echo "annotated_traceroutes update query failed for tr ".$data[0]." hop ".$data[1].": " . pg_last_error();
+    }
+    pg_free_result($result);
+  }
+
+  public static function updateAnnotatedTraceroute($trId, $hop, $data) {
+    global $dbconn;
+
+    $sql = "UPDATE annotated_traceroutes SET (
+        lat,
+        long,
+        mm_city,
+        mm_region,
+        mm_country,
+        mm_postal,
+        gl_override,
+        transited_country,
+        prev_hop_sol_violation,
+        origin_sol_violation
+      ) = ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      WHERE traceroute_id = ".$trId." and hop = ".$hop;
+
+    $result = pg_query_params($dbconn, $sql, $data);
+
+    if ($result === false) {
+      echo "annotated_traceroutes update query failed for tr ".$trId." hop ".$hop.": " . pg_last_error();
+    }
+    pg_free_result($result);
+  }
+
+  public static function insertTracerouteTrait($data) {
+    global $dbconn;
+
+    $sql = "INSERT INTO traceroute_traits (
         traceroute_id,
         num_hops,
         submitter,
@@ -523,62 +698,47 @@ class DerivedTable
         num_aba_hops,
         num_prev_hop_sol_violation_hops,
         num_origin_sol_violation_hops,
-        num_jittery_hops) = ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42)";
+        num_jittery_hops
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43)";
 
-      $trData = array(
-        $trId,
-        $num_hops,
-        $submitter,
-        $sub_time,
-        $submitter_zip_code,
-        $origin_ip_addr,
-        $origin_asnum,
-        $origin_asname,
-        $origin_city,
-        $origin_country,
-        $dest,
-        $dest_ip_addr,
-        $dest_asnum,
-        $dest_asname,
-        $dest_city,
-        $dest_country,
-        $first_hop_ip_addr,
-        $first_hop_asnum,
-        $first_hop_asname,
-        $first_hop_city,
-        $first_hop_country,
-        $last_hop_num,
-        $last_hop_ip_addr,
-        $last_hop_asnum,
-        $last_hop_asname,
-        $last_hop_city,
-        $last_hop_country,
-        json_encode($terminated),
-        json_encode($nsa),
-        json_encode($boomerang),
-        json_encode($boomerang_ca_us_ca),
-        json_encode($transits_us),
-        $num_transited_countries,
-        $num_transited_asnums,
-        $list_transited_countries,
-        $list_transited_asnums,
-        $num_skipped_hops,
-        $num_default_mm_location_hops,
-        $num_gl_override_hops,
-        $num_aba_hops,
-        $num_prev_hop_sol_violation_hops,
-        $num_origin_sol_violation_hops,
-        $num_jittery_hops);
-
-      $result = pg_query_params($dbconn, $sql, $trData);
-      if ($result === false) {
-        echo "traceroute_traits update query failed: " . pg_last_error();
-      }
-      pg_free_result($result);
-
-    } else {
-      echo "No valid result returned for ".$trId."\n";
+    $result = pg_query_params($dbconn, $sql, $data);
+    if ($result === false) {
+      echo "traceroute_traits insert query failed: " . pg_last_error();
     }
+    pg_free_result($result);
+  }
+
+  public static function updateTracerouteTrait($trId, $data) {
+    global $dbconn;
+
+    $sql = "UPDATE traceroute_traits SET (
+        origin_city,
+        origin_country,
+        dest_city,
+        dest_country,
+        first_hop_city,
+        first_hop_country,
+        last_hop_city,
+        last_hop_country,
+        nsa,
+        boomerang,
+        boomerang_ca_us_ca,
+        transits_us,
+        num_transited_countries,
+        list_transited_countries,
+        num_default_mm_location_hops,
+        num_gl_override_hops,
+        num_aba_hops,
+        num_prev_hop_sol_violation_hops,
+        num_origin_sol_violation_hops
+      ) = ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
+      WHERE traceroute_id = ".$trId;
+
+    $result = pg_query_params($dbconn, $sql, $data);
+    if ($result === false) {
+      echo "traceroute_traits insert query failed: " . pg_last_error();
+    }
+    pg_free_result($result);
   }
 
 
@@ -602,10 +762,5 @@ class DerivedTable
 
   }
 
-  // This clearly belongs in the Hop model
-  // this name is misleading - it's lowestRtt really
-  // function getMinLatencyForHop($hop) {
-  //   return min([$hop["rtt1"], $hop["rtt2"], $hop["rtt3"], $hop["rtt4"]]);
-  // }
 }
 ?>
