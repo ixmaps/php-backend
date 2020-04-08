@@ -355,26 +355,13 @@ class DerivedTable
           $mm_country = $hop["mm_country"];
           $asnum = $hop["asnum"];
 
-          echo $mm_country;
-          echo "\n";
-          echo $asnum;
-          echo "\n";
-
           if (end($list_transited_countries) !== $mm_country) {
-
-            echo "transited country";
-            echo "\n";
-
             $num_transited_countries++;
             array_push($list_transited_countries, $mm_country);
             $annotated_traceroute_transited_country = true;
           }
 
           if ($asnum != -1 && end($list_transited_asnums) !== $asnum) {
-
-            echo "transited asnum";
-            echo "\n";
-
             $num_transited_asnums++;
             array_push($list_transited_asnums, $asnum);
             $annotated_traceroute_transited_asnum = true;
