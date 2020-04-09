@@ -125,7 +125,7 @@ class DerivedTable
     if ($origin_ip_addr) {
       $mm = new IXmapsMaxMind($origin_ip_addr);
       $origin_asnum = $mm->getAsnum();
-      $origin_asname = $mm->getAsname();
+      $origin_asname = DerivedTable::getAsname($origin_asnum);
       $origin_city = $mm->getCity();
       $origin_country = $mm->getCountryCode();
       $originLat = $mm->getLat();
@@ -136,6 +136,7 @@ class DerivedTable
       // echo "Origin city: {$origin_city}\n";
       // echo "Origin country: {$origin_country}\n";
     }
+
 
     /****
       HANDLE
@@ -172,6 +173,25 @@ class DerivedTable
     // echo "Dest asname: {$dest_asname}\n";
     // echo "Dest city: {$dest_city}\n";
     // echo "Dest country: {$dest_country}\n";
+
+    // POSSIBLE IMPROVEMENT:
+    // echo "Submitter: {$submitter}\n";
+    // echo "Submission time: {$sub_time}\n";
+    // echo "Submitter zip code: {$submitter_zip_code}\n";
+    // echo "Dest: {$dest}\n";
+    // echo "Dest ip: {$dest_ip_addr}\n";
+    // if (dest_ip is not in our ip_addr_info table) {
+    //   $mm = new IXmapsMaxMind($dest_ip_addr);
+    //   $dest_asnum = $mm->getAsnum();
+    //   $dest_asname = DerivedTable::getAsname($dest_asnum);
+    //   $dest_city = $mm->getCity();
+    //   $dest_country = $mm->getCountryCode();
+    //   // echo "Dest ip: {$dest_ip_addr}\n";
+    //   // echo "Dest asnum: {$dest_asnum}\n";
+    //   // echo "Dest asname: {$dest_asname}\n";
+    //   // echo "Dest city: {$dest_city}\n";
+    //   // echo "Dest country: {$dest_country}\n";
+    // }
 
 
     /****
@@ -211,6 +231,7 @@ class DerivedTable
 
     // NB: this will skip all hops with null ip_addr, which I think is what we want...
     $sqlTraversal = "SELECT * FROM derived_table_base WHERE traceroute_id=".$trId." ORDER BY hop;";
+    // This join is like 10x slower, it might make more sense to create some temp tables and then drop them (if we're inserting/updating more than one...)
     // $sqlTraversal = "SELECT ti.traceroute_id, ti.hop, r[1] rtt1, r[2] rtt2, r[3] rtt3, r[4] rtt4, ip.ip_addr, ip.hostname, ip.asnum, ip.mm_city, ip.mm_region, ip.mm_country, ip.mm_postal, ip.mm_lat, ip.mm_long, ip.lat, ip.long, ip.gl_override FROM (select traceroute_id, hop, ip_addr, array_agg(rtt_ms) r from tr_item group by hop, 1, ip_addr order by 1) ti, traceroute tr, ip_addr_info ip WHERE ti.traceroute_id = tr.id AND ip.ip_addr = ti.ip_addr AND tr.id = ".$trId;
     $result = pg_query($dbconn, $sqlTraversal) or die('Query failed: ' . pg_last_error());
     $tracerouteArr = pg_fetch_all($result);

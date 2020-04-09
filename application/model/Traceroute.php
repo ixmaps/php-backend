@@ -50,7 +50,7 @@ class Traceroute
   public static function buildWhere($c, $doesNotChk = false, $paramNum = 1)
   {
     global $dbconn, $ixmaps_debug_mode;
-    
+
     $trSet = array();
     $w ='';
     $table='';
@@ -197,90 +197,6 @@ class Traceroute
     unset($data);
 
     return $data1;
-  }
-
-  /**
-    Check if in a given city there is an NSA
-    Load chotel data
-  */
-  public static function checkNSA($locationKey)
-  {
-    global $dbconn;
-    //$sql = "select * from chotel where address like '%".$locationKey."%' order by type, nsa";
-    $sql = "select * from chotel order by type, nsa";
-
-    $c = 0;
-    $data = array();
-
-
-    $result = pg_query($dbconn, $sql) or die('Query failed: ' . pg_last_error());
-
-    while ($line = pg_fetch_array($result, null, PGSQL_ASSOC)) {
-      $c++;
-      $id = $line['id'];
-      $address = explode(',', $line['address']);
-
-      //echo '<hr/>';
-      //print_r($address);
-
-
-      $t=count($address);
-      $city = '';
-      $region = '';
-
-      //$city = trim($line['city']);
-      //$region = trim($line['region']);
-
-      // update new fields
-
-      if(isset($address[$t-2]) && isset($address[$t-1])) {
-        $city = trim($address[$t-2]);
-        $region = trim($address[$t-1]);
-        $aa = ord($city);
-
-        $c_array = str_split($city);
-
-        foreach ($c_array as $c_char)
-        {
-          echo '<br>'.'"'.$c_char.'" : "'.ord($c_char).'"';
-        }
-
-        //echo '<br/>ASCII: '.$aa.'';
-
-        // clean up strange characters
-        $city=str_replace(chr(194), '', $city);
-        $city=str_replace(chr(160), '', $city);
-        //$city=utf8_encode($city);
-        $city=trim($city);
-
-        //$region=str_replace(chr(194), '', $region);
-
-        $update = "UPDATE chotel SET city = '".$city."', region='".$region."' WHERE id = ".$id;
-        echo '<br/>'.$update;
-        echo '<hr/>';
-        pg_query($dbconn, $update) or die('Query failed: ' . pg_last_error());
-      }
-
-      //$m[] = $line['address'];
-      //$m[] = $line['address'];
-      //$data[] = $line;
-
-      if($line['type']=='NSA') {
-        $data['NSA'][] = array($city,$region);
-      } else if ($line['type']=='CH') {
-        $data['CH'][] = array($city,$region);
-      } else if ($line['type']=='google') {
-        $data['google'][] = array($city,$region);
-      } else if ($line['type']=='UC') {
-        $data['UC'][] = array($city,$region);
-      }
-    }
-
-    pg_free_result($result);
-
-
-    //return array('total'=>$c, 'matches'=>$m);
-    //print_r($data);
   }
 
   /**
@@ -556,135 +472,6 @@ class Traceroute
     $trArr = pg_fetch_all($result);
 
     return $trArr;
-  }
-
-  /**
-    Get geographic data for a tr set - legacy?
-  */
-  public static function getIxMapsDataOld($data)
-  {
-    global $dbconn, $trNumLimit, $dbQueryHtml, $dbQuerySummary;
-    $result = array();
-    $totTrs = count($data);
-    //echo '<br/>Tot: '.$totTrs;
-
-    // set index increase if total traceroutes is > $trNumLimit
-    if($totTrs>$trNumLimit)
-    {
-      $indexJump = $totTrs/$trNumLimit;
-      $indexJump = intval($indexJump)+1;
-    } else {
-      $indexJump = 1;
-    }
-    //echo '<br/>indexJump: '.$indexJump;
-    //echo '<br/>Displaying the following traceroutes IDs: <br/>';
-
-    $longLatArray = array();
-
-    $wTrs = '';
-    $trCoordinates = '';
-    $trCollected = array();
-
-    $c=0;
-    // build SQL where for the given TR set
-    //foreach ($data as $trId)
-    for ($i=0; $i<$totTrs; $i+=$indexJump)
-    // as $trId)
-    {
-      $trCollected[]=$data[$i];
-      //echo ''.$data[$i].' | ';
-      if($c==0) {
-        $wTrs.=' traceroute.id='.$data[$i];
-      } else {
-        $wTrs.=' OR traceroute.id='.$data[$i];
-      }
-      $c++;
-    }
-
-    if($totTrs>$trNumLimit){
-      $dbQueryHtml .= "<span title='The search produced more routes than can be easily mapped. Every nth route is presented to keep the number mapped to no more than 100.'>Displaying <span id='tr-count-db'>1</span> of ".$c." sampled results (".$totTrs." total)</span>";
-      $dbQuerySummary .= "<span title='The search produced more routes than can be easily mapped. Every nth route is presented to keep the number mapped to no more than 100.'>Displaying <span id='tr-count-db'>1</span> of ".$c." sampled results (".$totTrs." total)</span>";
-    } else {
-      $dbQueryHtml .= "Displaying <span id='tr-count-db'>1</span> of ".$c." results";
-    }
-
-    if($totTrs>$trNumLimit){
-      $dbQuerySummary .= '<p style="color:red;">
-      Showing a sample of <b>'.$c.' traceroutes</b>.</p>';
-    }
-    // free some memory
-    unset($data);
-
-    $sql = "SELECT
-    tr_item.traceroute_id, tr_item.hop, tr_item.rtt_ms,
-
-    traceroute.id, traceroute.dest, traceroute.dest_ip, traceroute.submitter
-
-    ip_addr_info.ip_addr, ip_addr_info.hostname, ip_addr_info.lat, ip_addr_info.long, ip_addr_info.mm_country, ip_addr_info.mm_city, ip_addr_info.gl_override,
-
-    as_users.num, as_users.name,
-
-    ip_addr_info.flagged
-
-    FROM tr_item, traceroute, ip_addr_info, as_users WHERE (tr_item.traceroute_id=traceroute.id) AND (ip_addr_info.ip_addr=tr_item.ip_addr) AND (as_users.num=ip_addr_info.asnum) AND tr_item.attempt = 1";
-    $sql.=" AND (".$wTrs.")";
-    $sql.=" order by tr_item.traceroute_id, tr_item.hop, tr_item.attempt";
-    $wTrs='';
-
-    $result = pg_query($dbconn, $sql) or die('Query failed: ' . pg_last_error());
-    // get all data in a single array
-    $trArr = pg_fetch_all($result);
-
-    return $trArr;
-  }
-
-  /**
-    handy function to test current colours added to ASN array
-  */
-  public static function getAsNames()
-  {
-    global $dbconn, $as_num_color;
-    $resultArray = array();
-
-    $c=0;
-    $sql = 'SELECT num, name FROM as_users where ';
-    $w = '';
-
-    foreach($as_num_color as $id => $val)
-    {
-      $resultArray[$id]['color']=$val;
-
-      $c++;
-      if($c==1)
-      {
-        $w .= ' num = '.$id;
-      } else {
-        $w .= ' OR num = '.$id;
-      }
-    }
-
-    $sql .= ''.$w;
-
-    $result = pg_query($dbconn, $sql) or die('Query failed: ' . pg_last_error());
-
-    while ($line = pg_fetch_array($result, null, PGSQL_ASSOC))
-    {
-      //echo '<br/>'.$line['name'];
-      $resultArray[$line['num']]['name'] = $line['name'];
-    }
-
-    $html='<table border="1" cellspacing="1" cellpadding="2" style="width: 300px">';
-    foreach($resultArray as $asNum=>$asArray)
-    {
-      if($asArray['color']!='676A6B')
-      {
-        $html.='
-      <tr><td>'.$asArray['name'].'</td><td style="background-color:'.$asArray['color'].'; width: 25px;"></td></tr>';
-      }
-
-    }
-    $html.='</table>';
-    echo $html;
   }
 
   /**
@@ -1001,6 +788,7 @@ class Traceroute
 
   /**
   Check if there is a lower latency in subsequent hops and return that value
+  LEGACY?
   */
   public static function checkMinLatency($currentHop, $hops){
 
@@ -1128,7 +916,7 @@ class Traceroute
     global $dbconn;
 
     /* NB: this skips hops where ip_addr is null, to sync up with how we generate the traceroute data for the map (see the first join on ip_addr_info.ip_addr=tr_item.ip_addr in getTraceroute and getIxMapsData). This may not be optimal long run, since it could be better to deliver the entire route to the front end and let it decide on how to handle funky hops */
-    
+
     $sql = "SELECT hop, rtt_ms FROM tr_item WHERE traceroute_id = ".$trId." and ip_addr is not null order by hop, attempt";
     $result = pg_query($dbconn, $sql) or die('Query failed on getLatenciesForTraceroute');
 

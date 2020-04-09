@@ -4,7 +4,7 @@
  * This gets hit on load by:
  * - Frontend Map page on load
  * - eventually IXmapsClient, once we can recompile it
- * 
+ *
  * @return structured geoloc values for front end user's ip
  *
  * Updated Aug 2019

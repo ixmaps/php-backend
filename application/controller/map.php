@@ -2,7 +2,7 @@
 /**
  *
  * This handles queries from the map.js frontend
- * 
+ *
  * @param $_POST json
  *
  * @return some kind of JSON object - TODO

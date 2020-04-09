@@ -15,9 +15,9 @@ require_once('../model/Geolocation.php');
   since most of our IPs were added before we switched to geolite2, we can use this opportunity to see how the lat/long values of the ips in our DB (analogous to geolite1) compare to the lat/long values in geolite2
 */
 
-// create table geolite_comparison 
-// ( 
-//   ip_addr inet not null, 
+// create table geolite_comparison
+// (
+//   ip_addr inet not null,
 //   ix_lat double precision,
 //   ix_long double precision,
 //   mm1_lat double precision,
@@ -51,7 +51,7 @@ while ($row = pg_fetch_assoc($resp)) {
   $ix_city = $row['mm_city'];
   $ix_country = $row['mm_country'];
 
-  # look up the MM value 
+  # look up the MM value
   $mm = new IXmapsMaxMind($ip);
   $mm2_lat = $mm->getLat();
   $mm2_long = $mm->getlong();

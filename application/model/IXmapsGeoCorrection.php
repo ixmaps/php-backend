@@ -256,7 +256,7 @@ class IXmapsGeoCorrection
 
     // Excluding rtt delta of 0 both for div by zero, but also cause that would flag way too many hops
     if ($rtt > 0 && ($distanceMeters/$rtt > $SoL)) {
-      return true;  
+      return true;
     } else {
       return false;
     }

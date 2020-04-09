@@ -35,7 +35,7 @@ class IXmapsMaxMind
     // They're necessary for the case where the MM files don't have the IP
     // Could also consider another value to explicitly show whether or not those values exist
     // eg $this->cityRecordExists
-    
+
     global $MM_dat_dir;
 
     if (filter_var($ip, FILTER_VALIDATE_IP) == false || $ip == "") {
@@ -128,22 +128,5 @@ class IXmapsMaxMind
   public function getHostname() {
     return $this->hostname;
   }
-
-
-  // TODO: this obviously doesn't belong here - move it to somewhere more logical or remove
-
-  /**
-    Get Closest Geo Data using mm world_cities DB Based on city population and radius
-  */
-  // public function getGeoDataByPopulationRadius($currentMmData, $limit=1, $radius=50000)
-  // {
-  //   global $dbconn;
-
-  //   // Get closest geodata for lat/long
-  //   $sql = "SELECT country, name, admin1, population, latitude, longitude FROM geoname WHERE population is not null and ST_DWithin(the_geom, ST_SetSRID(ST_MakePoint(".$currentMmData['geoip']['longitude'].",".$currentMmData['geoip']['latitude']."), 4326), $radius) and country = '".$currentMmData['geoip']['country_code']."' ORDER BY population DESC limit $limit;";
-  //   $result = pg_query($dbconn, $sql) or die('getGeoDataRadius failed'.pg_last_error());
-  //   $geodata = pg_fetch_all($result);
-  //   return $geodata;
-  // }
 }
 ?>

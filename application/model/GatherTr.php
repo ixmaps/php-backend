@@ -307,21 +307,6 @@ class GatherTr
         $winnerIp = "";
       }
 
-      /*TODO: more than 4 queries/attempts in "official" tables needs further examination*/
-
-      /*Preventing the submission of more that 4 attempts/queries because it breaks TR details page
-      Note: this needs further discussion. In this case submitting the lowest 4 latencies. */
-/*      $totQueries = count($latencies);
-      if($totQueries>4) {
-        for($i=4; $i < $totQueries; $i++){
-          if(isset($latencies[$i])){
-            unset($latencies[$i]);
-          }
-        }
-      }*/
-
-      //echo "\nWinner IP: ".$winnerIp;
-
       $TR['hops'][$hopNum]['latencies'] = $latencies;
       $TR['hops'][$hopNum]['winIp'] = $winnerIp;
 
@@ -330,71 +315,6 @@ class GatherTr
     return $TR;
   }
 
-  /**
-    Analyze TR data.
-    This function assumes that the tr data is structured as follows:
-    [tr_data][hop][queries]
-  */
-  public static function selectBestIpOld($tr_c_id)
-  {
-    global $dbconn;
-    $data = GatherTr::getTrContribution($tr_c_id);
-
-    $TR = array();
-    // submissions
-    foreach ($data['traceroute_submissions'] as $key1 => $submission) {
-
-      // check contribution type
-      if ($submission['data_type']=='json') {
-        $trHops = json_decode($submission['tr_data'], true);
-        $totHops = count($trHops);
-
-        //hops
-        foreach ($trHops as $key2 => $hop) {
-          $hopNum = $key2+1;
-          $latencies = array();
-          $ip_rank = array();
-
-          // queries
-          foreach ($hop as $key3 => $hopPass) {
-
-            $latencies[] = $hopPass['rtt'];
-            $ip_latencies[$hopPass['ip']][]  = $hopPass['rtt'];
-
-            // prevent ip !set
-            if (isset($hopPass['ip'])) {
-              if (!isset($ip_rank[$hopPass['ip']])) {
-                $ip_rank[$hopPass['ip']] = 1;
-              } else {
-                $ip_rank[$hopPass['ip']] += 1;
-              }
-            } else {
-              // error at this hop
-            }
-
-            //
-
-          } // end queries
-
-          sort($latencies);
-          arsort($ip_rank);
-          $keys=array_keys($ip_rank);
-          $winnerIp = $keys[0];
-
-          //echo "\nWinner IP: ".$winnerIp;
-
-          $TR['hops'][$hopNum]['latencies'] = $latencies;
-          $TR['hops'][$hopNum]['winIp'] = $winnerIp;
-
-        } //end hop
-        $data['ip_analysis'] = $TR;
-        return $data;
-
-      } else {
-        return 0;
-      }
-    }
-  }
 
   /**
     Publish TR data:
@@ -750,22 +670,6 @@ class GatherTr
       } // end if json contribution
     } // end loop contributions
   }
-
-  /**
-
-  */
-  public static function getIpAddrInfo($ipCheck="")
-  {
-    global $dbconn;
-
-    $sql = "SELECT ip_addr_info.* FROM ip_addr_info WHERE gl_override is NULL and mm_lat = 0.0 and mm_long = 0.0 and lat = 0.0 and long = 0.0 and ip_addr = '".$ipCheck."'";
-
-    $result = pg_query($dbconn, $sql) or die('getIpAddrInfo: Query failed'.pg_last_error());
-    $dataA = pg_fetch_all($result);
-    pg_free_result($result);
-    return $dataA;
-  }
-
 
   /**
     Insert data into traceroute table

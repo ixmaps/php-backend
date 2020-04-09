@@ -9,21 +9,11 @@
  * @author IXmaps.ca (Antonio)
  * @since ?
  *
- */	
+ */
 
 
 class MapSearch
 {
-
-	/**
-		TODO: separate this function
-	*/
-	public static function countTrsIntersect($data)
-	{
-		global $dbconn;
-
-	}
-
 	/**
 		Quick search for Map Page
 	*/
@@ -32,10 +22,10 @@ class MapSearch
 		global $dbconn, $debugTrSearch;
 
 		// return empty for non params
-		if (count($data)==0) {
+		if (count($data) == 0) {
 			$resultA =  array(
-				"results"=>array(),
-				"total"=>0,
+				"results" => array(),
+				"total" => 0,
 			);
 
 		} else {

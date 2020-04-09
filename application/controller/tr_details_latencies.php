@@ -2,7 +2,7 @@
 /**
  *
  * This handles queries from the tr-details frontend requests
- * 
+ *
  * @param $_POST traceroute id
  *
  * @return two arrays of latency strings, formatted for tr details
