@@ -84,7 +84,7 @@ if (isset($_POST['dest_ip']) && $_POST['dest_ip'] != "") {
     }
   }
 
-  $f = GatherTr::flagContribution($tr_c_id, $trId, $trData['tr_flag']);
+  GatherTr::flagContribution($tr_c_id, $trId, $trData['tr_flag']);
   $result = array(
     "TRid"=>$trId,
     "tr_c_id"=>$tr_c_id,

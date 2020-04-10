@@ -86,7 +86,7 @@
 require_once('../config.php');
 require_once('../model/IXmapsGeoCorrection.php');
 require_once('../model/IXmapsMaxMind.php');
-require_once('../model/DerivedTable.php');
+
 
 class DerivedTable
 {
