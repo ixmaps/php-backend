@@ -14,6 +14,7 @@ header('Access-Control-Allow-Origin: *');
 require_once('../config.php');
 require_once('../model/GatherTr.php');
 require_once('../model/IXmapsMaxMind.php');
+require_once('../model/DerivedTable.php');
 
 //can we reliably assume that there will always be an IP?
 $myIp = $_SERVER['REMOTE_ADDR'];
