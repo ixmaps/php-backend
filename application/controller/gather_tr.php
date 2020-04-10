@@ -6,7 +6,7 @@
  *
  * @return JSON response to IXmapsClient
  *
- * @since Updated Aug 2019
+ * @since Updated Apr 2020
  * @author IXmaps.ca (Anto, Colin)
  *
  */

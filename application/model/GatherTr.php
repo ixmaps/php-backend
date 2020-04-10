@@ -496,11 +496,11 @@ class GatherTr
   {
     global $dbconn;
     if ($tr_c_id!=0 && $traceroute_id!=0) {
-      $sql = "UPDATE tr_contributions SET traceroute_id = $traceroute_id, tr_flag=$tr_flag WHERE tr_c_id = $tr_c_id";
+      $sql = "UPDATE tr_contributions SET traceroute_id = $traceroute_id, tr_flag = $tr_flag WHERE tr_c_id = $tr_c_id";
       $result = pg_query($dbconn, $sql) or die('flagContribution: Query failed'.pg_last_error());
       pg_free_result($result);
     } else if ($tr_c_id!=0 && $traceroute_id==0) { // update only tr_flag when no TR_id is available
-      $sql = "UPDATE tr_contributions SET tr_flag=$tr_flag WHERE tr_c_id = $tr_c_id";
+      $sql = "UPDATE tr_contributions SET tr_flag = $tr_flag WHERE tr_c_id = $tr_c_id";
       $result = pg_query($dbconn, $sql) or die('flagContribution: Query failed'.pg_last_error());
       pg_free_result($result);
     }
