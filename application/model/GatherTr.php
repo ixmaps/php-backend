@@ -478,43 +478,6 @@ class GatherTr
 
 
   /**
-    Insert relevant values from newly created route into tr_last_hops
-    NB: now called from tr_gather instead of the old cron approach
-    LEGACY - no longer used now that we have DerivedTables
-  */
-  public static function publishLastHop($trId)
-  {
-    global $dbconn;
-
-    $sqlLastHop = "SELECT tr_item.hop, tr_item.traceroute_id, traceroute.id, traceroute.dest, traceroute.dest_ip, ip_addr_info.ip_addr FROM tr_item, traceroute, ip_addr_info WHERE (tr_item.traceroute_id = traceroute.id) AND (ip_addr_info.ip_addr = tr_item.ip_addr) AND tr_item.attempt = 1 AND tr_item.hop > 1 and traceroute.id = ".$trId." order by tr_item.hop DESC LIMIT 1";
-
-    $result = pg_query($dbconn, $sqlLastHop) or die('Query failed: ' . pg_last_error());
-    $lastHopArr = pg_fetch_all($result);
-
-    $reached = 1;
-    if ($lastHopArr[0]["ip_addr"] != $lastHopArr[0]["dest_ip"]) {
-      $reached = 0;
-    }
-
-    $sqlInsert = "INSERT INTO tr_last_hops VALUES (".$lastHopArr[0]["traceroute_id"].", ".$lastHopArr[0]["hop"].", '".$lastHopArr[0]["ip_addr"]."', ".$reached.");";
-
-    // this is a bit redundant (since this check already happened in gather_tr, but safe
-    try {
-      if ($sqlInsert != "INSERT INTO tr_last_hops VALUES (, , '', 1);") {
-        pg_query($dbconn, $sqlInsert) or die('Query failed: ' . pg_last_error());
-      } else {
-        echo "<br/>This TR has no hops. Empty record...";
-      }
-
-    } catch(Exception $e) {
-      echo "db error on tr_last_hops insert";
-    }
-
-    pg_free_result($result);
-  }
-
-
-  /**
     Determine if the IP is Private/Reserved
   */
   public static function checkIpIsPrivate($ip)
