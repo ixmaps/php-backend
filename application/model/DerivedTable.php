@@ -93,7 +93,7 @@ class DerivedTable
   public static function updateForTrId($trId) {
     global $dbconn, $genericMMLatLongs;
 
-    echo "\n*** Traceroute id: ".$trId." ***\n";
+    // echo "\n*** Traceroute id: ".$trId." ***\n";
 
     $sql = "SELECT traceroute_id FROM traceroute_traits WHERE traceroute_id=".$trId;
     $result = pg_query($dbconn, $sql) or die('Query insert or update failed: ' . pg_last_error());
@@ -519,7 +519,7 @@ class DerivedTable
 
       // UPDATE
       if ($shouldUpdate) {
-        echo "Updating...\n";
+        // echo "Updating...\n";
         $trData = array(
           $origin_city,
           $origin_country,
@@ -545,7 +545,7 @@ class DerivedTable
 
       // INSERT
       } else {
-        echo "Inserting...\n";
+        // echo "Inserting...\n";
         $trData = array(
           $trId,
           $num_hops,
@@ -595,7 +595,7 @@ class DerivedTable
       }
 
     } else {
-      echo "No valid result returned for ".$trId."\n";
+      // echo "No valid result returned for ".$trId."\n";
     }
   }
 
