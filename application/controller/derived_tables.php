@@ -22,7 +22,7 @@ require_once('../model/DerivedTable.php');
 
 // BULK INSERTS
 // $limit = 10;
-// getTracerouteIdsToInsert(350438);
+// getTracerouteIdsToInsert(1140654);
 
 // CALLED BY CRONJOB
 getTracerouteIdsToUpdate();
@@ -83,6 +83,6 @@ function loopOverTrIdsForDerivedTable($trArr) {
   } else {
     $timeElapsedSecs = microtime(true) - $startTime;
     echo "\nDuration: ".$timeElapsedSecs;
-    echo "\n".$connGen. " TRs for traceroute traits generated\n";
+    echo "\n".$connGen. " TRs for traceroute_traits and annotate_traceroutes generated\n";
   }
 }
