@@ -52,24 +52,24 @@ class Traceroute
     global $dbconn, $ixmaps_debug_mode;
 
     $trSet = array();
-    $w ='';
-    $table='';
+    $w = '';
+    $table = '';
 
     $constraint_value = trim($c['constraint4']);
     // apply some default formating to constraint's value
 
-    if ($c['constraint1']=='does' || $doesNotChk==true) {
-      $selector_s='LIKE';
-      $selector_i='=';
+    if ($c['constraint1'] == 'does' || $doesNotChk == true) {
+      $selector_s = 'LIKE';
+      $selector_i = '=';
     } else {
-      $selector_s='NOT LIKE';
-      $selector_i='<>';
+      $selector_s = 'NOT LIKE';
+      $selector_i = '<>';
     }
 
-    if ($c['constraint5']=='') {
-      $operand='AND';
+    if ($c['constraint5'] == '') {
+      $operand = 'AND';
     } else  {
-      $operand=$c['constraint5'];
+      $operand = $c['constraint5'];
     }
 
     /* setting constraints associated to table ip_addr_info */
@@ -124,14 +124,6 @@ class Traceroute
       $w.=" AND tr_item.hop = 1 AND tr_item.attempt = 1";
     } else if($c['constraint2']=='terminate') {
 
-      //$w.=" AND (traceroute.dest_ip=ip_addr_info.ip_addr) AND tr_item.attempt = 1 AND tr_item.hop > 1";
-
-      // old approach
-      //$w.=" AND (traceroute.dest_ip=ip_addr_info.ip_addr) AND tr_item.attempt = 1 AND tr_item.hop > 1";
-
-      // new approach: last hop as destination
-      // this alredy set on parent function, not needed here. so do nothing ...
-      //$w.=" AND (traceroute.id=tr_last_hops.traceroute_id_lh) ";
 
     } else if($c['constraint2']=='goVia') {
 
@@ -153,7 +145,6 @@ class Traceroute
     // Using pg_query_params
     if (($field=='asnum') || ($field=='id') || ($field=='ip_addr')) {
       $w.=" AND $table.$field $selector_i $".$paramNum;
-      //$w.="  $selector $table.$field $operand_i $constraint_value";
     } else {
       $w.=" AND $table.$field $selector_s $".$paramNum;
       $constraint_value = "%".$constraint_value."%";
@@ -178,22 +169,20 @@ class Traceroute
     }
 
     $data = array();
-    $id_last = 0;
+    $lastId = 0;
 
     $c = 0;
     while ($line = pg_fetch_array($result, null, PGSQL_ASSOC)) {
       $c++;
       $id = $line['id'];
-      if ($id != $id_last) {
+      if ($id != $lastId) {
         $data[] = $id;
       }
-      $id_last = $id;
+      $lastId = $id;
     }
     $data1 = array_unique($data);
     $dbQuerySummary .= " | Traceroutes: <b>".count($data1).'</b>';
     pg_free_result($result);
-    // Closing connection ??
-    //pg_close($dbconn);
     unset($data);
 
     return $data1;
@@ -203,7 +192,7 @@ class Traceroute
     Get TR details data for a current TR: this is quite expensive computationally and memory
     Only used to perform advanced analysis that need to look at all the attempts and all the hops in a TR
   */
-  public static function getTraceRouteAll($trId)
+  public static function getTracerouteAll($trId)
   {
     global $dbconn;
     $result = array();
@@ -212,7 +201,7 @@ class Traceroute
     if ($trId!='') {
       $sql = 'SELECT traceroute.id, tr_item.* FROM traceroute, tr_item WHERE (tr_item.traceroute_id=traceroute.id) AND traceroute.id = '.$trId.' ORDER BY tr_item.traceroute_id, tr_item.hop, tr_item.attempt';
 
-      $result = pg_query($dbconn, $sql) or die('Query failed on getTraceRouteAll: ' . pg_last_error() . 'SQL: '. $sql . " TRid: ".var_dump($trId));
+      $result = pg_query($dbconn, $sql) or die('Query failed on getTracerouteAll: ' . pg_last_error() . 'SQL: '. $sql . " TRid: ".var_dump($trId));
 
       //$tot = pg_num_rows($result);
       // get all data in a single array
@@ -231,7 +220,7 @@ class Traceroute
     * @return array of tr_ids
     *
     */
-  public static function getTraceRoute($data)
+  public static function getTraceroute($data)
   {
     global $dbconn, $dbQueryHtml, $dbQuerySummary;
     $result = array();
@@ -243,6 +232,7 @@ class Traceroute
     // loop over the constraints
     foreach($data as $constraint)
     {
+      // Something to display on the frontend - gets passed around as a global and added to by various pieces. This should obviously be built on the front end instead...
       if ($conn > 0) {
         $dbQuerySummary .= '<br>';
       }
@@ -255,7 +245,6 @@ class Traceroute
 
       $sqlOrder = ' order by tr_item.traceroute_id, tr_item.hop, tr_item.attempt';
 
-
       // adding exception for doesnot cases
       if ($constraint['constraint1'] == 'doesNot' && $constraint['constraint2'] != 'originate' && $constraint['constraint2'] != 'terminate') {
 
@@ -263,11 +252,8 @@ class Traceroute
         $positiveSet = array();
 
         $wParams = Traceroute::buildWhere($constraint);
-
         $sqlTemp = $sql;
-
         $sqlTemp.=$wParams[0].$sqlOrder;
-
         $positiveSet = Traceroute::getTrSet($sqlTemp, $wParams[1]);
 
         $doesNotChk = true;
@@ -275,52 +261,28 @@ class Traceroute
         $sqlOposite = $sql;
 
         $wParams = Traceroute::buildWhere($constraint, $doesNotChk);
-        //$sqlOposite .= Traceroute::buildWhere($constraint,$doesNotChk);
         $sqlOposite .= $wParams[0].$sqlOrder;
-
-        //$oppositeSet = Traceroute::getTrSet($sqlOposite);
         $oppositeSet = Traceroute::getTrSet($sqlOposite, $wParams[1]);
 
-        $trSets[$conn] = array_diff($positiveSet,$oppositeSet);
+        $trSets[$conn] = array_diff($positiveSet, $oppositeSet);
 
         $doesNotChk = false;
         unset($oppositeSet);
         unset($positiveSet);
-        //unset($diff);
 
-      // adding an exception for "terminate": This option is now querying tr_last_hops reference table
-      } else if ($constraint['constraint2']=='terminate') {
-        $tApproach = 1;
+      // adding an exception for "terminate"
+      } else if ($constraint['constraint2'] == 'terminate') {
+        $sql = "SELECT as_users.num, traceroute_traits.last_hop_num, traceroute_traits.terminated, traceroute.id, ip_addr_info.mm_city, ip_addr_info.ip_addr, ip_addr_info.asnum FROM traceroute_traits, as_users, traceroute, ip_addr_info WHERE (as_users.num = ip_addr_info.asnum) AND (traceroute.id = traceroute_traits.last_hop_num) AND (ip_addr_info.ip_addr = traceroute_traits.last_hop_ip_addr) ";
 
-        if ($tApproach==0) {
-        // old approach: using dest_ip
+        $sqlOrder = ' order by traceroute.id';
 
-          $sql = "SELECT as_users.num, tr_item.traceroute_id, traceroute.id, ip_addr_info.mm_city, ip_addr_info.ip_addr, ip_addr_info.asnum FROM as_users, tr_item, traceroute, ip_addr_info WHERE (tr_item.traceroute_id=traceroute.id) AND (ip_addr_info.ip_addr=tr_item.ip_addr) AND (as_users.num=ip_addr_info.asnum)";
-
-          $sqlOrder = ' order by tr_item.traceroute_id, tr_item.hop, tr_item.attempt';
-
-          $w.=" AND (traceroute.dest_ip=ip_addr_info.ip_addr) AND tr_item.attempt = 1 AND tr_item.hop > 1";
-
-          $wParams = Traceroute::buildWhere($constraint);
-          $w.=''.$wParams[0];
-
-        } else if ($tApproach==1) {
-          // new approach: using tr_last_hops
-          // CM: tr_last_hops is generated by a cronjob, which makes it pretty terrible for local dev
-          // we should be able to switch the inserts into gather-tr instead...
-          $sql = "SELECT as_users.num, tr_last_hops.traceroute_id_lh, tr_last_hops.reached, traceroute.id, ip_addr_info.mm_city, ip_addr_info.ip_addr, ip_addr_info.asnum FROM tr_last_hops, as_users, traceroute, ip_addr_info WHERE (as_users.num=ip_addr_info.asnum) AND (traceroute.id=tr_last_hops.traceroute_id_lh) AND (ip_addr_info.ip_addr=tr_last_hops.ip_addr_lh) ";
-
-          $sqlOrder = ' order by traceroute.id';
-
-          // this is doing nothing I believe, as all the sql is not created here
-          $wParams = Traceroute::buildWhere($constraint);
-          $w.=''.$wParams[0];
-        }
+        $wParams = Traceroute::buildWhere($constraint);
+        $w.=''.$wParams[0];
 
         $sql .=$w.$sqlOrder;
 
         $trSets[$conn] = Traceroute::getTrSet($sql, $wParams[1]);
-        $operands[$conn]=$constraint['constraint5'];
+        $operands[$conn] = $constraint['constraint5'];
 
       } else {
         $wParams = Traceroute::buildWhere($constraint);
@@ -329,8 +291,7 @@ class Traceroute
         $sql .=$w.$sqlOrder;
 
         $trSets[$conn] = Traceroute::getTrSet($sql, $wParams[1]);
-
-        $operands[$conn]=$constraint['constraint5'];
+        $operands[$conn] = $constraint['constraint5'];
       }
 
       $conn++;
@@ -339,7 +300,7 @@ class Traceroute
 
     $trSetResult = array();
 
-    for ($i = 0; $i<$conn; $i++) {
+    for ($i = 0; $i < $conn; $i++) {
       $trSetResultTemp = array();
       // only one constraint
       if ($i == 0) {
@@ -348,14 +309,14 @@ class Traceroute
       // all in between
       } else if ($i > 0) {
         // OR cases
-        if ($data[$i-1]['constraint5']=='OR') {
-          $trSetResultTemp = array_merge($trSetResult,$trSets[$i]);
+        if ($data[$i-1]['constraint5'] == 'OR') {
+          $trSetResultTemp = array_merge($trSetResult, $trSets[$i]);
           $trSetResultTemp = array_unique($trSetResultTemp);
           $trSetResult =  array_merge($trSetResult, $trSetResultTemp);
 
         // AND cases
         } else {
-          $trSetResultTemp = array_intersect($trSetResult,$trSets[$i]);
+          $trSetResultTemp = array_intersect($trSetResult, $trSets[$i]);
         }
 
         $trSetResult =  array();
@@ -429,11 +390,7 @@ class Traceroute
       $indexJump = 1;
     }
 
-    $longLatArray = array();
-
     $wTrs = '';
-    $trCoordinates = '';
-    $trCollected = array();
 
     $c = 0;
     // build SQL where for the given TR set
@@ -587,7 +544,7 @@ class Traceroute
 
     // get tr data for all attempts only once
     // $activeTrId = $trArr[0]['id'];
-    // $trDetailsAllData = Traceroute::getTraceRouteAll($activeTrId);
+    // $trDetailsAllData = Traceroute::getTracerouteAll($activeTrId);
 
     // analyze min latency for origin
     // calculate if the min latency of the following hop is less than the min latency of the origin,

@@ -38,28 +38,40 @@ if (!isset($_POST) || count($_POST) == 0) {
   $dbQuerySummary = "";
   $totTrFound = 0;
 
-  $totFilters = count($_POST);
+  // works with postman - if we need to revert for some reason, loop over the $_POST obj instead of creating this postArr
+  $postArr = json_decode(file_get_contents('php://input'), TRUE);
   $dataArray = array();
 
-  foreach ($_POST as $constraint) {
+  foreach ($postArr as $constraint) {
     $dataArray[] = $constraint;
   }
 
   if ($dataArray[0]['constraint1'] == "quickLink") {
-    $tr_ids = Traceroute::processQuickLink($dataArray);
+    $trIds = Traceroute::processQuickLink($dataArray);
   } else {
-    $tr_ids = Traceroute::getTraceRoute($dataArray);
+    $trIds = Traceroute::getTraceroute($dataArray);
   }
+
+  $mtime = microtime();
+  $mtime = explode(" ",$mtime);
+  $mtime = $mtime[1] + $mtime[0];
+  $endtime = $mtime;
+  $totaltime = ($endtime - $starttime);
+  $totaltime = number_format($totaltime,2);
+  var_dump($totaltime);
+
+  // var_dump($trIds);die;
 
   // CM: turning this off for now in a futile attempt to speed up query engine
   // $data = json_encode($dataArray);
   // $saveLog = Traceroute::saveSearch($data);
 
   // TODO: this is part of where the inefficiencies in query time come from
-  // getTraceRoute does a complicated join to get a set of ids, then getIxMapsData
+  // getTraceroute does a complicated join to get a set of ids, then getIxMapsData
   // does essentially the same join with a where id = the previously gen'd set of ids.
-  if (count($tr_ids) != 0) {
-    $ixMapsData = Traceroute::getIxMapsData($tr_ids);
+  if (count($trIds) != 0) {
+
+    $ixMapsData = Traceroute::getIxMapsData($trIds);
     $ixMapsDataT = Traceroute::dataTransform($ixMapsData);
     $ixMapsDataStats = Traceroute::generateDataForGoogleMaps($ixMapsDataT);
     $trHtmlTable = Traceroute::renderTrSets($ixMapsDataT);
@@ -71,19 +83,20 @@ if (!isset($_POST) || count($_POST) == 0) {
   $mtime = $mtime[1] + $mtime[0];
   $endtime = $mtime;
   $totaltime = ($endtime - $starttime);
-  $totaltime = number_format($totaltime,2);
+  $totaltime = number_format($totaltime,4);
+  echo json_encode($totaltime);die;
 
   // add db query results/errors
-  $ixMapsDataStats['querySummary']=$dbQuerySummary;
-  $ixMapsDataStats['queryLogs']=$dbQueryHtml;
+  $ixMapsDataStats['querySummary'] = $dbQuerySummary;
+  $ixMapsDataStats['queryLogs'] = $dbQueryHtml;
 
   // add exec time
-  $ixMapsDataStats['execTime']=$totaltime;
+  $ixMapsDataStats['execTime'] = $totaltime;
 
   // add server side generated table;
-  $ixMapsDataStats['trsTable']=$trHtmlTable;
-  $ixMapsDataStats['totTrsFound']=$totTrFound;
+  $ixMapsDataStats['trsTable'] = $trHtmlTable;
+  $ixMapsDataStats['totTrsFound'] = $totTrFound;
 
-  echo json_encode($ixMapsDataStats);
+  // echo json_encode($ixMapsDataStats);
 }
 ?>
