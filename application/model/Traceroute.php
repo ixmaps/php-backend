@@ -158,7 +158,7 @@ class Traceroute
   */
   public static function getTrSet($sql, $wParam)
   {
-    global $dbconn, $dbQueryHtml, $dbQuerySummary;
+    global $dbconn, $dbQuerySummary;
     $trSet = array();
 
     // old approach: used only for quick links
@@ -212,7 +212,7 @@ class Traceroute
 
 
   /**
-    * CM: this needs a lot of work, but I think the idea is to process the constrains
+    * CM: this needs a lot of work, but I think the idea is to process the constraints
     * and return a set of tr_ids (?)
     *
     * @param $data is a set of constraints received from the frontend
@@ -222,7 +222,7 @@ class Traceroute
     */
   public static function getTraceroute($data)
   {
-    global $dbconn, $dbQueryHtml, $dbQuerySummary;
+    global $dbconn, $dbQuerySummary;
     $result = array();
     $trSets = array();
     $conn = 0;
@@ -348,7 +348,7 @@ class Traceroute
     */
   public static function processQuickLink($qlArray)
   {
-    global $dbQueryHtml, $dbQuerySummary;
+    global $dbQuerySummary;
 
     if ($qlArray[0]['constraint2'] == "viaNSACity") {
       $sql = "select distinct(tr_item.traceroute_id) as id from tr_item join ip_addr_info on tr_item.ip_addr = ip_addr_info.ip_addr where ip_addr_info.mm_city in ('San Francisco', 'Los Angeles', 'New York', 'Dallas', 'Washington', 'Ashburn', 'Seattle', 'San Jose', 'San Diego', 'Miami', 'Boston', 'Phoenix', 'Salt Lake City', 'Nashville', 'Denver', 'Saint Louis', 'Bridgeton', 'Bluffdale', 'Houston', 'Chicago', 'Atlanta', 'Portland');";
@@ -377,10 +377,9 @@ class Traceroute
     */
   public static function getIxMapsData($data)
   {
-    global $dbconn, $trNumLimit, $dbQueryHtml, $dbQuerySummary, $totTrFound;
-    $result = array();
+    global $dbconn, $trNumLimit;
+
     $totTrs = count($data);
-    $totTrFound = $totTrs;
 
     // set index increase if total traceroutes is > $trNumLimit
     if ($totTrs > $trNumLimit) {
@@ -397,9 +396,9 @@ class Traceroute
     for ($i = 0; $i < $totTrs; $i += $indexJump) {
       $trCollected[] = $data[$i];
       if ($c == 0) {
-        $wTrs.=' traceroute.id='.$data[$i];
+        $wTrs.=' tt.traceroute_id='.$data[$i];
       } else {
-        $wTrs.=' OR traceroute.id='.$data[$i];
+        $wTrs.=' OR tt.traceroute_id='.$data[$i];
       }
       $c++;
     }
@@ -407,20 +406,12 @@ class Traceroute
     // free some memory
     unset($data);
 
-    $sql = "SELECT
-    tr_item.traceroute_id, tr_item.hop, tr_item.rtt_ms,
-
-    traceroute.id, traceroute.dest, traceroute.dest_ip, traceroute.submitter, traceroute.sub_time, traceroute.zip_code,
-
-    ip_addr_info.ip_addr, ip_addr_info.hostname, ip_addr_info.lat, ip_addr_info.long, ip_addr_info.mm_country, ip_addr_info.mm_city, ip_addr_info.gl_override,
-
-    as_users.num, as_users.name, as_users.short_name,
-
-    ip_addr_info.flagged
-
-    FROM tr_item, traceroute, ip_addr_info, as_users WHERE (tr_item.traceroute_id=traceroute.id) AND (ip_addr_info.ip_addr=tr_item.ip_addr) AND (as_users.num=ip_addr_info.asnum) AND tr_item.attempt = 1";
+    $sql = "
+      SELECT at.traceroute_id, at.hop, at.rtt1, at.rtt2, at.rtt3, at.rtt4, at.min_latency, at.ip_addr, at.hostname, at.lat, at.long, at.mm_city, at.mm_country, at.gl_override, at.asnum, at.asname, tt.dest, tt.dest_ip_addr, tt.submitter, tt.sub_time, tt.submitter_zip_code, tt.last_hop_ip_addr, ip_addr_info.flagged
+      FROM annotated_traceroutes at, traceroute_traits tt, ip_addr_info
+      WHERE at.traceroute_id = tt.traceroute_id AND at.ip_addr = ip_addr_info.ip_addr";
     $sql.=" AND (".$wTrs.")";
-    $sql.=" order by tr_item.traceroute_id, tr_item.hop, tr_item.attempt";
+    $sql.=" order by at.traceroute_id, at.hop";
 
     // free some memory
     $wTrs = '';
@@ -428,86 +419,51 @@ class Traceroute
     $result = pg_query($dbconn, $sql) or die('Query failed: ' . pg_last_error());
     $trArr = pg_fetch_all($result);
 
-    return $trArr;
-  }
+    $trData = array();
+    $totHops = 0;
+    // start loop over tr data array where i is an index of hops
+    for ($i = 0; $i < count($trArr); $i++) {
+      // now is the time to rename everything
+      // also to reorg the structure, it's too awful
+      // add originCity and originCountry (and then revise buildTrResultsTable and trdetails)
 
-  /**
-    New version: Generates json data for gmaps
-  */
-  /**
-    * Modifies passed in array of traceroutes to structure in json for frontend
-    *
-    * @param array of traceroutes
-    *
-    * @return json obj of traceroutes
-    *
-    */
-  public static function generateDataForGoogleMaps($data)
-  {
-    global $webUrl, $savePath, $as_num_color;
+      $totHops++;
+      $trId = $trArr[$i]['traceroute_id'];
+      $hop = $trArr[$i]['hop'];
+      $trData[$trId][$hop] = array(
+        'hop' => $trArr[$i]['hop'],
+        'rtt1' => $trArr[$i]['rtt1'],
+        'rtt2' => $trArr[$i]['rtt2'],
+        'rtt3' => $trArr[$i]['rtt3'],
+        'rtt4' => $trArr[$i]['rtt4'],
+        'minLatency' => $trArr[$i]['min_latency'],
+        'ip' => $trArr[$i]['ip_addr'],
+        'hostname' => $trArr[$i]['hostname'],
+        'lat' => $trArr[$i]['lat'],
+        'long' => $trArr[$i]['long'],
+        'mmCity' => $trArr[$i]['mm_city'],
+        'mmCountry' => $trArr[$i]['mm_country'],
+        'glOverride' => $trArr[$i]['gl_override'],
+        'asNum' => $trArr[$i]['asnum'],
+        'asName' => $trArr[$i]['asname'],
+        'flagged' => $trArr[$i]['flagged'],
+        'destHostname' => $trArr[$i]['dest'],
+        'destIp' => $trArr[$i]['dest_ip_addr'],
+        'submitter' => $trArr[$i]['submitter'],
+        'subTime' => $trArr[$i]['sub_time'],
+        'zipCode' => $trArr[$i]['submitter_zip_code'],
+        'lastHopIp' => $trArr[$i]['last_hop_ip_addr']
+      );
 
-    $trDataToJson = array();
+    } // end for
 
-    // loop 1: TRids
-    $totTrs = 0;
-    foreach($data as $trId => $hops) {
-      $totTrs++;
-      // loop 2: hops in a TRid
-      $totHopsAll = 0;
-
-      // determine last hop, which is just set to 0 currently (in previous func)
-      $lastHopIp = end($hops)[0];
-
-      for ($r = 0; $r < count($hops); $r++) {
-        $totHopsAll++;
-
-        // new approach: use for looping in a way that previous hops' data can be accessed easily
-        $id = $hops[$r][4];
-        $hop = $hops[$r][1];
-        $mm_city = $hops[$r][10];
-        $mm_city = str_replace("'"," ",$mm_city);
-
-        // data set to be exported to json
-        $trDataToJson[$id][$hop] = array(
-          'ip'=>$hops[$r][0],
-          'hop'=>$hops[$r][1],
-          'lat'=>$hops[$r][2],
-          'long'=>$hops[$r][3],
-          'asNum'=>$hops[$r][5],
-          'asName'=>$hops[$r][6],
-          'destHostname'=>$hops[$r][7],
-          'destIp'=>$hops[$r][8],
-          'submitter'=>$hops[$r][9],
-          'mmCity'=>$mm_city,
-          'mmCountry'=>$hops[$r][11],
-          'subTime'=>$hops[$r][12],
-          'firstAttemptLatency'=>$hops[$r][13],
-          'glOverride'=>$hops[$r][14],
-          'distFromOrigin'=>$hops[$r][15],
-          'impDist'=>$hops[$r][16],
-          'timeLight'=>$hops[$r][17],
-          'latOrigin'=>$hops[$r][18],
-          'longOrigin'=>$hops[$r][19],
-          'lastHopIp'=>$lastHopIp,
-          'flagged'=>$hops[$r][21],
-          'hostname'=>$hops[$r][22],
-          'zipCode'=>$hops[$r][23],
-          'asShortname'=>$hops[$r][24],
-          'hostname'=>$hops[$r][25]
-        );
-
-      } // end loop 2
-
-    } // end loop 1
-
-    // create results array
-    $statsResult = array(
-      'totTrs'=>$totTrs,
-      'totHops'=>$totHopsAll,
-      'result'=>json_encode($trDataToJson)
+    $results = array(
+      'totTrs' => $totTrs,
+      'totHops' => $totHops,
+      'result' => json_encode($trData)
     );
 
-    return $statsResult;
+    return $results;
   }
 
 
@@ -743,6 +699,87 @@ class Traceroute
     return $trData;
   }
 
+
+  /**
+    New version: Generates json data for gmaps
+  */
+  /**
+    * Modifies passed in array of traceroutes to structure in json for frontend
+    *
+    * @param array of traceroutes
+    *
+    * @return json obj of traceroutes
+    *
+    */
+  public static function generateDataForGoogleMaps($data)
+  {
+    global $webUrl, $savePath, $as_num_color;
+
+    $trDataToJson = array();
+
+    // loop 1: TRids
+    $totTrs = 0;
+    foreach($data as $trId => $hops) {
+      $totTrs++;
+      // loop 2: hops in a TRid
+      $totHopsAll = 0;
+
+      // determine last hop, which is just set to 0 currently (in previous func)
+      $lastHopIp = end($hops)[0];
+
+      for ($r = 0; $r < count($hops); $r++) {
+        $totHopsAll++;
+
+        // new approach: use for looping in a way that previous hops' data can be accessed easily
+        $id = $hops[$r][4];
+        $hop = $hops[$r][1];
+        $mm_city = $hops[$r][10];
+        $mm_city = str_replace("'"," ",$mm_city);
+
+        // data set to be exported to json
+        $trDataToJson[$id][$hop] = array(
+          'ip'=>$hops[$r][0],
+          'hop'=>$hops[$r][1],
+          'lat'=>$hops[$r][2],
+          'long'=>$hops[$r][3],
+          'asNum'=>$hops[$r][5],
+          'asName'=>$hops[$r][6],
+          'destHostname'=>$hops[$r][7],
+          'destIp'=>$hops[$r][8],
+          'submitter'=>$hops[$r][9],
+          'mmCity'=>$mm_city,
+          'mmCountry'=>$hops[$r][11],
+          'subTime'=>$hops[$r][12],
+          'firstAttemptLatency'=>$hops[$r][13],
+          'glOverride'=>$hops[$r][14],
+          'distFromOrigin'=>$hops[$r][15],
+          'impDist'=>$hops[$r][16],
+          'timeLight'=>$hops[$r][17],
+          'latOrigin'=>$hops[$r][18],
+          'longOrigin'=>$hops[$r][19],
+          'lastHopIp'=>$lastHopIp,
+          'flagged'=>$hops[$r][21],
+          'hostname'=>$hops[$r][22],
+          'zipCode'=>$hops[$r][23],
+          'asShortname'=>$hops[$r][24],
+          'hostname'=>$hops[$r][25]
+        );
+
+      } // end loop 2
+
+    } // end loop 1
+
+    // create results array
+    $statsResult = array(
+      'totTrs'=>$totTrs,
+      'totHops'=>$totHopsAll,
+      'result'=>json_encode($trDataToJson)
+    );
+
+    return $statsResult;
+  }
+
+
   /**
   Check if there is a lower latency in subsequent hops and return that value
   LEGACY?
@@ -802,7 +839,7 @@ class Traceroute
   // <td>'.$trIdData[0][7].'</td>
   // <td>'.$trIdData[0][8].'</td>
   {
-    $trResultsData = array();
+    // $trResultsData = array();
     $html = '<table id="traceroutes-table" class="ui tablesorter selectable celled compact table">
         <thead>
           <tr>
@@ -812,47 +849,46 @@ class Traceroute
           </tr>
       </thead><tbody>';
 
-    $c=0;
+    $c = 0;
 
-    foreach($data as $trId => $trIdData)
-    {
+    foreach($data as $trId => $trIdData) {
       $c++;
       $onMouseOver = " onmouseout='removeTr()' onmouseover='renderTr2(".$trId.")' onfocus='showThisTr(".$trId.")'";
-      //$onClick = "javascript: viewTrDetails(".$trId.");";       // REMOVED THIS FOR PRATT - BUT I THINK WE WANT TO KEEP IT REMOVED
+
       $onClick = "javascript: showThisTr(".$trId.");";
 
-      $active='';
+      $active = '';
       $lastHopIdx = count($trIdData);
       // get short date
-      $sDate = explode(" ", $trIdData[0][12]);
-      $trIdData[0][12]=$sDate[0];
+      $sDate = explode(" ", $trIdData[1]['subTime']);
+      $trIdData[1]['subTime'] = $sDate;
       // set up 'city, country' format if city exists
       $originStr = '';
-      if(strlen($trIdData[0][10]) > 0) {
-        $originStr = $trIdData[0][10].', '.$trIdData[0][11];
+      if(strlen($trIdData[1]['mmCity']) > 0) {
+        $originStr = $trIdData[1]['mmCity'].', '.$trIdData[1]['mmCountry'];
       } else {
-        $originStr = $trIdData[0][11];
+        $originStr = $trIdData[1]['mmCountry'];
       }
 
       $flagIcon = "";
-      if($trIdData[0][11]!=""){
-        $flagIcon = '<i class="'.strtolower($trIdData[0][11]).' flag"></i> ';
+      if($trIdData[1]['mmCountry']!=""){
+        $flagIcon = '<i class="'.strtolower($trIdData[1]['mmCountry']).' flag"></i> ';
       }
 
       $html .='
             <tr>
-                <td>'.$flagIcon.$trIdData[0][11].' '.$trIdData[0][10].'</td>
-                <td>'.$trIdData[0][7].'</td>
+                <td>'.$flagIcon.$trIdData[1]['mmCountry'].' '.$trIdData[1]['mmCity'].'</td>
+                <td>'.$trIdData[1]['destHostname'].'</td>
                 <td><a id="tr-a-'.$trId.'" class="link'.$active.'" href="'.$onClick.'" '.$onMouseOver.'>'.$trId.'</a></td>
             </tr>
             ';
 
-      $trResultsData[$trId]=array(
-        "city"=>$trIdData[0][10],
-        "country"=>$trIdData[0][11],
-        "destination"=>$trIdData[0][7],
-        "date"=>$trIdData[0][12]
-        );
+      $trResultsData[$trId] = array(
+        "city"=>$trIdData[1]['mmCity'],
+        "country"=>$trIdData[1]['mmCountry'],
+        "destination"=>$trIdData[1]['destHostname'],
+        "date"=>$trIdData[1]['subTime']
+      );
 
     } // end foreach
 
