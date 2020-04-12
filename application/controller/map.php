@@ -80,6 +80,6 @@ if (!isset($_POST)) {
   $ixMapsDataStats['trsTable'] = $trHtmlTable;
   $ixMapsDataStats['totTrsFound'] = $totTrFound;
 
-  echo json_encode($totaltime);
+  echo json_encode($ixMapsDataStats);
 }
 ?>
