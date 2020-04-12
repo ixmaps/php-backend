@@ -26,7 +26,7 @@ $mtime = $mtime[1] + $mtime[0];
 $starttime = $mtime;
 
 
-if (!isset($_POST) || count($_POST) == 0) {
+if (!isset($_POST)) {
   $error = array(
     "error"=> "No parameters sent to Map Backend"
   );
@@ -38,32 +38,17 @@ if (!isset($_POST) || count($_POST) == 0) {
   $dbQuerySummary = "";
   $totTrFound = 0;
 
-  // works with postman - if we need to revert for some reason, loop over the $_POST obj instead of creating this postArr
   $postArr = json_decode(file_get_contents('php://input'), TRUE);
-  $dataArray = array();
 
-  foreach ($postArr as $constraint) {
-    $dataArray[] = $constraint;
-  }
-
-  if ($dataArray[0]['constraint1'] == "quickLink") {
-    $trIds = Traceroute::processQuickLink($dataArray);
+  if ($postArr[0]['constraint1'] == "quickLink") {
+    $trIds = Traceroute::processQuickLink($postArr);
   } else {
-    $trIds = Traceroute::getTraceroute($dataArray);
+    $trIds = Traceroute::getTraceroute($postArr);
+
   }
-
-  $mtime = microtime();
-  $mtime = explode(" ",$mtime);
-  $mtime = $mtime[1] + $mtime[0];
-  $endtime = $mtime;
-  $totaltime = ($endtime - $starttime);
-  $totaltime = number_format($totaltime,2);
-  var_dump($totaltime);
-
-  // var_dump($trIds);die;
 
   // CM: turning this off for now in a futile attempt to speed up query engine
-  // $data = json_encode($dataArray);
+  // $data = json_encode($postArr);
   // $saveLog = Traceroute::saveSearch($data);
 
   // TODO: this is part of where the inefficiencies in query time come from
@@ -83,8 +68,7 @@ if (!isset($_POST) || count($_POST) == 0) {
   $mtime = $mtime[1] + $mtime[0];
   $endtime = $mtime;
   $totaltime = ($endtime - $starttime);
-  $totaltime = number_format($totaltime,4);
-  echo json_encode($totaltime);die;
+  $totaltime = number_format($totaltime, 2);
 
   // add db query results/errors
   $ixMapsDataStats['querySummary'] = $dbQuerySummary;
@@ -97,6 +81,6 @@ if (!isset($_POST) || count($_POST) == 0) {
   $ixMapsDataStats['trsTable'] = $trHtmlTable;
   $ixMapsDataStats['totTrsFound'] = $totTrFound;
 
-  // echo json_encode($ixMapsDataStats);
+  echo json_encode($ixMapsDataStats);
 }
 ?>
