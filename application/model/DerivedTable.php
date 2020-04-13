@@ -13,7 +13,7 @@
  * origin_asname
  * origin_city
  * origin_country
- * dest
+ * dest_hostname
  * dest_ip_addr
  * dest_asnum
  * dest_asname
@@ -144,7 +144,7 @@ class DerivedTable
       submitter
       sub_time
       submitter_zip_code
-      dest
+      dest_hostname
       dest_ip_addr
       dest_asnum
       dest_asname
@@ -159,7 +159,7 @@ class DerivedTable
     $submitter = pg_escape_string($destArr[0]["submitter"]);
     $sub_time = $destArr[0]["sub_time"];
     $submitter_zip_code = $destArr[0]["zip_code"];
-    $dest = pg_escape_string($destArr[0]["dest"]);
+    $dest_hostname = pg_escape_string($destArr[0]["dest"]);
     $dest_ip_addr = $destArr[0]["dest_ip"];
     $dest_asnum = $destArr[0]["asnum"];
     $dest_city = pg_escape_string($destArr[0]["mm_city"]);
@@ -168,7 +168,7 @@ class DerivedTable
     // echo "Submitter: {$submitter}\n";
     // echo "Submission time: {$sub_time}\n";
     // echo "Submitter zip code: {$submitter_zip_code}\n";
-    // echo "Dest: {$dest}\n";
+    // echo "Dest hostname: {$dest_hostname}\n";
     // echo "Dest ip: {$dest_ip_addr}\n";
     // echo "Dest asnum: {$dest_asnum}\n";
     // echo "Dest asname: {$dest_asname}\n";
@@ -553,7 +553,7 @@ class DerivedTable
           $origin_asname,
           $origin_city,
           $origin_country,
-          $dest,
+          $dest_hostname,
           $dest_ip_addr,
           $dest_asnum,
           $dest_asname,
@@ -674,7 +674,7 @@ class DerivedTable
         origin_asname,
         origin_city,
         origin_country,
-        dest,
+        dest_hostname,
         dest_ip_addr,
         dest_asnum,
         dest_asname,

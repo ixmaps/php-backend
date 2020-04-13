@@ -43,7 +43,6 @@ if (!isset($_POST)) {
     $trIds = Traceroute::processQuickLink($postArr);
   } else {
     $trIds = Traceroute::getTraceroute($postArr);
-
   }
 
   // CM: turning this off for now in a futile attempt to speed up query engine
@@ -51,10 +50,10 @@ if (!isset($_POST)) {
   // $saveLog = Traceroute::saveSearch($data);
 
   // TODO: this is part of where the inefficiencies in query time come from
-  // getTraceroute does a complicated join to get a set of ids, then getIxMapsData
+  // getTraceroute does a complicated join to get a set of ids, then getTracerouteDataForIds
   // does essentially the same join with a where id = the previously gen'd set of ids.
   if (count($trIds) != 0) {
-    $ixMapsData = Traceroute::getIxMapsData($trIds);
+    $ixMapsData = Traceroute::getTracerouteDataForIds($trIds);
   }
 
   // end calculation of execution time

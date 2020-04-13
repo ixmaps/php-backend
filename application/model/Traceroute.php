@@ -423,6 +423,8 @@ class Traceroute
     $totHops = 0;
     // start loop over tr data array where i is an index of hops
     for ($i = 0; $i < count($trArr); $i++) {
+      //       tt.origin_asnum, tt.origin_asname, tt.origin_city, tt.origin_country
+      //       tt.last_hop_asnum, tt.last_hop_asname, tt.last_hop_city, tt.last_hop_country
       // now is the time to rename everything
       // also to reorg the structure, it's too awful
       // add originCity and originCountry (and then revise buildTrResultsTable and trdetails)
