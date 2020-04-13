@@ -1,53 +1,33 @@
 <?php
-
+/**
+ *
+ * Traceroute class deals with a variety of things, we're in the process of tightening this up.
+ * Key functions relate to map.php, receiving a set of constraints from the frontend, parsing
+ * those for relevant tr ids, and generating traceroute objects for those ids
+ *
+ * @author IXmaps.ca (Colin, Antonio)
+ * @since 2020 Apr
+ *
+ */
 class Traceroute
 {
   /**
-    A function to calculate distance between a pair of coordinates
-  */
-  public static function distance($lat1, $lng1, $lat2, $lng2, $miles = true)
-  {
-    $pi80 = M_PI / 180;
-    $lat1 *= $pi80;
-    $lng1 *= $pi80;
-    $lat2 *= $pi80;
-    $lng2 *= $pi80;
-
-    $r = 6372.797; // mean radius of Earth in km
-    $dlat = $lat2 - $lat1;
-    $dlng = $lng2 - $lng1;
-    $a = sin($dlat / 2) * sin($dlat / 2) + cos($lat1) * cos($lat2) * sin($dlng / 2) * sin($dlng / 2);
-    $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
-    $km = $r * $c;
-
-    return ($miles ? ($km * 0.621371192) : $km);
-  }
-
-  /**
-    A handy function to clean up html code
-  */
-  public static function strip_only($str, $tags, $stripContent = false)
-  {
-    $content = '';
-    if(!is_array($tags)) {
-      $tags = (strpos($str, '>') !== false ? explode('>', str_replace('<', '', $tags)) : array($tags));
-      if(end($tags) == ''){
-        array_pop($tags);
-      }
-    }
-    foreach($tags as $tag) {
-      if ($stripContent){
-        $content = '(.+</'.$tag.'[^>]*>|)';
-      }
-      $str = preg_replace('#</?'.$tag.'[^>]*>'.$content.'#is', '', $str);
-    }
-    return $str;
-  } // end function
-
-  /**
-    Key function !! creates a where SQL based on explore submitted constraints
-  */
-  public static function buildWhere($c, $doesNotChk = false, $paramNum = 1)
+   *
+   * Creates a where SQL string based on passed in constraint
+   *
+   * @param Constraint obj, eg
+   *  {
+   *    "constraint1": "does",
+   *    "constraint2": "contain",
+   *    "constraint3": "country",
+   *    "constraint4": "CA",
+   *    "constraint5": "and"
+   *  }
+   *
+   * @return SQL string
+   *
+   */
+  public static function buildWhere($c, $paramNum = 1)
   {
     global $dbconn, $ixmaps_debug_mode;
 
@@ -55,111 +35,124 @@ class Traceroute
     $w = '';
     $table = '';
 
-    $constraint_value = trim($c['constraint4']);
+    $constraintValue = trim($c['constraint4']);
     // apply some default formating to constraint's value
 
-    if ($c['constraint1'] == 'does' || $doesNotChk == true) {
-      $selector_s = 'LIKE';
-      $selector_i = '=';
-    } else {
-      $selector_s = 'NOT LIKE';
-      $selector_i = '<>';
+    // DOES / DOESNOT
+    if ($c['constraint1'] == 'does') {
+      $compartorExact = '=';
+      $compartorLike = 'LIKE';
+    } else if ($c['constraint1'] == 'doesNot') {
+      $compartorExact = '<>';
+      $compartorLike = 'NOT LIKE';
     }
 
+    // ORIGINATE / CONTAIN / GOVIA / TERMINATE?
+    // TODO?
+    if ($c['constraint2'] == 'originate') {
+      $w .= " AND annotated_traceroutes.hop = 1";
+
+    } else if($c['constraint2'] == 'terminate') {
+
+    } else if($c['constraint2'] == 'goVia') {
+
+      // this is a wrong assumption.
+      //The destination ip is not always the last hop
+      //$w.=" AND tr_item.attempt = 1 AND tr_item.hop > 1 AND (traceroute.dest_ip<>ip_addr_info.ip_addr)";
+
+      $w .= " AND annotated_traceroutes.hop != 1";
+      // TODO TEST THIS
+      // $w.=" AND (annotated_traceroutes.hop != 1 AND annotated_traceroutes.hop != traceroute_traits.last_hop_num)";
+
+    } else if($c['constraint2'] == 'contain') {
+
+      // TODO TEST THIS
+      // $w.=" AND tr_item.attempt = 1 ";
+      $w = " ";
+    }
+
+
+    // CONSTRAINT3
+    /* setting constraints associated to table annotated_traceroutes */
+    if($c['constraint3'] == 'country') {
+      $constraintValue = strtoupper($constraintValue);
+      $table = 'annotated_traceroutes';
+      $field = 'mm_country';
+    } else if($c['constraint3'] == 'region') {
+      $constraintValue = strtoupper($constraintValue);
+      $table = 'annotated_traceroutes';
+      $field = 'mm_region';
+    } else if($c['constraint3'] == 'city') {
+      $constraintValue = ucwords(strtolower($constraintValue));
+      $table = 'annotated_traceroutes';
+      $field = 'mm_city';
+    } else if($c['constraint3'] == 'zipCode') {
+      $table = 'annotated_traceroutes';
+      $field = 'mm_postal';
+    } else if($c['constraint3'] == 'ipAddr') {
+      $table = 'annotated_traceroutes';
+      $field = 'ip_addr';
+    } else if($c['constraint3'] == 'hostName') {
+      $table = 'annotated_traceroutes';
+      $field = 'hostname';
+    } else if($c['constraint3'] == 'asnum') {
+      $table = 'annotated_traceroutes';
+      $field = 'asnum';
+    } else if($c['constraint3'] == 'ISP') {
+      $table = 'annotated_traceroutes';
+      $field = 'asname';
+    /* setting constraints associated to table traceroute_traits */
+    } else if($c['constraint3'] == 'submitter') {
+      $table = 'traceroute_traits';
+      $field = 'submitter';
+    } else if($c['constraint3'] == 'zipCodeSubmitter') {
+      $table = 'traceroute_traits';
+      $field = 'submitter_zip_code';
+    } else if($c['constraint3'] == 'destHostName') {
+      $table = 'traceroute_traits';
+      $field = 'dest_hostname';
+    } else if($c['constraint3'] == 'trId') {
+      $table = 'traceroute_traits';
+      $field = 'traceroute_id';
+    }
+
+
+    // AND / OR
     if ($c['constraint5'] == '') {
       $operand = 'AND';
     } else  {
       $operand = $c['constraint5'];
     }
 
-    /* setting constraints associated to table ip_addr_info */
-    if($c['constraint3']=='country') {
-      $constraint_value = strtoupper($constraint_value);
-      $table = 'ip_addr_info';
-      $field='mm_country';
-    } else if($c['constraint3']=='region') {
-      $constraint_value = strtoupper($constraint_value);
-      $table = 'ip_addr_info';
-      $field='mm_region';
-    } else if($c['constraint3']=='city') {
-      $constraint_value = ucwords(strtolower($constraint_value));
-      $table = 'ip_addr_info';
-      $field='mm_city';
-    } else if($c['constraint3']=='ISP') {
-      //$constraint_value = ucwords(strtolower($constraint_value));
-      $constraint_value = $constraint_value;
-      $table = 'as_users';
-      $field='name';
-    } else if($c['constraint3']=='NSA') {
-      $table = 'ip_addr_info';
-      $field='mm_city';
-    } else if($c['constraint3']=='zipCode') {
-      //$constraint_value = strtoupper($constraint_value);
-      $table = 'ip_addr_info';
-      $field='mm_postal';
-    } else if($c['constraint3']=='asnum') {
-      $table = 'ip_addr_info';
-      $field='asnum';
-    } else if($c['constraint3']=='submitter') {
-      $table = 'traceroute';
-      $field='submitter';
-    } else if($c['constraint3']=='zipCodeSubmitter') {
-      $table = 'traceroute';
-      $field='zip_code';
-    } else if($c['constraint3']=='destHostName') {
-      $table = 'traceroute';
-      $field='dest';
-    } else if($c['constraint3']=='ipAddr') {
-      $table = 'ip_addr_info';
-      $field='ip_addr';
-    } else if($c['constraint3']=='trId') {
-      $table = 'traceroute';
-      $field='id';
-    } else if($c['constraint3']=='hostName') {
-      $table = 'ip_addr_info';
-      $field='hostname';
-    }
 
-    if($c['constraint2']=='originate') {
-      $w.=" AND tr_item.hop = 1 AND tr_item.attempt = 1";
-    } else if($c['constraint2']=='terminate') {
+    // Exact matches - TODO, add a lot more exacts, the like fields are destroying performance
+    if ($field == 'asnum' || $field == 'traceroute_id' || $field == 'ip_addr') {
+      $w.=" AND $table.$field $compartorExact $".$paramNum;
 
-
-    } else if($c['constraint2']=='goVia') {
-
-      // this is a wrong assumption.
-      //The destination ip is not always the last hop
-      //$w.=" AND tr_item.attempt = 1 AND tr_item.hop > 1 AND (traceroute.dest_ip<>ip_addr_info.ip_addr)";
-
-      $w.=" AND tr_item.attempt = 1 AND tr_item.hop > 1 ";
-
-      // FIX ME. need to exclude last ip.
-
-
-    } else if($c['constraint2']=='contain') {
-
-      $w.=" AND tr_item.attempt = 1 ";
-
-    }
-
-    // Using pg_query_params
-    if (($field=='asnum') || ($field=='id') || ($field=='ip_addr')) {
-      $w.=" AND $table.$field $selector_i $".$paramNum;
+    // Similar matches
     } else {
-      $w.=" AND $table.$field $selector_s $".$paramNum;
-      $constraint_value = "%".$constraint_value."%";
+      $w.=" AND $table.$field $compartorLike $".$paramNum;
+      // TODO test why only this includes the constraintValue (then rename it)
+      $constraintValue = "%".$constraintValue."%";
     }
-    $rParams = array($w, $constraint_value);
+
+    $rParams = array($w, $constraintValue);
     return $rParams;
   }
 
+
   /**
-    Key function !! Get TR data for a given sql query
-  */
+   *
+   * Get set of traceroute ids for given sql
+   *
+   * @param sql string (and a where value - may be eliminated soon)
+   *
+   * @return array of TR ids
+   *
+   */
   public static function getTrSet($sql, $wParam)
   {
     global $dbconn, $dbQuerySummary;
-    $trSet = array();
 
     // old approach: used only for quick links
     if ($wParam == "") {
@@ -171,10 +164,8 @@ class Traceroute
     $data = array();
     $lastId = 0;
 
-    $c = 0;
     while ($line = pg_fetch_array($result, null, PGSQL_ASSOC)) {
-      $c++;
-      $id = $line['id'];
+      $id = $line['traceroute_id'];
       if ($id != $lastId) {
         $data[] = $id;
       }
@@ -188,119 +179,109 @@ class Traceroute
     return $data1;
   }
 
-  /**
-    Get TR details data for a current TR: this is quite expensive computationally and memory
-    Only used to perform advanced analysis that need to look at all the attempts and all the hops in a TR
-  */
-  public static function getTracerouteAll($trId)
-  {
-    global $dbconn;
-    $result = array();
-    $trArr = array();
-    // adding exception to prevent error with tr id with no tr_items
-    if ($trId!='') {
-      $sql = 'SELECT traceroute.id, tr_item.* FROM traceroute, tr_item WHERE (tr_item.traceroute_id=traceroute.id) AND traceroute.id = '.$trId.' ORDER BY tr_item.traceroute_id, tr_item.hop, tr_item.attempt';
-
-      $result = pg_query($dbconn, $sql) or die('Query failed on getTracerouteAll: ' . pg_last_error() . 'SQL: '. $sql . " TRid: ".var_dump($trId));
-
-      //$tot = pg_num_rows($result);
-      // get all data in a single array
-      $trArr = pg_fetch_all($result);
-    }
-    return $trArr;
-  }
-
 
   /**
-    * CM: this needs a lot of work, but I think the idea is to process the constraints
-    * and return a set of tr_ids (?)
-    *
-    * @param $data is a set of constraints received from the frontend
-    *
-    * @return array of tr_ids
-    *
-    */
+   *
+   * Get set of traceroute ids for constraints
+   *
+   * @param constraints passed in from the frontend (via map.php), eg:
+   * [
+   *   {
+   *     "constraint1": "does",
+   *     "constraint2": "contain",
+   *     "constraint3": "country",
+   *     "constraint4": "CA",
+   *     "constraint5": "and"
+   *   }
+   * ]
+   *
+   * @return array of TR ids
+   *
+   */
   public static function getTracerouteIdsForConstraints($data)
   {
     global $dbconn, $dbQuerySummary;
-    $result = array();
     $trSets = array();
-    $conn = 0;
-    $offset = 0;
-    $doesNotChk = false;
+    $constraintNum = 0;
 
     // loop over the constraints
-    foreach($data as $constraint)
-    {
-      // Something to display on the frontend - gets passed around as a global and added to by various pieces. This should obviously be built on the front end instead...
-      if ($conn > 0) {
+    foreach ($data as $constraint) {
+      // Something to display on the frontend - gets passed around as a global and added to by various pieces. Probably not the best way to handle this...
+      if ($constraintNum > 0) {
         $dbQuerySummary .= '<br>';
       }
       $dbQuerySummary .= '<b>'.$constraint['constraint1'].' : '.$constraint['constraint2'].' : '.$constraint['constraint3'].' : '.$constraint['constraint4'].' : '.$constraint['constraint5'].'</b>';
 
-      $w = '';
       $wParams = array();
 
-      $sql = "SELECT as_users.num, tr_item.traceroute_id, traceroute.id, ip_addr_info.mm_city, ip_addr_info.ip_addr, ip_addr_info.asnum FROM as_users, tr_item, traceroute, ip_addr_info WHERE (tr_item.traceroute_id=traceroute.id) AND (ip_addr_info.ip_addr=tr_item.ip_addr) AND (as_users.num=ip_addr_info.asnum)";
+      $sql = "SELECT annotated_traceroutes.traceroute_id FROM annotated_traceroutes, traceroute_traits WHERE annotated_traceroutes.traceroute_id = traceroute_traits.traceroute_id";
 
-      $sqlOrder = ' order by tr_item.traceroute_id, tr_item.hop, tr_item.attempt';
+      // $sql = "SELECT as_users.num, tr_item.traceroute_id, traceroute.id, ip_addr_info.mm_city, ip_addr_info.ip_addr, ip_addr_info.asnum FROM as_users, tr_item, traceroute, ip_addr_info WHERE (tr_item.traceroute_id=traceroute.id) AND (ip_addr_info.ip_addr=tr_item.ip_addr) AND (as_users.num=ip_addr_info.asnum)";
+
+
+      // "SELECT as_users.num, tr_item.traceroute_id, traceroute.id, ip_addr_info.mm_city, ip_addr_info.ip_addr,
+      // ip_addr_info.asnum FROM as_users, tr_item, traceroute, ip_addr_info WHERE (tr_item.traceroute_id=traceroute.id) AND
+      // (ip_addr_info.ip_addr=tr_item.ip_addr) AND (as_users.num=ip_addr_info.asnum) AND tr_item.attempt = 1 AND
+      // ip_addr_info.mm_city NOT LIKE $1 order by tr_item.traceroute_id, tr_item.hop, tr_item.attempt"
+
+      $sqlOrder = ' order by annotated_traceroutes.traceroute_id, annotated_traceroutes.hop';
 
       // adding exception for doesnot cases
       if ($constraint['constraint1'] == 'doesNot' && $constraint['constraint2'] != 'originate' && $constraint['constraint2'] != 'terminate') {
 
-        $oppositeSet = array();
-        $positiveSet = array();
-
         $wParams = Traceroute::buildWhere($constraint);
-        $sqlTemp = $sql;
-        $sqlTemp.=$wParams[0].$sqlOrder;
-        $positiveSet = Traceroute::getTrSet($sqlTemp, $wParams[1]);
+        $sql .= $wParams[0].$sqlOrder;
 
-        $doesNotChk = true;
+        $trSets[$constraintNum] = Traceroute::getTrSet($sql, $wParams[1]);
 
-        $sqlOposite = $sql;
+        // feels like this can be eliminated entirely - why the exception?
+        // to go back to prev, will need to compare to master
 
-        $wParams = Traceroute::buildWhere($constraint, $doesNotChk);
-        $sqlOposite .= $wParams[0].$sqlOrder;
-        $oppositeSet = Traceroute::getTrSet($sqlOposite, $wParams[1]);
+        // $positiveSet = array();
+        // $sqlPositive = $sql;
+        // $wParams = Traceroute::buildWhere($constraint);
+        // $sqlPositive .= $wParams[0].$sqlOrder;
+        // $positiveSet = Traceroute::getTrSet($sqlPositive, $wParams[1]);
 
-        $trSets[$conn] = array_diff($positiveSet, $oppositeSet);
+        // $oppositeSet = array();
+        // $sqlOposite = $sql;
+        // $wParams = Traceroute::buildWhere($constraint);
+        // $sqlOposite .= $wParams[0].$sqlOrder;
+        // $oppositeSet = Traceroute::getTrSet($sqlOposite, $wParams[1]);
 
-        $doesNotChk = false;
-        unset($oppositeSet);
-        unset($positiveSet);
+        // $trSets[$constraintNum] = $positiveSet;// array_diff($positiveSet, $oppositeSet);
+
+        // unset($oppositeSet);
+        // unset($positiveSet);
 
       // adding an exception for "terminate"
       } else if ($constraint['constraint2'] == 'terminate') {
+        // TODO!
         $sql = "SELECT as_users.num, traceroute_traits.last_hop_num, traceroute_traits.terminated, traceroute.id, ip_addr_info.mm_city, ip_addr_info.ip_addr, ip_addr_info.asnum FROM traceroute_traits, as_users, traceroute, ip_addr_info WHERE (as_users.num = ip_addr_info.asnum) AND (traceroute.id = traceroute_traits.last_hop_num) AND (ip_addr_info.ip_addr = traceroute_traits.last_hop_ip_addr) ";
 
         $sqlOrder = ' order by traceroute.id';
 
         $wParams = Traceroute::buildWhere($constraint);
-        $w.=''.$wParams[0];
+        $sql .= $wParams[0].$sqlOrder;
 
-        $sql .=$w.$sqlOrder;
-
-        $trSets[$conn] = Traceroute::getTrSet($sql, $wParams[1]);
-        $operands[$conn] = $constraint['constraint5'];
+        $trSets[$constraintNum] = Traceroute::getTrSet($sql, $wParams[1]);
 
       } else {
         $wParams = Traceroute::buildWhere($constraint);
-        $w.=''.$wParams[0];
+        $sql .= $wParams[0].$sqlOrder;
 
-        $sql .=$w.$sqlOrder;
-
-        $trSets[$conn] = Traceroute::getTrSet($sql, $wParams[1]);
-        $operands[$conn] = $constraint['constraint5'];
+        $trSets[$constraintNum] = Traceroute::getTrSet($sql, $wParams[1]);
       }
 
-      $conn++;
+      $constraintNum++;
 
     } // end foreach
 
-    $trSetResult = array();
+    // var_dump($trSets);die;
 
-    for ($i = 0; $i < $conn; $i++) {
+    $trSetResult = array();
+    // merge sets based on AND/OR conditions
+    for ($i = 0; $i < $constraintNum; $i++) {
       $trSetResultTemp = array();
       // only one constraint
       if ($i == 0) {
@@ -326,9 +307,6 @@ class Traceroute
     } // end for
     $trSetResultLast =  array_unique($trSetResult);
 
-    // FIXME: move this to the client. make this count based on the # of TR resulting in the set
-    // It's already done. need to fix UI loading of data
-
     $dbQuerySummary .= "<br/>";
 
     unset($trSetResult);
@@ -343,15 +321,13 @@ class Traceroute
     *
     * @param constraint object that defines type of quicklink
     *
-    * @return array of tr_ids
+    * @return array of tr ids
     *
     */
   public static function processQuickLink($qlArray)
   {
-    global $dbQuerySummary;
-
     if ($qlArray[0]['constraint2'] == "viaNSACity") {
-      $sql = "select distinct(tr_item.traceroute_id) as id from tr_item join ip_addr_info on tr_item.ip_addr = ip_addr_info.ip_addr where ip_addr_info.mm_city in ('San Francisco', 'Los Angeles', 'New York', 'Dallas', 'Washington', 'Ashburn', 'Seattle', 'San Jose', 'San Diego', 'Miami', 'Boston', 'Phoenix', 'Salt Lake City', 'Nashville', 'Denver', 'Saint Louis', 'Bridgeton', 'Bluffdale', 'Houston', 'Chicago', 'Atlanta', 'Portland');";
+      $sql = "select traceroute_id as id from traceroute_traits where nsa = true";
       return Traceroute::getTrSet($sql, "");
 
     } else if ($qlArray[0]['constraint2'] == "lastSubmission") {
@@ -370,51 +346,29 @@ class Traceroute
   /**
     * Get tr metadata, hop geodata, hop metadata
     *
-    * @param set of tr_ids (?)
+    * @param set of trIds
     *
     * @return array of traceroutes
     *
     */
-  public static function getTracerouteDataForIds($data)
+  public static function getTracerouteDataForIds($trIds)
   {
     global $dbconn, $trNumLimit;
 
-    $trsFound = count($data);
+    $trsFound = count($trIds);
 
-    // set index increase if total traceroutes is > $trNumLimit
-    if ($trsFound > $trNumLimit) {
-      $indexJump = $trsFound / $trNumLimit;
-      $indexJump = intval($indexJump) + 1;
-    } else {
-      $indexJump = 1;
-    }
-
-    $wTrs = '';
-
-    $c = 0;
-    // build SQL where for the given TR set
-    for ($i = 0; $i < $trsFound; $i += $indexJump) {
-      $trCollected[] = $data[$i];
-      if ($c == 0) {
-        $wTrs.=' tt.traceroute_id='.$data[$i];
-      } else {
-        $wTrs.=' OR tt.traceroute_id='.$data[$i];
-      }
-      $c++;
-    }
+    $sampleOfTrIds = array_rand(array_flip($trIds), $trNumLimit);
+    $idsStr = implode(", ", $sampleOfTrIds);
 
     // free some memory
-    unset($data);
+    unset($trIds);
 
     $sql = "
       SELECT at.traceroute_id, at.hop, at.rtt1, at.rtt2, at.rtt3, at.rtt4, at.min_latency, at.ip_addr, at.hostname, at.lat, at.long, at.mm_city, at.mm_country, at.gl_override, at.asnum, at.asname, ip_addr_info.flagged, tt.submitter, tt.sub_time, tt.submitter_zip_code, tt.origin_asnum, tt.origin_asname, tt.origin_city, tt.origin_country, tt.first_hop_asnum, tt.first_hop_asname, tt.first_hop_city, tt.first_hop_country, tt.last_hop_asnum, tt.last_hop_asname, tt.last_hop_city, tt.last_hop_country, tt.dest_hostname, tt.dest_ip_addr, tt.dest_asnum, tt.dest_asname, tt.dest_city, tt.dest_country, tt.last_hop_ip_addr, tt.terminated
       FROM annotated_traceroutes at, ip_addr_info, traceroute_traits tt
-      WHERE at.traceroute_id = tt.traceroute_id AND at.ip_addr = ip_addr_info.ip_addr";
-    $sql.=" AND (".$wTrs.")";
-    $sql.=" order by at.traceroute_id, at.hop";
-
-    // free some memory
-    $wTrs = '';
+      WHERE at.traceroute_id = tt.traceroute_id AND at.ip_addr = ip_addr_info.ip_addr
+      AND tt.traceroute_id IN (".$idsStr.")
+      order by at.traceroute_id, at.hop";
 
     $result = pg_query($dbconn, $sql) or die('Query failed: ' . pg_last_error());
     $trArr = pg_fetch_all($result);
@@ -465,6 +419,7 @@ class Traceroute
         );
       }
 
+      // add the hop for each iteration of the loop
       $traceroute["hops"][$trArr[$i]['hop']] = array(
         'hop' => $trArr[$i]['hop'],
         'rtt1' => $trArr[$i]['rtt1'],
@@ -557,6 +512,27 @@ class Traceroute
     pg_close($dbconn);
     echo 'Tot queries: '.$c.'<hr/>';
     echo $html;
+  }
+
+  /**
+    A function to calculate distance between a pair of coordinates
+  */
+  public static function distance($lat1, $lng1, $lat2, $lng2, $miles = true)
+  {
+    $pi80 = M_PI / 180;
+    $lat1 *= $pi80;
+    $lng1 *= $pi80;
+    $lat2 *= $pi80;
+    $lng2 *= $pi80;
+
+    $r = 6372.797; // mean radius of Earth in km
+    $dlat = $lat2 - $lat1;
+    $dlng = $lng2 - $lng1;
+    $a = sin($dlat / 2) * sin($dlat / 2) + cos($lat1) * cos($lat2) * sin($dlng / 2) * sin($dlng / 2);
+    $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+    $km = $r * $c;
+
+    return ($miles ? ($km * 0.621371192) : $km);
   }
 
   public static function getColor()

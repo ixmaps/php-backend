@@ -42,9 +42,16 @@ if (!isset($_POST)) {
   if ($postArr[0]['constraint1'] == "quickLink") {
     $trIds = Traceroute::processQuickLink($postArr);
   } else {
-    // rename
     $trIds = Traceroute::getTracerouteIdsForConstraints($postArr);
   }
+
+  // $mtime = microtime();
+  // $mtime = explode(" ",$mtime);
+  // $mtime = $mtime[1] + $mtime[0];
+  // $endtime = $mtime;
+  // $totaltime = ($endtime - $starttime);
+  // $totaltime = number_format($totaltime, 2);
+  // echo json_encode($totaltime);die;
 
   // CM: turning this off for now in a futile attempt to speed up query engine
   // $data = json_encode($postArr);
@@ -71,7 +78,6 @@ if (!isset($_POST)) {
   // add exec time
   $ixMapsData['execTime'] = $totaltime;
 
-  // var_dump($ixMapsData);die;
   echo json_encode($ixMapsData);
 }
 ?>
