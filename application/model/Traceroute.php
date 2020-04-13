@@ -327,15 +327,15 @@ class Traceroute
   public static function processQuickLink($qlArray)
   {
     if ($qlArray[0]['constraint2'] == "viaNSACity") {
-      $sql = "select traceroute_id as id from traceroute_traits where nsa = true";
+      $sql = "select traceroute_id from traceroute_traits where nsa = true";
       return Traceroute::getTrSet($sql, "");
 
     } else if ($qlArray[0]['constraint2'] == "lastSubmission") {
-      $sql = "select id from traceroute order by sub_time desc limit 20";
+      $sql = "select id as traceroute_id from traceroute order by sub_time desc limit 20";
       return Traceroute::getTrSet($sql, "");
 
     } else if ($qlArray[0]['constraint2'] == "singleRoute") {
-      $sql = "select id from traceroute where id = ".$qlArray[0]['constraint3'];
+      $sql = "select id as traceroute_id from traceroute where id = ".$qlArray[0]['constraint3'];
       return Traceroute::getTrSet($sql, "");
 
     } else {
