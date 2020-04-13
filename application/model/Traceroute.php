@@ -220,7 +220,7 @@ class Traceroute
     * @return array of tr_ids
     *
     */
-  public static function getTraceroute($data)
+  public static function getTracerouteIdsForConstraints($data)
   {
     global $dbconn, $dbQuerySummary;
     $result = array();
@@ -375,15 +375,15 @@ class Traceroute
     * @return array of traceroutes
     *
     */
-  public static function getIxMapsData($data)
+  public static function getTracerouteDataForIds($data)
   {
     global $dbconn, $trNumLimit;
 
-    $totTrs = count($data);
+    $trsFound = count($data);
 
     // set index increase if total traceroutes is > $trNumLimit
-    if ($totTrs > $trNumLimit) {
-      $indexJump = $totTrs / $trNumLimit;
+    if ($trsFound > $trNumLimit) {
+      $indexJump = $trsFound / $trNumLimit;
       $indexJump = intval($indexJump) + 1;
     } else {
       $indexJump = 1;
@@ -393,7 +393,7 @@ class Traceroute
 
     $c = 0;
     // build SQL where for the given TR set
-    for ($i = 0; $i < $totTrs; $i += $indexJump) {
+    for ($i = 0; $i < $trsFound; $i += $indexJump) {
       $trCollected[] = $data[$i];
       if ($c == 0) {
         $wTrs.=' tt.traceroute_id='.$data[$i];
@@ -407,8 +407,8 @@ class Traceroute
     unset($data);
 
     $sql = "
-      SELECT at.traceroute_id, at.hop, at.rtt1, at.rtt2, at.rtt3, at.rtt4, at.min_latency, at.ip_addr, at.hostname, at.lat, at.long, at.mm_city, at.mm_country, at.gl_override, at.asnum, at.asname, tt.dest, tt.dest_ip_addr, tt.submitter, tt.sub_time, tt.submitter_zip_code, tt.last_hop_ip_addr, ip_addr_info.flagged
-      FROM annotated_traceroutes at, traceroute_traits tt, ip_addr_info
+      SELECT at.traceroute_id, at.hop, at.rtt1, at.rtt2, at.rtt3, at.rtt4, at.min_latency, at.ip_addr, at.hostname, at.lat, at.long, at.mm_city, at.mm_country, at.gl_override, at.asnum, at.asname, ip_addr_info.flagged, tt.submitter, tt.sub_time, tt.submitter_zip_code, tt.origin_asnum, tt.origin_asname, tt.origin_city, tt.origin_country, tt.first_hop_asnum, tt.first_hop_asname, tt.first_hop_city, tt.first_hop_country, tt.last_hop_asnum, tt.last_hop_asname, tt.last_hop_city, tt.last_hop_country, tt.dest_hostname, tt.dest_ip_addr, tt.dest_asnum, tt.dest_asname, tt.dest_city, tt.dest_country, tt.last_hop_ip_addr, tt.terminated
+      FROM annotated_traceroutes at, ip_addr_info, traceroute_traits tt
       WHERE at.traceroute_id = tt.traceroute_id AND at.ip_addr = ip_addr_info.ip_addr";
     $sql.=" AND (".$wTrs.")";
     $sql.=" order by at.traceroute_id, at.hop";
@@ -421,48 +421,76 @@ class Traceroute
 
     $trData = array();
     $totHops = 0;
-    // start loop over tr data array where i is an index of hops
-    for ($i = 0; $i < count($trArr); $i++) {
-      //       tt.origin_asnum, tt.origin_asname, tt.origin_city, tt.origin_country
-      //       tt.last_hop_asnum, tt.last_hop_asname, tt.last_hop_city, tt.last_hop_country
-      // now is the time to rename everything
-      // also to reorg the structure, it's too awful
-      // add originCity and originCountry (and then revise buildTrResultsTable and trdetails)
+    $traceroute = array();
+    $allTraceroutes = array();
 
+    // start loop over tr data array where i is an index of all hops
+    for ($i = 0; $i < count($trArr); $i++) {
       $totHops++;
-      $trId = $trArr[$i]['traceroute_id'];
-      $hop = $trArr[$i]['hop'];
-      $trData[$trId][$hop] = array(
+
+      // if we've finished up a previous route, save the route to the results structure
+      if ($i !== 0 && $traceroute["traceroute_id"] != $trArr[$i-1]['traceroute_id']) {
+        $allTraceroutes[$traceroute["traceroute_id"]] = $traceroute;
+      }
+
+      // for each new route
+      if ($i == 0 || $traceroute["traceroute_id"] != $trArr[$i-1]['traceroute_id']) {
+        $traceroute["traceroute_id"] = $trArr[$i]['traceroute_id'];
+        // set the metadata for this route
+        $traceroute["metadata"] = array(
+          'traceroute_id' => $trArr[$i]['traceroute_id'],
+          'submitter' => $trArr[$i]['submitter'],
+          'sub_time' => $trArr[$i]['sub_time'],
+          'submitter_zip_code' => $trArr[$i]['submitter_zip_code'],
+          'origin_asnum' => $trArr[$i]['origin_asnum'],
+          'origin_asname' => $trArr[$i]['origin_asname'],
+          'origin_city' => $trArr[$i]['origin_city'],
+          'origin_country' => $trArr[$i]['origin_country'],
+          'first_hop_asnum' => $trArr[$i]['first_hop_asnum'],
+          'first_hop_asname' => $trArr[$i]['first_hop_asname'],
+          'first_hop_city' => $trArr[$i]['first_hop_city'],
+          'first_hop_country' => $trArr[$i]['first_hop_country'],
+          'last_hop_asnum' => $trArr[$i]['last_hop_asnum'],
+          'last_hop_asname' => $trArr[$i]['last_hop_asname'],
+          'last_hop_city' => $trArr[$i]['last_hop_city'],
+          'last_hop_country' => $trArr[$i]['last_hop_country'],
+          'dest_hostname' => $trArr[$i]['dest_hostname'],
+          'dest_ip_addr' => $trArr[$i]['dest_ip_addr'],
+          'dest_asnum' => $trArr[$i]['dest_asnum'],
+          'dest_asname' => $trArr[$i]['dest_asname'],
+          'dest_city' => $trArr[$i]['dest_city'],
+          'dest_country' => $trArr[$i]['dest_country'],
+          'last_hop_ip_addr' => $trArr[$i]['last_hop_ip_addr'],
+          'terminated' => $trArr[$i]['terminated'],
+        );
+      }
+
+      $traceroute["hops"][$trArr[$i]['hop']] = array(
         'hop' => $trArr[$i]['hop'],
         'rtt1' => $trArr[$i]['rtt1'],
         'rtt2' => $trArr[$i]['rtt2'],
         'rtt3' => $trArr[$i]['rtt3'],
         'rtt4' => $trArr[$i]['rtt4'],
-        'minLatency' => $trArr[$i]['min_latency'],
-        'ip' => $trArr[$i]['ip_addr'],
+        'min_latency' => $trArr[$i]['min_latency'],
+        'ip_addr' => $trArr[$i]['ip_addr'],
         'hostname' => $trArr[$i]['hostname'],
         'lat' => $trArr[$i]['lat'],
         'long' => $trArr[$i]['long'],
-        'mmCity' => $trArr[$i]['mm_city'],
-        'mmCountry' => $trArr[$i]['mm_country'],
-        'glOverride' => $trArr[$i]['gl_override'],
-        'asNum' => $trArr[$i]['asnum'],
-        'asName' => $trArr[$i]['asname'],
-        'flagged' => $trArr[$i]['flagged'],
-        'destHostname' => $trArr[$i]['dest'],
-        'destIp' => $trArr[$i]['dest_ip_addr'],
-        'submitter' => $trArr[$i]['submitter'],
-        'subTime' => $trArr[$i]['sub_time'],
-        'zipCode' => $trArr[$i]['submitter_zip_code'],
-        'lastHopIp' => $trArr[$i]['last_hop_ip_addr']
+        'mm_city' => $trArr[$i]['mm_city'],
+        'mm_country' => $trArr[$i]['mm_country'],
+        'gl_override' => $trArr[$i]['gl_override'],
+        'asnum' => $trArr[$i]['asnum'],
+        'asname' => $trArr[$i]['asname'],
+        'flagged' => $trArr[$i]['flagged']
       );
 
     } // end for
 
     $results = array(
-      'totTrs' => $totTrs,
+      'trsFound' => $trsFound,
+      'trsReturned' => $trNumLimit,
       'totHops' => $totHops,
-      'result' => json_encode($trData)
+      'result' => json_encode($allTraceroutes)
     );
 
     return $results;
@@ -896,71 +924,6 @@ class Traceroute
 
     $html .='</tbody></table>';
     return $html;
-  }
-
-  /**
-    * Retrieves latencies for a single traceroute
-    *
-    * @param traceroute id
-    *
-    * @return two arrays of latency strings, structured for TR Details
-    *
-    */
-  public static function getLatenciesForTraceroute($trId)
-  {
-    global $dbconn;
-
-    /* NB: this skips hops where ip_addr is null, to sync up with how we generate the traceroute data for the map (see the first join on ip_addr_info.ip_addr=tr_item.ip_addr in getTraceroute and getIxMapsData). This may not be optimal long run, since it could be better to deliver the entire route to the front end and let it decide on how to handle funky hops */
-
-    $sql = "SELECT hop, rtt_ms FROM tr_item WHERE traceroute_id = ".$trId." and ip_addr is not null order by hop, attempt";
-    $result = pg_query($dbconn, $sql) or die('Query failed on getLatenciesForTraceroute');
-
-    $formattedLatencies = array();
-    $hopLatencies = array();
-    while ($row = pg_fetch_array($result, null, PGSQL_ASSOC)) {
-      // flatten the arrays
-      $hopLatencies[$row['hop']-1][] = $row['rtt_ms'];
-      // note that this mutates the $result var, so it must come last
-      $formattedLatencies[$row['hop']-1] .= $row['rtt_ms'] .= ' ';
-    }
-    // removing the key, since it's misleading at best
-    $cleanedFormattedLatencies = array_values($formattedLatencies);
-
-    $minLatencies = array();
-    // arbitrary starting value that should be higher than any latency
-    $lowestLat = 9999;
-    // go backwards through the array, starting on last hop
-    foreach (array_reverse($hopLatencies) as $hopLat) {
-      // exclude the -1s
-      $filteredHopLat = array_diff($hopLat, array(-1));
-
-      // if there is at least one non -1 value in the hop
-      if ($filteredHopLat) {
-        $lat = min($filteredHopLat);
-
-        // if this hop lat is lower than previous hop lats
-        if ($lat < $lowestLat) {
-          $lowestLat = $lat;
-          $minLatencies[] = $lat;
-        // otherwise we use the previously lowest value
-        } else {
-          $minLatencies[] = $lowestLat;
-        }
-      } else {
-        $minLatencies[] = "-1";
-      }
-    }
-
-    // package the two arrays up in a list
-    $packagedLatencies = array (
-      "latencies" => $cleanedFormattedLatencies,
-      "minLatencies" => array_reverse($minLatencies)
-    );
-
-    pg_free_result($result);
-    pg_close($dbconn);
-
-    return $packagedLatencies;
   }
 
   /**

@@ -42,7 +42,8 @@ if (!isset($_POST)) {
   if ($postArr[0]['constraint1'] == "quickLink") {
     $trIds = Traceroute::processQuickLink($postArr);
   } else {
-    $trIds = Traceroute::getTraceroute($postArr);
+    // rename
+    $trIds = Traceroute::getTracerouteIdsForConstraints($postArr);
   }
 
   // CM: turning this off for now in a futile attempt to speed up query engine
