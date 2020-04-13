@@ -13,175 +13,6 @@ class Traceroute
 {
   /**
    *
-   * Creates a where SQL string based on passed in constraint
-   *
-   * @param Constraint obj, eg
-   *  {
-   *    "constraint1": "does",
-   *    "constraint2": "contain",
-   *    "constraint3": "country",
-   *    "constraint4": "CA",
-   *    "constraint5": "and"
-   *  }
-   *
-   * @return SQL string
-   *
-   */
-  public static function buildWhere($c, $paramNum = 1)
-  {
-    global $dbconn, $ixmaps_debug_mode;
-
-    $trSet = array();
-    $w = '';
-    $table = '';
-
-    $constraintValue = trim($c['constraint4']);
-    // apply some default formating to constraint's value
-
-    // DOES / DOESNOT
-    if ($c['constraint1'] == 'does') {
-      $compartorExact = '=';
-      $compartorLike = 'LIKE';
-    } else if ($c['constraint1'] == 'doesNot') {
-      $compartorExact = '<>';
-      $compartorLike = 'NOT LIKE';
-    }
-
-    // ORIGINATE / CONTAIN / GOVIA / TERMINATE?
-    // TODO?
-    if ($c['constraint2'] == 'originate') {
-      $w .= " AND annotated_traceroutes.hop = 1";
-
-    } else if($c['constraint2'] == 'terminate') {
-
-    } else if($c['constraint2'] == 'goVia') {
-
-      // this is a wrong assumption.
-      //The destination ip is not always the last hop
-      //$w.=" AND tr_item.attempt = 1 AND tr_item.hop > 1 AND (traceroute.dest_ip<>ip_addr_info.ip_addr)";
-
-      $w .= " AND annotated_traceroutes.hop != 1";
-      // TODO TEST THIS
-      // $w.=" AND (annotated_traceroutes.hop != 1 AND annotated_traceroutes.hop != traceroute_traits.last_hop_num)";
-
-    } else if($c['constraint2'] == 'contain') {
-
-      // TODO TEST THIS
-      // $w.=" AND tr_item.attempt = 1 ";
-      $w = " ";
-    }
-
-
-    // CONSTRAINT3
-    /* setting constraints associated to table annotated_traceroutes */
-    if($c['constraint3'] == 'country') {
-      $constraintValue = strtoupper($constraintValue);
-      $table = 'annotated_traceroutes';
-      $field = 'mm_country';
-    } else if($c['constraint3'] == 'region') {
-      $constraintValue = strtoupper($constraintValue);
-      $table = 'annotated_traceroutes';
-      $field = 'mm_region';
-    } else if($c['constraint3'] == 'city') {
-      $constraintValue = ucwords(strtolower($constraintValue));
-      $table = 'annotated_traceroutes';
-      $field = 'mm_city';
-    } else if($c['constraint3'] == 'zipCode') {
-      $table = 'annotated_traceroutes';
-      $field = 'mm_postal';
-    } else if($c['constraint3'] == 'ipAddr') {
-      $table = 'annotated_traceroutes';
-      $field = 'ip_addr';
-    } else if($c['constraint3'] == 'hostName') {
-      $table = 'annotated_traceroutes';
-      $field = 'hostname';
-    } else if($c['constraint3'] == 'asnum') {
-      $table = 'annotated_traceroutes';
-      $field = 'asnum';
-    } else if($c['constraint3'] == 'ISP') {
-      $table = 'annotated_traceroutes';
-      $field = 'asname';
-    /* setting constraints associated to table traceroute_traits */
-    } else if($c['constraint3'] == 'submitter') {
-      $table = 'traceroute_traits';
-      $field = 'submitter';
-    } else if($c['constraint3'] == 'zipCodeSubmitter') {
-      $table = 'traceroute_traits';
-      $field = 'submitter_zip_code';
-    } else if($c['constraint3'] == 'destHostName') {
-      $table = 'traceroute_traits';
-      $field = 'dest_hostname';
-    } else if($c['constraint3'] == 'trId') {
-      $table = 'traceroute_traits';
-      $field = 'traceroute_id';
-    }
-
-
-    // AND / OR
-    if ($c['constraint5'] == '') {
-      $operand = 'AND';
-    } else  {
-      $operand = $c['constraint5'];
-    }
-
-
-    // Exact matches - TODO, add a lot more exacts, the like fields are destroying performance
-    if ($field == 'asnum' || $field == 'traceroute_id' || $field == 'ip_addr') {
-      $w.=" AND $table.$field $compartorExact $".$paramNum;
-
-    // Similar matches
-    } else {
-      $w.=" AND $table.$field $compartorLike $".$paramNum;
-      // TODO test why only this includes the constraintValue (then rename it)
-      $constraintValue = "%".$constraintValue."%";
-    }
-
-    $rParams = array($w, $constraintValue);
-    return $rParams;
-  }
-
-
-  /**
-   *
-   * Get set of traceroute ids for given sql
-   *
-   * @param sql string (and a where value - may be eliminated soon)
-   *
-   * @return array of TR ids
-   *
-   */
-  public static function getTrSet($sql, $wParam)
-  {
-    global $dbconn, $dbQuerySummary;
-
-    // old approach: used only for quick links
-    if ($wParam == "") {
-      $result = pg_query($dbconn, $sql) or die('Query failed: ' . pg_last_error());
-    } else {
-      $result = pg_query_params($dbconn, $sql, array($wParam)) or die('Query failed: incorrect parameters');
-    }
-
-    $data = array();
-    $lastId = 0;
-
-    while ($line = pg_fetch_array($result, null, PGSQL_ASSOC)) {
-      $id = $line['traceroute_id'];
-      if ($id != $lastId) {
-        $data[] = $id;
-      }
-      $lastId = $id;
-    }
-    $data1 = array_unique($data);
-    $dbQuerySummary .= " | Traceroutes: <b>".count($data1).'</b>';
-    pg_free_result($result);
-    unset($data);
-
-    return $data1;
-  }
-
-
-  /**
-   *
    * Get set of traceroute ids for constraints
    *
    * @param constraints passed in from the frontend (via map.php), eg:
@@ -215,63 +46,31 @@ class Traceroute
       $wParams = array();
 
       $sql = "SELECT annotated_traceroutes.traceroute_id FROM annotated_traceroutes, traceroute_traits WHERE annotated_traceroutes.traceroute_id = traceroute_traits.traceroute_id";
-
-      // $sql = "SELECT as_users.num, tr_item.traceroute_id, traceroute.id, ip_addr_info.mm_city, ip_addr_info.ip_addr, ip_addr_info.asnum FROM as_users, tr_item, traceroute, ip_addr_info WHERE (tr_item.traceroute_id=traceroute.id) AND (ip_addr_info.ip_addr=tr_item.ip_addr) AND (as_users.num=ip_addr_info.asnum)";
-
-
-      // "SELECT as_users.num, tr_item.traceroute_id, traceroute.id, ip_addr_info.mm_city, ip_addr_info.ip_addr,
-      // ip_addr_info.asnum FROM as_users, tr_item, traceroute, ip_addr_info WHERE (tr_item.traceroute_id=traceroute.id) AND
-      // (ip_addr_info.ip_addr=tr_item.ip_addr) AND (as_users.num=ip_addr_info.asnum) AND tr_item.attempt = 1 AND
-      // ip_addr_info.mm_city NOT LIKE $1 order by tr_item.traceroute_id, tr_item.hop, tr_item.attempt"
-
       $sqlOrder = ' order by annotated_traceroutes.traceroute_id, annotated_traceroutes.hop';
 
-      // adding exception for doesnot cases
-      if ($constraint['constraint1'] == 'doesNot' && $constraint['constraint2'] != 'originate' && $constraint['constraint2'] != 'terminate') {
+      $wParams = Traceroute::buildWhere($constraint);
+      $sql .= $wParams[0].$sqlOrder;
 
-        $wParams = Traceroute::buildWhere($constraint);
-        $sql .= $wParams[0].$sqlOrder;
+      $trSets[$constraintNum] = Traceroute::getTrSet($sql, $wParams[1]);
 
-        $trSets[$constraintNum] = Traceroute::getTrSet($sql, $wParams[1]);
+    // if ($constraint['constraint2'] == 'terminate') {
+    //     // TODO!
+    //     // $sql = "SELECT as_users.num, traceroute_traits.last_hop_num, traceroute_traits.terminated, traceroute.id, ip_addr_info.mm_city, ip_addr_info.ip_addr, ip_addr_info.asnum FROM traceroute_traits, as_users, traceroute, ip_addr_info WHERE (as_users.num = ip_addr_info.asnum) AND (traceroute.id = traceroute_traits.last_hop_num) AND (ip_addr_info.ip_addr = traceroute_traits.last_hop_ip_addr) ";
+    //     $sql = "SELECT annotated_traceroutes.traceroute_id FROM annotated_traceroutes, traceroute_traits WHERE annotated_traceroutes.traceroute_id = traceroute_traits.traceroute_id";
 
-        // feels like this can be eliminated entirely - why the exception?
-        // to go back to prev, will need to compare to master
+    //     $sqlOrder = ' order by annotated_traceroutes.traceroute_id';
 
-        // $positiveSet = array();
-        // $sqlPositive = $sql;
-        // $wParams = Traceroute::buildWhere($constraint);
-        // $sqlPositive .= $wParams[0].$sqlOrder;
-        // $positiveSet = Traceroute::getTrSet($sqlPositive, $wParams[1]);
+    //     $wParams = Traceroute::buildWhere($constraint);
+    //     $sql .= $wParams[0].$sqlOrder;
 
-        // $oppositeSet = array();
-        // $sqlOposite = $sql;
-        // $wParams = Traceroute::buildWhere($constraint);
-        // $sqlOposite .= $wParams[0].$sqlOrder;
-        // $oppositeSet = Traceroute::getTrSet($sqlOposite, $wParams[1]);
+    //     $trSets[$constraintNum] = Traceroute::getTrSet($sql, $wParams[1]);
 
-        // $trSets[$constraintNum] = $positiveSet;// array_diff($positiveSet, $oppositeSet);
+    //   } else {
+    //     $wParams = Traceroute::buildWhere($constraint);
+    //     $sql .= $wParams[0].$sqlOrder;
 
-        // unset($oppositeSet);
-        // unset($positiveSet);
-
-      // adding an exception for "terminate"
-      } else if ($constraint['constraint2'] == 'terminate') {
-        // TODO!
-        $sql = "SELECT as_users.num, traceroute_traits.last_hop_num, traceroute_traits.terminated, traceroute.id, ip_addr_info.mm_city, ip_addr_info.ip_addr, ip_addr_info.asnum FROM traceroute_traits, as_users, traceroute, ip_addr_info WHERE (as_users.num = ip_addr_info.asnum) AND (traceroute.id = traceroute_traits.last_hop_num) AND (ip_addr_info.ip_addr = traceroute_traits.last_hop_ip_addr) ";
-
-        $sqlOrder = ' order by traceroute.id';
-
-        $wParams = Traceroute::buildWhere($constraint);
-        $sql .= $wParams[0].$sqlOrder;
-
-        $trSets[$constraintNum] = Traceroute::getTrSet($sql, $wParams[1]);
-
-      } else {
-        $wParams = Traceroute::buildWhere($constraint);
-        $sql .= $wParams[0].$sqlOrder;
-
-        $trSets[$constraintNum] = Traceroute::getTrSet($sql, $wParams[1]);
-      }
+    //     $trSets[$constraintNum] = Traceroute::getTrSet($sql, $wParams[1]);
+    //   }
 
       $constraintNum++;
 
@@ -279,6 +78,7 @@ class Traceroute
 
     // var_dump($trSets);die;
 
+    // TODO - clean this up
     $trSetResult = array();
     // merge sets based on AND/OR conditions
     for ($i = 0; $i < $constraintNum; $i++) {
@@ -331,11 +131,11 @@ class Traceroute
       return Traceroute::getTrSet($sql, "");
 
     } else if ($qlArray[0]['constraint2'] == "lastSubmission") {
-      $sql = "select id as traceroute_id from traceroute order by sub_time desc limit 20";
+      $sql = "select traceroute_id from traceroute_traits order by sub_time desc limit 20";
       return Traceroute::getTrSet($sql, "");
 
     } else if ($qlArray[0]['constraint2'] == "singleRoute") {
-      $sql = "select id as traceroute_id from traceroute where id = ".$qlArray[0]['constraint3'];
+      $sql = "select traceroute_id from traceroute_traits where id = ".$qlArray[0]['constraint3'];
       return Traceroute::getTrSet($sql, "");
 
     } else {
@@ -449,6 +249,178 @@ class Traceroute
     );
 
     return $results;
+  }
+
+
+  /**
+   *
+   * Creates a where SQL string based on passed in constraint
+   *
+   * @param Constraint obj, eg
+   *  {
+   *    "constraint1": "does",
+   *    "constraint2": "contain",
+   *    "constraint3": "country",
+   *    "constraint4": "CA",
+   *    "constraint5": "and"
+   *  }
+   *
+   * @return SQL string
+   *
+   */
+  public static function buildWhere($c, $paramNum = 1)
+  {
+    global $dbconn, $ixmaps_debug_mode;
+
+    $trSet = array();
+    $w = '';
+    $table = '';
+
+    $constraintValue = trim($c['constraint4']);
+    // apply some default formating to constraint's value
+
+    // DOES / DOESNOT
+    if ($c['constraint1'] == 'does') {
+      $compartorExact = '=';
+      $compartorLike = 'LIKE';
+    } else if ($c['constraint1'] == 'doesNot') {
+      $compartorExact = '<>';
+      $compartorLike = 'NOT LIKE';
+    }
+
+    // ORIGINATE / CONTAIN / GOVIA / TERMINATE?
+    // TODO?
+    if ($c['constraint2'] == 'originate') {
+      $w .= " AND annotated_traceroutes.hop = 1";
+
+    } else if($c['constraint2'] == 'terminate') {
+      $w .= " AND annotated_traceroutes.hop = traceroute_traits.last_hop_num";
+
+    } else if($c['constraint2'] == 'goVia') {
+
+      // this is a wrong assumption.
+      //The destination ip is not always the last hop
+      //$w.=" AND tr_item.attempt = 1 AND tr_item.hop > 1 AND (traceroute.dest_ip<>ip_addr_info.ip_addr)";
+
+      $w .= " AND annotated_traceroutes.hop != 1";
+      // TODO TEST THIS
+      // $w.=" AND (annotated_traceroutes.hop != 1 AND annotated_traceroutes.hop != traceroute_traits.last_hop_num)";
+
+    } else if($c['constraint2'] == 'contain') {
+
+      // TODO TEST THIS
+      // $w.=" AND tr_item.attempt = 1 ";
+      $w = " ";
+    }
+
+
+    // CONSTRAINT3
+    /* setting constraints associated to table annotated_traceroutes */
+    if($c['constraint3'] == 'country') {
+      $constraintValue = strtoupper($constraintValue);
+      $table = 'annotated_traceroutes';
+      $field = 'mm_country';
+    } else if($c['constraint3'] == 'region') {
+      $constraintValue = strtoupper($constraintValue);
+      $table = 'annotated_traceroutes';
+      $field = 'mm_region';
+    } else if($c['constraint3'] == 'city') {
+      $constraintValue = ucwords(strtolower($constraintValue));
+      $table = 'annotated_traceroutes';
+      $field = 'mm_city';
+    } else if($c['constraint3'] == 'zipCode') {
+      $table = 'annotated_traceroutes';
+      $field = 'mm_postal';
+    } else if($c['constraint3'] == 'ipAddr') {
+      $table = 'annotated_traceroutes';
+      $field = 'ip_addr';
+    } else if($c['constraint3'] == 'hostName') {
+      $table = 'annotated_traceroutes';
+      $field = 'hostname';
+    } else if($c['constraint3'] == 'asnum') {
+      $table = 'annotated_traceroutes';
+      $field = 'asnum';
+    } else if($c['constraint3'] == 'ISP') {
+      $table = 'annotated_traceroutes';
+      $field = 'asname';
+    /* setting constraints associated to table traceroute_traits */
+    } else if($c['constraint3'] == 'submitter') {
+      $table = 'traceroute_traits';
+      $field = 'submitter';
+    } else if($c['constraint3'] == 'zipCodeSubmitter') {
+      $table = 'traceroute_traits';
+      $field = 'submitter_zip_code';
+    } else if($c['constraint3'] == 'destHostName') {
+      $table = 'traceroute_traits';
+      $field = 'dest_hostname';
+    } else if($c['constraint3'] == 'trId') {
+      $table = 'traceroute_traits';
+      $field = 'traceroute_id';
+    }
+
+
+    // AND / OR
+    if ($c['constraint5'] == '') {
+      $operand = 'AND';
+    } else  {
+      $operand = $c['constraint5'];
+    }
+
+
+    // Exact matches - TODO, add a lot more exacts, the like fields are destroying performance
+    if ($field == 'asnum' || $field == 'traceroute_id' || $field == 'ip_addr') {
+      $w.=" AND $table.$field $compartorExact $".$paramNum;
+
+    // Similar matches
+    } else {
+      $w.=" AND $table.$field $compartorLike $".$paramNum;
+      // TODO test why only this includes the constraintValue (then rename it)
+      $constraintValue = "%".$constraintValue."%";
+    }
+
+    $rParams = array($w, $constraintValue);
+    return $rParams;
+  }
+
+
+  /**
+   *
+   * Get set of traceroute ids for given sql
+   *
+   * @param sql string (and TODO a where value - may be eliminated soon)
+   *
+   * @return array of TR ids
+   *
+   */
+  public static function getTrSet($sql, $wParam)
+  {
+    global $dbconn, $dbQuerySummary;
+
+    // var_dump($sql);die;
+
+    // old approach: used only for quick links
+    if ($wParam == "") {
+      $result = pg_query($dbconn, $sql) or die('Query failed: ' . pg_last_error());
+    } else {
+      $result = pg_query_params($dbconn, $sql, array($wParam)) or die('Query failed: incorrect parameters');
+    }
+
+    $data = array();
+    $lastId = 0;
+
+    while ($line = pg_fetch_array($result, null, PGSQL_ASSOC)) {
+      $id = $line['traceroute_id'];
+      if ($id != $lastId) {
+        $data[] = $id;
+      }
+      $lastId = $id;
+    }
+    $data1 = array_unique($data);
+    $dbQuerySummary .= " | Traceroutes: <b>".count($data1).'</b>';
+    pg_free_result($result);
+    unset($data);
+
+    return $data1;
   }
 
 
