@@ -67,6 +67,6 @@ if (!isset($_POST)) {
   // add exec time
   $ixMapsData['execTime'] = $totaltime;
 
-  echo json_encode($ixMapsData);
+  echo json_encode($totaltime);
 }
 ?>
