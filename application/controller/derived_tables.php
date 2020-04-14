@@ -21,11 +21,11 @@ require_once('../config.php');
 require_once('../model/DerivedTable.php');
 
 // BULK INSERTS
-// $limit = 10;
-// getTracerouteIdsToInsert(1140654);
+$limit = 200000;
+getTracerouteIdsToInsert(400000);
 
 // CALLED BY CRONJOB
-getTracerouteIdsToUpdate();
+// getTracerouteIdsToUpdate();
 
 
 /**

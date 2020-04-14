@@ -45,21 +45,10 @@ if (!isset($_POST)) {
     $trIds = Traceroute::getTracerouteIdsForConstraints($postArr);
   }
 
-  // $mtime = microtime();
-  // $mtime = explode(" ",$mtime);
-  // $mtime = $mtime[1] + $mtime[0];
-  // $endtime = $mtime;
-  // $totaltime = ($endtime - $starttime);
-  // $totaltime = number_format($totaltime, 2);
-  // echo json_encode($totaltime);die;
-
   // CM: turning this off for now in a futile attempt to speed up query engine
   // $data = json_encode($postArr);
   // $saveLog = Traceroute::saveSearch($data);
 
-  // TODO: this is part of where the inefficiencies in query time come from
-  // getTraceroute does a complicated join to get a set of ids, then getTracerouteDataForIds
-  // does essentially the same join with a where id = the previously gen'd set of ids.
   if (count($trIds) != 0) {
     $ixMapsData = Traceroute::getTracerouteDataForIds($trIds);
   }
