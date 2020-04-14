@@ -2,7 +2,7 @@
 
 /**
  *
- *  This Model is strangely named - it does not relate to Map and Search.
+ *  This Model is strangely named - it does not relate to Map or Search.
  *  Rather, it is used to gather some data for the initial model that pops
  *  up when a user first visits the map page
  *
@@ -38,7 +38,12 @@ class MapSearch
       $sql = "SELECT COUNT(DISTINCT traceroute_traits.traceroute_id) FROM annotated_traceroutes, traceroute_traits WHERE annotated_traceroutes.traceroute_id = traceroute_traits.traceroute_id";
 
       // sql for intersect constraints
-      $sql1 = "SELECT COUNT(DISTINCT traceroute_traits.traceroute_id) FROM annotated_traceroutes, traceroute_traits WHERE annotated_traceroutes.traceroute_id = traceroute_traits.traceroute_id";
+      $sql1 = "SELECT DISTINCT traceroute_traits.traceroute_id FROM annotated_traceroutes, traceroute_traits WHERE annotated_traceroutes.traceroute_id = traceroute_traits.traceroute_id";
+
+      // $sql = "SELECT COUNT(DISTINCT traceroute.id) FROM as_users, tr_item, traceroute, ip_addr_info WHERE (tr_item.traceroute_id=traceroute.id) AND (ip_addr_info.ip_addr=tr_item.ip_addr) AND (as_users.num=ip_addr_info.asnum)";
+
+      // // sql for intersect constraints
+      // $sql1 = "SELECT DISTINCT traceroute.id FROM as_users, tr_item, traceroute, ip_addr_info WHERE (tr_item.traceroute_id=traceroute.id) AND (ip_addr_info.ip_addr=tr_item.ip_addr) AND (as_users.num=ip_addr_info.asnum)";
 
       $paramsCounter = 0;
       $sqlParamsArray = array();
@@ -62,7 +67,7 @@ class MapSearch
         $trArr = pg_fetch_all($result);
 
         // sql for intersect statements
-        if ($trArr[0]['count']!=0) {
+        if ($trArr[0]['count'] != 0) {
           $paramsCounter++;
           $params1 = Traceroute::buildWhere($constraint, $paramsCounter);
 
@@ -73,15 +78,15 @@ class MapSearch
         // TODO - why is this done twice?
         if ($debugTrSearch) {
           $filterResults[$key] = array(
-            "total"=>$trArr[0]['count'],
-            "constraint"=>$constraint,
-            "sql"=>$sqlRun,
-            "params"=>$params[1]
+            "total" => $trArr[0]['count'],
+            "constraint" => $constraint,
+            "sql" => $sqlRun,
+            "params" => $params[1]
           );
         } else {
           $filterResults[$key] = array(
-            "total"=>$trArr[0]['count'],
-            "constraint"=>$constraint
+            "total" => $trArr[0]['count'],
+            "constraint" => $constraint
           );
         }
 
@@ -126,15 +131,15 @@ class MapSearch
 
       if ($debugTrSearch) {
         $resultA =  array(
-          "results"=>$filterResults,
-          "total"=>$totIntersect,
+          "results" => $filterResults,
+          "total" => $totIntersect,
           "sql" => $sqlIntersect,
           "params" => $sqlParamsArray
         );
       } else {
         $resultA =  array(
-          "results"=>$filterResults,
-          "total"=>$totIntersect,
+          "results" => $filterResults,
+          "total" => $totIntersect,
         );
       }
     }

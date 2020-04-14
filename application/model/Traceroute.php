@@ -146,7 +146,7 @@ class Traceroute
     unset($trIds);
 
     $sql = "
-      SELECT at.traceroute_id, at.hop, at.rtt1, at.rtt2, at.rtt3, at.rtt4, at.min_latency, at.ip_addr, at.hostname, at.lat, at.long, at.mm_city, at.mm_country, at.gl_override, at.asnum, at.asname, ip_addr_info.flagged, tt.submitter, tt.sub_time, tt.submitter_zip_code, tt.origin_asnum, tt.origin_asname, tt.origin_city, tt.origin_country, tt.first_hop_asnum, tt.first_hop_asname, tt.first_hop_city, tt.first_hop_country, tt.last_hop_asnum, tt.last_hop_asname, tt.last_hop_city, tt.last_hop_country, tt.dest_hostname, tt.dest_ip_addr, tt.dest_asnum, tt.dest_asname, tt.dest_city, tt.dest_country, tt.last_hop_ip_addr, tt.terminated
+      SELECT at.traceroute_id, at.hop, at.rtt1, at.rtt2, at.rtt3, at.rtt4, at.min_latency, at.ip_addr, at.hostname, at.lat, at.long, at.mm_city, at.mm_country, at.gl_override, at.asnum, at.asname, ip_addr_info.flagged, tt.submitter, tt.sub_time, tt.submitter_zip_code, tt.origin_asnum, tt.origin_asname, tt.origin_city, tt.origin_country, tt.first_hop_num, tt.first_hop_asnum, tt.first_hop_asname, tt.first_hop_city, tt.first_hop_country, tt.last_hop_asnum, tt.last_hop_asname, tt.last_hop_city, tt.last_hop_country, tt.dest_hostname, tt.dest_ip_addr, tt.dest_asnum, tt.dest_asname, tt.dest_city, tt.dest_country, tt.last_hop_ip_addr, tt.terminated
       FROM annotated_traceroutes at, ip_addr_info, traceroute_traits tt
       WHERE at.traceroute_id = tt.traceroute_id AND at.ip_addr = ip_addr_info.ip_addr
       AND tt.traceroute_id IN (".$idsStr.")
@@ -182,6 +182,7 @@ class Traceroute
           'origin_asname' => $trArr[$i]['origin_asname'],
           'origin_city' => $trArr[$i]['origin_city'],
           'origin_country' => $trArr[$i]['origin_country'],
+          'first_hop_num' => $trArr[$i]['first_hop_num'],
           'first_hop_asnum' => $trArr[$i]['first_hop_asnum'],
           'first_hop_asname' => $trArr[$i]['first_hop_asname'],
           'first_hop_city' => $trArr[$i]['first_hop_city'],
@@ -271,6 +272,7 @@ class Traceroute
     // ORIGINATE / CONTAIN / GOVIA / TERMINATE
     // we ignore the contain, since it does not limit the where conditions
     if ($c['constraint2'] == 'originate') {
+      // $whereConditions .= " AND annotated_traceroutes.hop = traceroute_traits.first_hop_num";
       $whereConditions .= " AND annotated_traceroutes.hop = 1";
 
     } else if($c['constraint2'] == 'terminate') {
