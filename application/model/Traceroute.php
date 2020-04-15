@@ -106,6 +106,10 @@ class Traceroute
       $sql = "select traceroute_id from traceroute_traits where nsa = true";
       return Traceroute::getTrIds($sql, "");
 
+    } else if ($qlArray[0]['constraint2'] == "boomerang") {
+      $sql = "select traceroute_id from traceroute_traits where boomerang = true and first_hop_country = '".$qlArray[0]['constraint4']."'";
+      return Traceroute::getTrIds($sql, "");
+
     } else if ($qlArray[0]['constraint2'] == "lastSubmission") {
       $sql = "select traceroute_id from traceroute_traits order by sub_time desc limit 20";
       return Traceroute::getTrIds($sql, "");
