@@ -59,12 +59,16 @@ class MapEntrySearch
         $constraintWhereParams = Traceroute::buildWhere($constraint);
         $sqlCount = $sqlBase.$constraintWhereParams[0]; // add where conditions
 
+        $constrtaintCount = 0;
         $result = pg_query_params($dbconn, $sqlCount, array($constraintWhereParams[1])) or die('countTrResults: Query failed: incorrect parameters');
         $trCountArr = pg_fetch_all($result);
         pg_free_result($result);
+        if ($trCountArr !== false) {
+          $constrtaintCount = count($trCountArr);
+        }
 
         // sql for intersect statements
-        if (count($trCountArr) != 0) {
+        if ($constrtaintCount != 0) {
           $constraintNum++;
           $intersectWhereParams = Traceroute::buildWhere($constraint, $constraintNum);
           $sqlIntersectArray[] = $sqlBase.$intersectWhereParams[0]; // add sql where
@@ -72,7 +76,7 @@ class MapEntrySearch
         }
 
         $filterResults[$constraintKind] = array(
-          "total" => count($trCountArr),
+          "total" => $constrtaintCount,
           "constraint" => $constraint
         );
       } // end for each
@@ -96,14 +100,18 @@ class MapEntrySearch
           }
         } // end for
 
+
+
         $result = pg_query_params($dbconn, $sqlIntersect, $sqlParamsArray) or die('countTrResults: Query failed: incorrect parameters');
         $trArrIntersect = pg_fetch_all($result);
         pg_free_result($result);
 
-        if (isset($trArrIntersect[0]['tracereoute_id'])) {
-          $trIdCount = count($trArrIntersect);
-        } else {
+        // var_dump($trArrIntersect == true);die;
+
+        if ($trArrIntersect == false) {
           $trIdCount = 0;
+        } else {
+          $trIdCount = count($trArrIntersect);
         }
 
       } else {
