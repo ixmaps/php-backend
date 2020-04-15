@@ -3,7 +3,8 @@
  *
  * Traceroute class deals with a variety of things, we're in the process of tightening this up.
  * Key functions relate to map.php, receiving a set of constraints from the frontend, parsing
- * those for relevant tr ids, and generating traceroute objects for those ids
+ * those for relevant tr ids, and generating traceroute objects for those ids to be returned to
+ * the frontend
  *
  * @author IXmaps.ca (Colin, Antonio)
  * @since 2020 Apr
@@ -45,7 +46,7 @@ class Traceroute
 
       $wParams = array();
 
-      $sql = "SELECT annotated_traceroutes.traceroute_id FROM annotated_traceroutes, traceroute_traits WHERE annotated_traceroutes.traceroute_id = traceroute_traits.traceroute_id ";
+      $sql = "SELECT annotated_traceroutes.traceroute_id FROM annotated_traceroutes, traceroute_traits WHERE annotated_traceroutes.traceroute_id = traceroute_traits.traceroute_id";
 
       // add the constraint to the sql
       $wParams = Traceroute::buildWhere($constraint);
@@ -61,7 +62,6 @@ class Traceroute
     // merge sets of ids based on AND/OR conditions
     $trIds = array();
     for ($i = 0; $i < $constraintNum; $i++) {
-      $trIdsTemp = array();
 
       // only one constraint
       if ($i == 0) {
@@ -71,14 +71,11 @@ class Traceroute
       } else {
         // OR cases
         if ($data[$i-1]['constraint5'] == 'or') {
-          $trIdsTemp = array_merge($trIds, $trIdsForConstraint[$i]);
-
+          $trIds = array_merge($trIds, $trIdsForConstraint[$i]);
         // AND cases
         } else {
-          $trIdsTemp = array_intersect($trIds, $trIdsForConstraint[$i]);
+          $trIds = array_intersect($trIds, $trIdsForConstraint[$i]);
         }
-
-        $trIds = array_merge($trIds, $trIdsTemp);
       }
     } // end for
 
@@ -86,7 +83,6 @@ class Traceroute
 
     $dbQuerySummary .= "<br/>";
 
-    unset($trIdsTemp);
     unset($trIdsForConstraint);
 
     return $trIds;
@@ -137,13 +133,14 @@ class Traceroute
 
     $trsFound = count($trIds);
 
-    $samplingCount = $trNumLimit;
-    if ($trsFound < $trNumLimit) {
-      $samplingCount = $trsFound;
+    // if there is more than 1 tr, take a sampling
+    if ($trsFound > $trNumLimit) {
+      $numTrsSampled = $trNumLimit;
+      $trIds = array_rand(array_flip($trIds), $numTrsSampled);
+    } else {
+      $numTrsSampled = $trsFound;
     }
-
-    $sampleOfTrIds = array_rand(array_flip($trIds), $samplingCount);
-    $idsStr = implode(", ", $sampleOfTrIds);
+    $idsStr = implode(", ", $trIds);
 
     // free some memory
     unset($trIds);
@@ -166,11 +163,6 @@ class Traceroute
     // start loop over tr data array where i is an index of all hops
     for ($i = 0; $i < count($trArr); $i++) {
       $totHops++;
-
-      // if we've finished up a previous route, save the route to the results structure
-      if ($i !== 0 && $traceroute["traceroute_id"] != $trArr[$i-1]['traceroute_id']) {
-        $allTraceroutes[$traceroute["traceroute_id"]] = $traceroute;
-      }
 
       // for each new route
       if ($i == 0 || $traceroute["traceroute_id"] != $trArr[$i-1]['traceroute_id']) {
@@ -225,11 +217,17 @@ class Traceroute
         'flagged' => $trArr[$i]['flagged']
       );
 
+      // if this route is finished, aka if this is the last hop or
+      // the next hop has a different tr_id, save this route to allTraceroutes
+      if ($i+1 == count($trArr) || $traceroute["traceroute_id"] != $trArr[$i+1]['traceroute_id']) {
+        $allTraceroutes[$traceroute["traceroute_id"]] = $traceroute;
+      }
+
     } // end for
 
     $results = array(
       'trsFound' => $trsFound,
-      'trsReturned' => $samplingCount,
+      'trsReturned' => $numTrsSampled,
       'totHops' => $totHops,
       'result' => json_encode($allTraceroutes)
     );
@@ -303,7 +301,7 @@ class Traceroute
     } else if ($c['constraint3'] == 'ipAddr') {
       $table = 'annotated_traceroutes';
       $field = 'ip_addr';
-    } else if ($c['constraint3'] == 'hostName') {
+    } else if ($c['constraint3'] == 'hostname') {
       $table = 'annotated_traceroutes';
       $field = 'hostname';
     } else if ($c['constraint3'] == 'asnum') {
@@ -325,6 +323,12 @@ class Traceroute
     } else if ($c['constraint3'] == 'trId') {
       $table = 'traceroute_traits';
       $field = 'traceroute_id';
+    } else if ($c['constraint3'] == 'subTimeGreaterThan') {
+      $table = 'traceroute_traits';
+      $field = 'sub_time > ';
+    } else if ($c['constraint3'] == 'subTimeLessThan') {
+      $table = 'traceroute_traits';
+      $field = 'sub_time < ';
     }
 
 
@@ -335,8 +339,12 @@ class Traceroute
       $operand = $c['constraint5'];
     }
 
+    // datetimes
+    if ($field == 'sub_time > ' || $field == 'sub_time < ') {
+      $whereConditions .= " AND $table.$field $".$paramNum;
+
     // exact matches
-    if ($field == 'asnum' || $field == 'ip_addr' || $field == 'traceroute_id') {
+    } else if ($field == 'asnum' || $field == 'ip_addr' || $field == 'traceroute_id') {
       $whereConditions .= " AND $table.$field $comparatorExact $".$paramNum;
 
     // similar matches
@@ -488,31 +496,40 @@ class Traceroute
     $tTable = "ip_addr_info";
     $tOrder = "";
     $tWhere = "";
-    $tSelect = 'SELECT';
+    $tSelect = "SELECT";
 
     if ($sField == "country") {
-      $tColumn = 'mm_country';
+      $tColumn = "mm_country";
       $tOrder = $tColumn;
     } else if ($sField == "region") {
-      $tColumn = 'mm_region';
+      $tColumn = "mm_region";
       $tOrder = $tColumn;
     } else if ($sField == "city") {
-      $tColumn = 'mm_city';
+      $tColumn = "mm_city";
       $tOrder = $tColumn;
     } else if ($sField == "zipCode") {
-      $tColumn = 'mm_postal';
+      $tColumn = "mm_postal";
       $tOrder = $tColumn;
     } else if ($sField == "ISP") {
-      $tColumn = 'num, name';
-      $tOrder = "name";
       $tTable = "as_users";
+      $tColumn = "num, name";
       $tWhere = "WHERE short_name is not null";
+      $tOrder = "name";
     } else if ($sField == "submitter") {
-      $tSelect = 'SELECT distinct';
-      $tColumn = 'submitter';
-      $tOrder = "submitter";
+      $tSelect = "SELECT distinct";
       $tTable = "traceroute";
-      $tWhere = "";
+      $tColumn = "submitter";
+      $tOrder = "submitter";
+    } else if ($sField == "destHostname") {
+      $tSelect = "SELECT distinct";
+      $tTable = "traceroute";
+      $tColumn = "dest";
+      $tOrder = $tColumn;
+    } else if ($sField == "subTimeGreaterThan" || "subTimeLessThan") {
+      $tSelect = "SELECT distinct";
+      $tTable = "traceroute";
+      $tColumn = "to_char(sub_time, 'YYYY-MM-DD')";
+      $tOrder = "to_char asc";
     }
 
     // loading all approach
@@ -525,6 +542,8 @@ class Traceroute
     while ($line = pg_fetch_array($result, null, PGSQL_ASSOC)) {
       if ($sField == "ISP") {
         $autoC[$line['num']] = $line['name'];
+      } else if ($tColumn == "to_char(sub_time, 'YYYY-MM-DD')") {
+        $autoC[] = $line["to_char"];
       } else {
         $autoC[] = $line[$tColumn];
       }
