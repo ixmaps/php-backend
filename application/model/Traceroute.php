@@ -45,12 +45,11 @@ class Traceroute
 
       $wParams = array();
 
-      $sql = "SELECT annotated_traceroutes.traceroute_id FROM annotated_traceroutes, traceroute_traits WHERE annotated_traceroutes.traceroute_id = traceroute_traits.traceroute_id";
-      $sqlOrder = ' order by annotated_traceroutes.traceroute_id, annotated_traceroutes.hop';
+      $sql = "SELECT annotated_traceroutes.traceroute_id FROM annotated_traceroutes, traceroute_traits WHERE annotated_traceroutes.traceroute_id = traceroute_traits.traceroute_id ";
 
       // add the constraint to the sql
       $wParams = Traceroute::buildWhere($constraint);
-      $sql .= $wParams[0].$sqlOrder;
+      $sql .= $wParams[0];
 
       // execute the sql (getting the TR data to return)
       $trIdsForConstraint[$constraintNum] = Traceroute::getTrIds($sql, $wParams[1]);
@@ -283,7 +282,6 @@ class Traceroute
 
     }
 
-
     // CONSTRAINT3
     /* setting constraints associated to table annotated_traceroutes */
     if ($c['constraint3'] == 'country') {
@@ -334,7 +332,7 @@ class Traceroute
     }
 
     // exact matches
-    if ($field == 'asnum' || $field == 'traceroute_id' || $field == 'ip_addr') {
+    if ($field == 'asnum' || $field == 'ip_addr' || $field == 'traceroute_id') {
       $whereConditions .= " AND $table.$field $comparatorExact $".$paramNum;
 
     // similar matches
