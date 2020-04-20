@@ -42,7 +42,7 @@ class Traceroute
       if ($constraintNum > 0) {
         $dbQuerySummary .= '<br>';
       }
-      $dbQuerySummary .= '<b>'.$constraint['constraint1'].' : '.$constraint['constraint2'].' : '.$constraint['constraint3'].' : '.$constraint['constraint4'].' : '.$constraint['constraint5'].'</b>';
+      $dbQuerySummary .= '<b>'.$constraint['constraint1'].' | '.$constraint['constraint2'].' | '.$constraint['constraint3'].' | '.$constraint['constraint4'].' | '.$constraint['constraint5'].'</b><br />';
 
       $wParams = array();
 
@@ -79,7 +79,7 @@ class Traceroute
       }
     } // end for
 
-    $trIds =  array_unique($trIds);
+    $trIds = array_unique($trIds);
 
     $dbQuerySummary .= "<br/>";
 
@@ -150,7 +150,7 @@ class Traceroute
       FROM annotated_traceroutes at, ip_addr_info, traceroute_traits tt
       WHERE at.traceroute_id = tt.traceroute_id AND at.ip_addr = ip_addr_info.ip_addr
       AND tt.traceroute_id IN (".$idsStr.")
-      order by at.traceroute_id, at.hop";
+      order by at.traceroute_id desc, at.hop";
 
     $result = pg_query($dbconn, $sql) or die('Query failed: ' . pg_last_error());
     $trArr = pg_fetch_all($result);
@@ -334,7 +334,7 @@ class Traceroute
 
     // AND / OR
     if ($c['constraint5'] == '') {
-      $operand = 'AND';
+      $operand = 'and';
     } else  {
       $operand = $c['constraint5'];
     }
@@ -391,7 +391,7 @@ class Traceroute
     pg_free_result($result);
 
     $data = array_unique($data);
-    $dbQuerySummary .= " | Traceroutes: <b>".count($data).'</b>';
+    $dbQuerySummary .= " Traceroutes: <b>".count($data).'</b>';
 
     return $data;
   }

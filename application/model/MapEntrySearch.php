@@ -100,13 +100,9 @@ class MapEntrySearch
           }
         } // end for
 
-
-
         $result = pg_query_params($dbconn, $sqlIntersect, $sqlParamsArray) or die('countTrResults: Query failed: incorrect parameters');
         $trArrIntersect = pg_fetch_all($result);
         pg_free_result($result);
-
-        // var_dump($trArrIntersect == true);die;
 
         if ($trArrIntersect == false) {
           $trIdCount = 0;

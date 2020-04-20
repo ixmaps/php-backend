@@ -18,6 +18,7 @@ $myIp = $_SERVER['REMOTE_ADDR'];
 // $myIp = "216.66.39.113"; // Pendergrass
 // $myIp = "4.15.136.14"; // Wichita
 // $myIp = "183.89.98.35"; // Thailand
+// $myIp = "142.150.96.0"; // UofT
 $defaultVal = false;
 
 // it would be better to skip this if the IP is null... it's confusing to users to choose a random value look at where this is called. For now I've added a bool to identify the returned object as using the default
