@@ -32,20 +32,12 @@ class Traceroute
    */
   public static function getTracerouteIdsForConstraints($data)
   {
-    global $dbconn, $dbQuerySummary;
+    global $dbconn;
     $trIdsForConstraint = array();
     $constraintNum = 0;
 
     // loop over the constraints
     foreach ($data as $constraint) {
-      // Something to display on the frontend - gets passed around as a global and added to by various pieces. Probably not the best way to handle this...
-      if ($constraintNum > 0) {
-        $dbQuerySummary .= '<br>';
-      }
-      $dbQuerySummary .= '<b>'.$constraint['constraint1'].' | '.$constraint['constraint2'].' | '.$constraint['constraint3'].' | '.$constraint['constraint4'].' | '.$constraint['constraint5'].'</b><br />';
-
-      $wParams = array();
-
       $sql = "SELECT annotated_traceroutes.traceroute_id FROM annotated_traceroutes, traceroute_traits WHERE annotated_traceroutes.traceroute_id = traceroute_traits.traceroute_id";
 
       // add the constraint to the sql
@@ -80,8 +72,7 @@ class Traceroute
     } // end for
 
     $trIds = array_unique($trIds);
-
-    $dbQuerySummary .= "<br/>";
+    // var_dump(count($trIds));die;
 
     unset($trIdsForConstraint);
 
@@ -369,7 +360,7 @@ class Traceroute
    */
   public static function getTrIds($sql, $wParam)
   {
-    global $dbconn, $dbQuerySummary;
+    global $dbconn;
 
     // old approach: used only for quick links
     if ($wParam == "") {
@@ -391,7 +382,6 @@ class Traceroute
     pg_free_result($result);
 
     $data = array_unique($data);
-    $dbQuerySummary .= " Traceroutes: <b>".count($data).'</b>';
 
     return $data;
   }

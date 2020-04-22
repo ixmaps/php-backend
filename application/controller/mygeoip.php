@@ -23,7 +23,7 @@ $defaultVal = false;
 
 // it would be better to skip this if the IP is null... it's confusing to users to choose a random value look at where this is called. For now I've added a bool to identify the returned object as using the default
 if (ip2long($myIp) === false) {
-  $myIp = "216.66.39.113";
+  $myIp = "142.150.96.0";
   $defaultVal = true;
 }
 

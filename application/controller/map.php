@@ -34,7 +34,6 @@ if (!isset($_POST)) {
   echo json_encode($error);
 
 } else {
-  $dbQuerySummary = "";
   $trHtmlTable = "";
 
   $postArr = json_decode(file_get_contents('php://input'), TRUE);
@@ -48,7 +47,6 @@ if (!isset($_POST)) {
   // CM: turning this off for now in a futile attempt to speed up query engine
   // $data = json_encode($postArr);
   // $saveLog = Traceroute::saveSearch($data);
-
   if (count($trIds) != 0) {
     $ixMapsData = Traceroute::getTracerouteDataForIds($trIds);
   }
@@ -60,9 +58,6 @@ if (!isset($_POST)) {
   $endtime = $mtime;
   $totaltime = ($endtime - $starttime);
   $totaltime = number_format($totaltime, 2);
-
-  // add db query results/errors
-  $ixMapsData['querySummary'] = $dbQuerySummary;
 
   // add exec time
   $ixMapsData['execTime'] = $totaltime;
