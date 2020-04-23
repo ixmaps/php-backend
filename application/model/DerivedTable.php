@@ -166,15 +166,15 @@ class DerivedTable
     $dest_city = pg_escape_string($destArr[0]["mm_city"]);
     $dest_country = pg_escape_string($destArr[0]["mm_country"]);
     $dest_asname = DerivedTable::getAsname($dest_asnum);
-    echo "Submitter: {$submitter}\n";
-    echo "Submission time: {$sub_time}\n";
-    echo "Submitter zip code: {$submitter_zip_code}\n";
-    echo "Dest hostname: {$dest_hostname}\n";
-    echo "Dest ip: {$dest_ip_addr}\n";
-    echo "Dest asnum: {$dest_asnum}\n";
-    echo "Dest asname: {$dest_asname}\n";
-    echo "Dest city: {$dest_city}\n";
-    echo "Dest country: {$dest_country}\n";
+    // echo "Submitter: {$submitter}\n";
+    // echo "Submission time: {$sub_time}\n";
+    // echo "Submitter zip code: {$submitter_zip_code}\n";
+    // echo "Dest hostname: {$dest_hostname}\n";
+    // echo "Dest ip: {$dest_ip_addr}\n";
+    // echo "Dest asnum: {$dest_asnum}\n";
+    // echo "Dest asname: {$dest_asname}\n";
+    // echo "Dest city: {$dest_city}\n";
+    // echo "Dest country: {$dest_country}\n";
 
     // POSSIBLE IMPROVEMENT:
     // echo "Submitter: {$submitter}\n";

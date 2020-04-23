@@ -29,7 +29,7 @@ $starttime = $mtime;
 
 if (!isset($_POST)) {
   $error = array(
-    "error"=> "No parameters sent to Map Backend"
+    "error" => "No parameters sent to Map Backend"
   );
   echo json_encode($error);
 
@@ -37,6 +37,8 @@ if (!isset($_POST)) {
   $trHtmlTable = "";
 
   $postArr = json_decode(file_get_contents('php://input'), TRUE);
+  $data = json_encode($postArr);
+  $saveLog = Traceroute::saveSearch($data);
 
   if ($postArr[0]['constraint1'] == "quickLink") {
     $trIds = Traceroute::processQuickLink($postArr);
@@ -44,9 +46,6 @@ if (!isset($_POST)) {
     $trIds = Traceroute::getTracerouteIdsForConstraints($postArr);
   }
 
-  // CM: turning this off for now in a futile attempt to speed up query engine
-  // $data = json_encode($postArr);
-  // $saveLog = Traceroute::saveSearch($data);
   if (count($trIds) != 0) {
     $ixMapsData = Traceroute::getTracerouteDataForIds($trIds);
   }

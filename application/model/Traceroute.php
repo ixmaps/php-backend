@@ -33,6 +33,7 @@ class Traceroute
   public static function getTracerouteIdsForConstraints($data)
   {
     global $dbconn;
+
     $trIdsForConstraint = array();
     $constraintNum = 0;
 
@@ -245,7 +246,7 @@ class Traceroute
    */
   public static function buildWhere($c, $paramNum = 1)
   {
-    global $dbconn, $ixmaps_debug_mode;
+    global $dbconn;
 
     $whereConditions = '';
 
@@ -395,59 +396,14 @@ class Traceroute
     global $dbconn, $myIp, $myCity;
     $data_json = json_encode($qArray);
     if ($myCity == "") {
-      $myCity="--";
+      $myCity = "--";
     }
-    $myCity=utf8_encode($myCity);
-    // last
+    $myCity = utf8_encode($myCity);
+
     $sql = "INSERT INTO s_log (timestamp, log, ip, city) VALUES (NOW(), '".$data_json."', '".$myIp."', '".$myCity."');";
     pg_query($dbconn, $sql) or die('Error! Insert Log failed: ' . pg_last_error());
   }
 
-  public static function renderSearchLog()
-  {
-    global $dbconn;
-    $html = '<table border="1">';
-    $c = 0;
-    $sql = "select * from s_log order by id DESC";
-    $result = pg_query($dbconn, $sql) or die('Query failed: ' . pg_last_error());
-    while ($line = pg_fetch_array($result, null, PGSQL_ASSOC)) {
-      $id=$line['id'];
-      $ip=$line['ip'];
-      $city=$line['city'];
-      $timestamp=$line['timestamp'];
-      $log=$line['log'];
-      $log=str_replace('"[', '[', $log);
-      $log=str_replace(']"', ']', $log);
-      $logToArray = json_decode($log, true);
-
-      $c++;
-
-      $html .= '<tr>';
-      $html .= '<td><a href="#">'.$id.'</a></td>';
-      $html .= '<td>'.$ip.'</td>';
-      $html .= '<td>'.$city.'</td>';
-      $html .= '<td>'.$timestamp.'</td>';
-
-      $q = '<td>';
-      foreach ($logToArray as $constraint) {
-        $q .='<br/> | '
-        .$constraint['constraint1'].' | '
-        .$constraint['constraint2'].' | '
-        .$constraint['constraint3'].' | '
-        .$constraint['constraint4'].' | '
-        .$constraint['constraint5'].' | ';
-      }
-
-      $q .= '</td>';
-      $html .= ''.$q;
-      $html .= '</tr>';
-    }
-    $html .= '</table>';
-    pg_free_result($result);
-    pg_close($dbconn);
-    echo 'Tot queries: '.$c.'<hr/>';
-    echo $html;
-  }
 
   /**
     A function to calculate distance between a pair of coordinates
