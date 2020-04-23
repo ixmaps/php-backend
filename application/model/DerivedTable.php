@@ -94,8 +94,6 @@ class DerivedTable
   public static function updateForTrId($trId) {
     global $dbconn, $genericMMLatLongs;
 
-    // echo "\n*** Traceroute id: ".$trId." ***\n";
-
     $sql = "SELECT traceroute_id FROM traceroute_traits WHERE traceroute_id=".$trId;
     $result = pg_query($dbconn, $sql) or die('Query insert or update failed: ' . pg_last_error());
     $traitsArr = pg_fetch_all($result);
@@ -132,11 +130,6 @@ class DerivedTable
       $origin_country = $mm->getCountryCode();
       $originLat = $mm->getLat();
       $originLong = $mm->getLong();
-      // echo "Origin ip: {$origin_ip_addr}\n";
-      // echo "Origin asnum: {$origin_asnum}\n";
-      // echo "Origin asname: {$origin_asname}\n";
-      // echo "Origin city: {$origin_city}\n";
-      // echo "Origin country: {$origin_country}\n";
     }
 
 
@@ -166,34 +159,6 @@ class DerivedTable
     $dest_city = pg_escape_string($destArr[0]["mm_city"]);
     $dest_country = pg_escape_string($destArr[0]["mm_country"]);
     $dest_asname = DerivedTable::getAsname($dest_asnum);
-    // echo "Submitter: {$submitter}\n";
-    // echo "Submission time: {$sub_time}\n";
-    // echo "Submitter zip code: {$submitter_zip_code}\n";
-    // echo "Dest hostname: {$dest_hostname}\n";
-    // echo "Dest ip: {$dest_ip_addr}\n";
-    // echo "Dest asnum: {$dest_asnum}\n";
-    // echo "Dest asname: {$dest_asname}\n";
-    // echo "Dest city: {$dest_city}\n";
-    // echo "Dest country: {$dest_country}\n";
-
-    // POSSIBLE IMPROVEMENT:
-    // echo "Submitter: {$submitter}\n";
-    // echo "Submission time: {$sub_time}\n";
-    // echo "Submitter zip code: {$submitter_zip_code}\n";
-    // echo "Dest: {$dest}\n";
-    // echo "Dest ip: {$dest_ip_addr}\n";
-    // if (dest_ip is not in our ip_addr_info table) {
-    //   $mm = new IXmapsMaxMind($dest_ip_addr);
-    //   $dest_asnum = $mm->getAsnum();
-    //   $dest_asname = DerivedTable::getAsname($dest_asnum);
-    //   $dest_city = $mm->getCity();
-    //   $dest_country = $mm->getCountryCode();
-    //   // echo "Dest ip: {$dest_ip_addr}\n";
-    //   // echo "Dest asnum: {$dest_asnum}\n";
-    //   // echo "Dest asname: {$dest_asname}\n";
-    //   // echo "Dest city: {$dest_city}\n";
-    //   // echo "Dest country: {$dest_country}\n";
-    // }
 
 
     /****
@@ -313,7 +278,6 @@ class DerivedTable
       $list_transited_asnums = array($first_hop_asnum);
 
       foreach ($tracerouteArr as $i => $hop) {
-        // echo "\nHop: ".$hop["hop"]."\n";
 
         // set annotated_traceroutes default values
         $annotated_traceroute_transited_country = false;
@@ -489,37 +453,8 @@ class DerivedTable
       $first_hop_asname = DerivedTable::getAsname($first_hop_asnum);
       $last_hop_asname = DerivedTable::getAsname($last_hop_asnum);
 
-      // echo "First hop num: {$first_hop_num}\n";
-      // echo "First hop ip: {$first_hop_ip_addr}\n";
-      // echo "First hop asnum: {$first_hop_asnum}\n";
-      // echo "First hop asname: {$first_hop_asname}\n";
-      // echo "First hop city: {$first_hop_city}\n";
-      // echo "First hop country: {$first_hop_country}\n";
-      // echo "Last hop num: {$last_hop_num}\n";
-      // echo "Last hop ip: {$last_hop_ip_addr}\n";
-      // echo "Last hop asnum: {$last_hop_asnum}\n";
-      // echo "Last hop asname: {$last_hop_asname}\n";
-      // echo "Last hop city: {$last_hop_city}\n";
-      // echo "Last hop country: {$last_hop_country}\n";
-      // echo "Number of hops: {$num_hops}\n";
-      // echo "Number of skipped hops: {$num_skipped_hops}\n";
-      // echo "Number of gl overrides: {$num_gl_override_hops}\n";
-      // echo "Number of default mm locations: {$num_default_mm_location_hops}\n";
-      // echo "Number of aba hops: {$num_aba_hops}\n";
-      // echo "Number of prev hop sol violations: {$num_prev_hop_sol_violation_hops}\n";
-      // echo "Number of origin sol violations: {$num_origin_sol_violation_hops}\n";
-      // echo "Number of jittery hops: {$num_jittery_hops}\n";
-      // echo "Boomerang: ".json_encode($boomerang)."\n";
-      // echo "CA US CA boomerang: ".json_encode($boomerang_ca_us_ca)."\n";
-      // echo "Transits US: ".json_encode($transits_us)."\n";
-      // echo "Number of transited countries: {$num_transited_countries}\n";
-      // echo "Number of transited ASNs: {$num_transited_asnums}\n";
-      // echo "List of transited countries: {$list_transited_countries}\n";
-      // echo "List of transited ASNs: {$list_transited_asnums}\n";
-
       // UPDATE
       if ($shouldUpdate) {
-        // echo "Updating...\n";
         $trData = array(
           $origin_city,
           $origin_country,
@@ -545,7 +480,6 @@ class DerivedTable
 
       // INSERT
       } else {
-        // echo "Inserting...\n";
         $trData = array(
           $trId,
           $num_hops,
@@ -595,8 +529,6 @@ class DerivedTable
         DerivedTable::insertTracerouteTrait($trData);
       }
 
-    } else {
-      // echo "No valid result returned for ".$trId."\n";
     }
   }
 
