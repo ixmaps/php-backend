@@ -137,90 +137,46 @@ class Traceroute
     // free some memory
     unset($trIds);
 
-    $sql = "
-      SELECT at.traceroute_id, at.hop, at.rtt1, at.rtt2, at.rtt3, at.rtt4, at.min_latency, at.ip_addr, at.hostname, at.lat, at.long, at.mm_city, at.mm_country, at.gl_override, at.asnum, at.asname, ip_addr_info.flagged, tt.submitter, tt.sub_time, tt.submitter_zip_code, tt.origin_asnum, tt.origin_asname, tt.origin_city, tt.origin_country, tt.first_hop_num, tt.first_hop_asnum, tt.first_hop_asname, tt.first_hop_city, tt.first_hop_country, tt.last_hop_asnum, tt.last_hop_asname, tt.last_hop_city, tt.last_hop_country, tt.dest_hostname, tt.dest_ip_addr, tt.dest_asnum, tt.dest_asname, tt.dest_city, tt.dest_country, tt.last_hop_ip_addr, tt.terminated
-      FROM annotated_traceroutes at, ip_addr_info, traceroute_traits tt
-      WHERE at.traceroute_id = tt.traceroute_id AND at.ip_addr = ip_addr_info.ip_addr
-      AND tt.traceroute_id IN (".$idsStr.")
+    // two queries actually turns out to be slightly faster than one with an extra join
+    $hopSql = "
+      SELECT at.traceroute_id, at.hop, at.rtt1, at.rtt2, at.rtt3, at.rtt4, at.min_latency, at.ip_addr, at.hostname, at.lat, at.long, at.mm_city, at.mm_country, at.gl_override, at.asnum, at.asname, ip_addr_info.flagged
+      FROM annotated_traceroutes at, ip_addr_info
+      WHERE at.ip_addr = ip_addr_info.ip_addr
+      AND at.traceroute_id IN (".$idsStr.")
       order by at.traceroute_id desc, at.hop";
 
-    $result = pg_query($dbconn, $sql) or die('Query failed: ' . pg_last_error());
-    $trArr = pg_fetch_all($result);
+    $result = pg_query($dbconn, $hopSql) or die('Query failed: ' . pg_last_error());
+    $hopArr = pg_fetch_all($result);
+    pg_free_result($result);
 
-    $trData = array();
-    $totHops = 0;
+    $metadataSql = "
+      SELECT traceroute_id, submitter, sub_time, submitter_zip_code, origin_asnum, origin_asname, origin_city, origin_country, first_hop_num, first_hop_asnum, first_hop_asname, first_hop_city, first_hop_country, last_hop_asnum, last_hop_asname, last_hop_city, last_hop_country, dest_hostname, dest_ip_addr, dest_asnum, dest_asname, dest_city, dest_country, last_hop_ip_addr, terminated
+      FROM traceroute_traits
+      WHERE traceroute_id IN (".$idsStr.")
+      order by traceroute_id desc";
+
+    $result = pg_query($dbconn, $metadataSql) or die('Query failed: ' . pg_last_error());
+    $metadataArr = pg_fetch_all($result);
+    pg_free_result($result);
+
     $traceroute = array();
     $allTraceroutes = array();
 
-    // start loop over tr data array where i is an index of all hops
-    for ($i = 0; $i < count($trArr); $i++) {
-      $totHops++;
+    foreach ($metadataArr as $i => $tr) {
+      $traceroute["traceroute_id"] = $tr['traceroute_id'];
+      $traceroute["metadata"] = $tr;
+      $traceroute["hops"] = array();
 
-      // for each new route
-      if ($i == 0 || $traceroute["traceroute_id"] != $trArr[$i-1]['traceroute_id']) {
-        $traceroute["traceroute_id"] = $trArr[$i]['traceroute_id'];
-        // set the metadata for this route
-        $traceroute["metadata"] = array(
-          'traceroute_id' => $trArr[$i]['traceroute_id'],
-          'submitter' => $trArr[$i]['submitter'],
-          'sub_time' => $trArr[$i]['sub_time'],
-          'submitter_zip_code' => $trArr[$i]['submitter_zip_code'],
-          'origin_asnum' => $trArr[$i]['origin_asnum'],
-          'origin_asname' => $trArr[$i]['origin_asname'],
-          'origin_city' => $trArr[$i]['origin_city'],
-          'origin_country' => $trArr[$i]['origin_country'],
-          'first_hop_num' => $trArr[$i]['first_hop_num'],
-          'first_hop_asnum' => $trArr[$i]['first_hop_asnum'],
-          'first_hop_asname' => $trArr[$i]['first_hop_asname'],
-          'first_hop_city' => $trArr[$i]['first_hop_city'],
-          'first_hop_country' => $trArr[$i]['first_hop_country'],
-          'last_hop_asnum' => $trArr[$i]['last_hop_asnum'],
-          'last_hop_asname' => $trArr[$i]['last_hop_asname'],
-          'last_hop_city' => $trArr[$i]['last_hop_city'],
-          'last_hop_country' => $trArr[$i]['last_hop_country'],
-          'dest_hostname' => $trArr[$i]['dest_hostname'],
-          'dest_ip_addr' => $trArr[$i]['dest_ip_addr'],
-          'dest_asnum' => $trArr[$i]['dest_asnum'],
-          'dest_asname' => $trArr[$i]['dest_asname'],
-          'dest_city' => $trArr[$i]['dest_city'],
-          'dest_country' => $trArr[$i]['dest_country'],
-          'last_hop_ip_addr' => $trArr[$i]['last_hop_ip_addr'],
-          'terminated' => $trArr[$i]['terminated'],
-        );
-      }
-
-      // add the hop for each iteration of the loop
-      $traceroute["hops"][$trArr[$i]['hop']] = array(
-        'hop' => $trArr[$i]['hop'],
-        'rtt1' => $trArr[$i]['rtt1'],
-        'rtt2' => $trArr[$i]['rtt2'],
-        'rtt3' => $trArr[$i]['rtt3'],
-        'rtt4' => $trArr[$i]['rtt4'],
-        'min_latency' => $trArr[$i]['min_latency'],
-        'ip_addr' => $trArr[$i]['ip_addr'],
-        'hostname' => $trArr[$i]['hostname'],
-        'lat' => $trArr[$i]['lat'],
-        'long' => $trArr[$i]['long'],
-        'mm_city' => $trArr[$i]['mm_city'],
-        'mm_country' => $trArr[$i]['mm_country'],
-        'gl_override' => $trArr[$i]['gl_override'],
-        'asnum' => $trArr[$i]['asnum'],
-        'asname' => $trArr[$i]['asname'],
-        'flagged' => $trArr[$i]['flagged']
-      );
-
-      // if this route is finished, aka if this is the last hop or
-      // the next hop has a different tr_id, save this route to allTraceroutes
-      if ($i+1 == count($trArr) || $traceroute["traceroute_id"] != $trArr[$i+1]['traceroute_id']) {
-        $allTraceroutes[$traceroute["traceroute_id"]] = $traceroute;
-      }
-
-    } // end for
+      $allTraceroutes[$tr["traceroute_id"]] = $traceroute;
+    }
+    foreach ($hopArr as $key => $hop) {
+      array_push($allTraceroutes[$hop["traceroute_id"]]["hops"], $hop);
+    }
 
     $results = array(
       'trsFound' => $trsFound,
       'trsReturned' => $numTrsSampled,
-      'totHops' => $totHops,
+      'totHops' => count($hopArr),
       'result' => json_encode($allTraceroutes)
     );
 
@@ -578,5 +534,3 @@ $as_num_color = array (
    "19086"  => "676A6B"
 );
 ?>
-
-
