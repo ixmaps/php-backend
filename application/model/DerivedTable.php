@@ -109,10 +109,10 @@ class DerivedTable
     // origin_asname
     // origin_city
     // origin_country
-    // $sqlOrigin = "SELECT submitter_ip FROM tr_contributions WHERE traceroute_id=".$trId;
-    // $result = pg_query($dbconn, $sqlOrigin) or die('Query failed: ' . pg_last_error());
-    // $originArr = pg_fetch_all($result);
-    // pg_free_result($result);
+    $sqlOrigin = "SELECT submitter_ip FROM tr_contributions WHERE traceroute_id=".$trId;
+    $result = pg_query($dbconn, $sqlOrigin) or die('Query failed: ' . pg_last_error());
+    $originArr = pg_fetch_all($result);
+    pg_free_result($result);
 
     $origin_ip_addr = $originArr[0]["submitter_ip"];
     $origin_asnum = null;
