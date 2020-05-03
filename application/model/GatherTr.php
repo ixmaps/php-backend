@@ -401,15 +401,15 @@ class GatherTr
 
           This approach applies for the first not private ip, which is not necessarily user's public ip, but since the first public ip can be missing from the data, this approach in some cases will anonymize ips that don't need to be anonymized. (Requires further discussion)
         */
-        if (!$foundFirstValidIp && $hop['winIp']!="") {
+        if (!$foundFirstValidIp && $hop['winIp'] != "") {
           $foundFirstValidIp=true;
 
           $ipQuads = explode('.', $hop['winIp']);
-          // CM: what is an
+          // CM: what is an amonim?
           $ipAmonim = "";
 
-          for ($i=0; $i < count($ipQuads); $i++) {
-            if ($i==count($ipQuads)-1) {
+          for ($i = 0; $i < count($ipQuads); $i++) {
+            if ($i == count($ipQuads)-1) {
               $ipAmonim.=".0";
 
             } else if ($i==0) {
@@ -431,18 +431,18 @@ class GatherTr
           $rtt_ms = 0;
 
           if ($latency == -1) {
-            $status="t";
+            $status = "t";
           } else {
-            $status="r";
+            $status = "r";
           }
 
           // Collect TR items for insert
           $trInsertData["trItems"][$hopCount][]=array(
-            "ip"=>$hop['winIp'],
-            "status"=>$status,
-            "rtt_ms"=>round($latency),
-            "attempt"=>$latencyCount,
-            "hop"=>$hopCount,
+            "ip" => $hop['winIp'],
+            "status" => $status,
+            "rtt_ms" => round($latency),
+            "attempt" => $latencyCount,
+            "hop" => $hopCount,
           );
         }
 
@@ -658,7 +658,7 @@ class GatherTr
       $data['status'],
       $data['attempts'],
       ""
-      );
+    );
 
     /* Catch errors in sql statement */
     if (pg_send_query_params($dbconn, $sql, $trData)) {
@@ -675,7 +675,7 @@ class GatherTr
             "E_USER_ERROR"=>E_USER_ERROR
             );
           GatherTr::saveError($errorData);
-          $newTRid=0;
+          $newTRid = 0;
         } else {
           // success ! ...
           $temp = pg_fetch_all($result);
@@ -825,20 +825,10 @@ class GatherTr
     foreach ($data as $key => $hop) {
       $hopCount++;
 
-      if (filter_var($hop[0]["ip"], FILTER_VALIDATE_IP)) {
-        //echo "\n[".$hopCount."] - Valid IP - ".$hop[0]["ip"]."";
-        //print_r($hop);
-
-        // Check if the ip exists
-        $checkIpExists = GatherTr::checkIpExists($hop[0]["ip"]);
-        if (!isset($checkIpExists[0]['ip_addr'])) {
-          $newIpResult = GatherTr::insertNewIp($hop[0]["ip"]);
-        } // end if check ip
-
-
-      } else {
-        //echo "\n[".$hopCount."] Not a valid IP";
-        //print_r($hop);
+      // Check if the ip exists
+      $checkIpExists = GatherTr::checkIpExists($hop[0]["ip"]);
+      if (!isset($checkIpExists[0]['ip_addr'])) {
+        $newIpResult = GatherTr::insertNewIp($hop[0]["ip"]);
       }
 
       /* Loop hop latencies - Insert TR item */

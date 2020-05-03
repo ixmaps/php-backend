@@ -19,15 +19,12 @@ header('Access-Control-Allow-Origin: *');
 require_once('../config.php');
 require_once('../model/IXmapsGeoCorrection.php');
 
-// Get test IP
-// if (isset($_GET['ip'])) {
-//   $testIp = $_GET['ip'];
-//   $ipAddrData = IXmapsGeoCorrection::getIpAddrInfo(0, 2, $testIp);
-// } else {
-//   // Get corrected IPs
-//   $ipAddrData = IXmapsGeoCorrection::getIpAddrInfo(100, 1);
-// }
+// look for IPs updated by corr-latlong.sh (p_status = G)
 $ipAddrData = IXmapsGeoCorrection::getIpAddrInfo(100, 1);
+// if no, update some of the older ips missing a city (p_status = U, mm_city is null)
+if (!$ipAddrData) {
+  $ipAddrData = IXmapsGeoCorrection::getIpAddrInfo(100, 5);
+}
 
 if (isset($_GET['m'])) {
   $matchLimit = $_GET['m'];
@@ -57,7 +54,7 @@ if (!$ipAddrData) {
       $distance = IXmapsGeoCorrection::distanceBetweenCoords($latitudeFrom, $longitudeFrom, $latitudeTo, $longitudeTo);
       $ipToGeoData[$key1]['distance'] = $distance;
 
-      // Exclude null Country names
+      // Exclude null country names
       if ($geoLocMatch['region']!="") {
         if (!isset($bestMatchCountry[$geoLocMatch['region']])) {
           $bestMatchRegion[$geoLocMatch['region']] = 1;
@@ -66,7 +63,7 @@ if (!$ipAddrData) {
         }
       }
 
-      // Exclude null Region names
+      // Exclude null region names
       if ($geoLocMatch['country']!="") {
         if (!isset($bestMatchCountry[$geoLocMatch['country']])) {
           $bestMatchCountry[$geoLocMatch['country']] = 1;
@@ -86,7 +83,7 @@ if (!$ipAddrData) {
 
     } // end for find best match
 
-      // add best match geoData
+    // add best match geoData
     arsort($bestMatchCountry);
     arsort($bestMatchRegion);
     arsort($bestMatchCity);

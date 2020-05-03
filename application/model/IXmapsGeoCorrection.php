@@ -21,6 +21,10 @@ class IXmapsGeoCorrection
     // select ips by asn
     } else if ($type == 4) {
       $sql1 = "SELECT ip_addr, gl_override, p_status, asnum, hostname, lat, long, mm_country, mm_region, mm_city FROM ip_addr_info WHERE mm_city = '' and p_status<>'F' and p_status<>'G' and p_status<>'U' and lat <> 0 and gl_override is null and asn=$asn order by ip_addr OFFSET $offset LIMIT $limit;";
+
+    // select ips to which MM did not assign a city
+    } else if ($type == 5) {
+      $sql1 = "SELECT ip_addr, asnum, hostname, lat, long, mm_country, mm_region, mm_city FROM ip_addr_info WHERE p_status='U' and mm_lat is not null and mm_lat is not null and mm_long != 0 and mm_long != 0 and mm_city is null LIMIT $limit;";
     }
 
     $result1 = pg_query($dbconn, $sql1);
