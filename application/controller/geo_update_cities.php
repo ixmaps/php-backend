@@ -15,7 +15,8 @@
  * @author IXmaps.ca (Anto, Colin)
  *
  */
-header('Access-Control-Allow-Origin: *');
+// header('Access-Control-Allow-Origin: *');
+chdir(dirname(__FILE__));
 require_once('../config.php');
 require_once('../model/IXmapsGeoCorrection.php');
 
