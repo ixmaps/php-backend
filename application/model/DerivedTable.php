@@ -190,6 +190,24 @@ class DerivedTable
       $country_source = $destArr[0]["mm_country"] ? 'ix' : 'mm';
     }
 
+    $sql = "UPDATE traceroute_traits SET (
+        origin_asnum,
+        origin_asname,
+        origin_city,
+        origin_country,
+        dest_asnum,
+        dest_asname,
+        dest_city,
+        dest_country
+      ) = ($1, $2, $3, $4, $5, $6, $7, $8)
+      WHERE traceroute_id = ".$trId;
+
+    $result = pg_query_params($dbconn, $sql, $data);
+    if ($result === false) {
+      echo "traceroute_traits update query failed: " . pg_last_error();
+    }
+    pg_free_result($result);
+
 
   //   /****
   //     HANDLE TRACEROUTE_TRAITS
@@ -483,81 +501,81 @@ class DerivedTable
   //     $first_hop_asname = DerivedTable::getAsname($first_hop_asnum);
   //     $last_hop_asname = DerivedTable::getAsname($last_hop_asnum);
 
-      // UPDATE
-      if ($shouldUpdate) {
-        $trData = array(
-          $origin_city,
-          $origin_country,
-          $dest_city,
-          $dest_country,
-          $first_hop_city,
-          $first_hop_country,
-          $last_hop_city,
-          $last_hop_country,
-          json_encode($nsa),
-          json_encode($boomerang),
-          json_encode($boomerang_ca_us_ca),
-          json_encode($transits_us),
-          $num_transited_countries,
-          $list_transited_countries,
-          $num_default_mm_location_hops,
-          $num_gl_override_hops,
-          $num_aba_hops,
-          $num_prev_hop_sol_violation_hops,
-          $num_origin_sol_violation_hops,
-        );
-        DerivedTable::updateTracerouteTrait($trId, $trData);
+      // // UPDATE
+      // if ($shouldUpdate) {
+      //   $trData = array(
+      //     $origin_city,
+      //     $origin_country,
+      //     $dest_city,
+      //     $dest_country,
+      //     $first_hop_city,
+      //     $first_hop_country,
+      //     $last_hop_city,
+      //     $last_hop_country,
+      //     json_encode($nsa),
+      //     json_encode($boomerang),
+      //     json_encode($boomerang_ca_us_ca),
+      //     json_encode($transits_us),
+      //     $num_transited_countries,
+      //     $list_transited_countries,
+      //     $num_default_mm_location_hops,
+      //     $num_gl_override_hops,
+      //     $num_aba_hops,
+      //     $num_prev_hop_sol_violation_hops,
+      //     $num_origin_sol_violation_hops,
+      //   );
+      //   DerivedTable::updateTracerouteTrait($trId, $trData);
 
-      // INSERT
-      } else {
-        $trData = array(
-          $trId,
-          $num_hops,
-          $submitter,
-          $sub_time,
-          $submitter_zip_code,
-          $origin_ip_addr,
-          $origin_asnum,
-          $origin_asname,
-          $origin_city,
-          $origin_country,
-          $dest_hostname,
-          $dest_ip_addr,
-          $dest_asnum,
-          $dest_asname,
-          $dest_city,
-          $dest_country,
-          $first_hop_num,
-          $first_hop_ip_addr,
-          $first_hop_asnum,
-          $first_hop_asname,
-          $first_hop_city,
-          $first_hop_country,
-          $last_hop_num,
-          $last_hop_ip_addr,
-          $last_hop_asnum,
-          $last_hop_asname,
-          $last_hop_city,
-          $last_hop_country,
-          json_encode($terminated),
-          json_encode($nsa),
-          json_encode($boomerang),
-          json_encode($boomerang_ca_us_ca),
-          json_encode($transits_us),
-          $num_transited_countries,
-          $num_transited_asnums,
-          $list_transited_countries,
-          $list_transited_asnums,
-          $num_skipped_hops,
-          $num_default_mm_location_hops,
-          $num_gl_override_hops,
-          $num_aba_hops,
-          $num_prev_hop_sol_violation_hops,
-          $num_origin_sol_violation_hops,
-          $num_jittery_hops
-        );
-        DerivedTable::insertTracerouteTrait($trData);
-      }
+      // // INSERT
+      // } else {
+      //   $trData = array(
+      //     $trId,
+      //     $num_hops,
+      //     $submitter,
+      //     $sub_time,
+      //     $submitter_zip_code,
+      //     $origin_ip_addr,
+      //     $origin_asnum,
+      //     $origin_asname,
+      //     $origin_city,
+      //     $origin_country,
+      //     $dest_hostname,
+      //     $dest_ip_addr,
+      //     $dest_asnum,
+      //     $dest_asname,
+      //     $dest_city,
+      //     $dest_country,
+      //     $first_hop_num,
+      //     $first_hop_ip_addr,
+      //     $first_hop_asnum,
+      //     $first_hop_asname,
+      //     $first_hop_city,
+      //     $first_hop_country,
+      //     $last_hop_num,
+      //     $last_hop_ip_addr,
+      //     $last_hop_asnum,
+      //     $last_hop_asname,
+      //     $last_hop_city,
+      //     $last_hop_country,
+      //     json_encode($terminated),
+      //     json_encode($nsa),
+      //     json_encode($boomerang),
+      //     json_encode($boomerang_ca_us_ca),
+      //     json_encode($transits_us),
+      //     $num_transited_countries,
+      //     $num_transited_asnums,
+      //     $list_transited_countries,
+      //     $list_transited_asnums,
+      //     $num_skipped_hops,
+      //     $num_default_mm_location_hops,
+      //     $num_gl_override_hops,
+      //     $num_aba_hops,
+      //     $num_prev_hop_sol_violation_hops,
+      //     $num_origin_sol_violation_hops,
+      //     $num_jittery_hops
+      //   );
+      //   DerivedTable::insertTracerouteTrait($trData);
+      // }
 
     // }
   }
@@ -734,7 +752,6 @@ class DerivedTable
         return $asnameArr[0]["name"];
       }
     }
-
   }
 
 }
