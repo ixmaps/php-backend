@@ -22,7 +22,7 @@ require_once('../model/IXmapsGeoCorrection.php');
 
 // look for IPs updated by corr-latlong.sh (p_status = G)
 $ipAddrData = IXmapsGeoCorrection::getIpAddrInfo(100, 1);
-// if no, update some of the older ips missing a city (p_status = U, mm_city is null)
+// if no, update some of the ips missing a city (p_status = U, mm_city is null). This is now necessary since Maxmind does not always provide a city...
 if (!$ipAddrData) {
   $ipAddrData = IXmapsGeoCorrection::getIpAddrInfo(100, 5);
 }
