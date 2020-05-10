@@ -559,7 +559,7 @@ class DerivedTable
         DerivedTable::insertTracerouteTrait($trData);
       }
 
-    }
+    // }
   }
 
 
@@ -715,7 +715,6 @@ class DerivedTable
       echo "traceroute_traits update query failed: " . pg_last_error();
     }
     pg_free_result($result);
-  }
   }
 
   public static function getAsname($num) {
