@@ -202,7 +202,7 @@ class DerivedTable
       ) = ($1, $2, $3, $4, $5, $6, $7, $8)
       WHERE traceroute_id = ".$trId;
 
-    $result = pg_query_params($dbconn, $sql, $data);
+    $result = pg_query_params($dbconn, $sql);
     if ($result === false) {
       echo "traceroute_traits update query failed: " . pg_last_error();
     }
