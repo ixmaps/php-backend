@@ -190,6 +190,17 @@ class DerivedTable
       $country_source = $destArr[0]["mm_country"] ? 'ix' : 'mm';
     }
 
+    $data = array(
+      $origin_asnum,
+      $origin_asname,
+      $origin_city,
+      $origin_country,
+      $dest_asnum,
+      $dest_asname,
+      $dest_city,
+      $dest_country
+    );
+
     $sql = "UPDATE traceroute_traits SET (
         origin_asnum,
         origin_asname,
@@ -202,7 +213,7 @@ class DerivedTable
       ) = ($1, $2, $3, $4, $5, $6, $7, $8)
       WHERE traceroute_id = ".$trId;
 
-    $result = pg_query_params($dbconn, $sql);
+    $result = pg_query_params($dbconn, $sql, $data);
     if ($result === false) {
       echo "traceroute_traits update query failed: " . pg_last_error();
     }
