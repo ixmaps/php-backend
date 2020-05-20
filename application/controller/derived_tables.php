@@ -1,5 +1,5 @@
 <?php
-error_reporting(E_ALL);
+// error_reporting(E_ALL);
 /**
  * Functionality to update the annotated_traceroutes and traceroute_traits tables
  *
