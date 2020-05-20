@@ -21,11 +21,11 @@ require_once('../config.php');
 require_once('../model/DerivedTable.php');
 
 // BULK INSERTS
-$limit = 20;
-getTracerouteIdsToInsert(1140360);
+// $limit = 20;
+// getTracerouteIdsToInsert(1140360);
 
 // CALLED BY CRONJOB
-// getTracerouteIdsToUpdate();
+getTracerouteIdsToUpdate();
 
 
 /**
@@ -39,7 +39,9 @@ function getTracerouteIdsToUpdate() {
   $trArr = pg_fetch_all($result);
   pg_free_result($result);
 
-  echo "\n Newly modified ip_addrs found ".date("Y/m/d")."\n";
+  if ($trArr) {
+    echo "\n Newly modified ip_addrs found ".date("Y/m/d")."\n";
+  }
 
   loopOverTrIdsForDerivedTable($trArr);
 
@@ -79,9 +81,11 @@ function loopOverTrIdsForDerivedTable($trArr) {
   }
 
   if ($connGen == 0) {
+    echo "\nDate: ".Date("d m Y");
     echo "\nNothing to do for now\n";
   } else {
     $timeElapsedSecs = microtime(true) - $startTime;
+    echo "\nDate: ".Date("d m Y");
     echo "\nDuration: ".$timeElapsedSecs;
     echo "\n".$connGen. " TRs for traceroute_traits and annotate_traceroutes generated\n";
   }
