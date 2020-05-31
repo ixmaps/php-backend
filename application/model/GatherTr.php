@@ -695,18 +695,17 @@ class GatherTr
   */
   public static function saveTracerouteItem($trId, $data)
   {
-    //echo "\n------ saveTracerouteItem()";
     global $dbconn;
 
     if ($data['ip']=='') {
-          $sql = "INSERT INTO tr_item (traceroute_id,hop,attempt,status,ip_addr,rtt_ms) VALUES ($1, $2, $3, $4, null, $5);";
+          $sql = "INSERT INTO tr_item (traceroute_id, hop, attempt, status, ip_addr, rtt_ms) VALUES ($1, $2, $3, $4, null, $5);";
       $trItemsData = array(
         $trId,
         $data['hop'],
         $data['attempt'],
         $data['status'],
         $data['rtt_ms'],
-        );
+      );
 
     } else {
       $sql = "INSERT INTO tr_item (traceroute_id, hop, attempt, status, ip_addr, rtt_ms) VALUES ($1, $2, $3, $4, $5, $6);";
@@ -717,7 +716,7 @@ class GatherTr
         $data['status'],
         $data['ip'],
         $data['rtt_ms'],
-        );
+      );
 
     }
 
@@ -807,7 +806,7 @@ class GatherTr
     /* TODO: Check is a valid ip: a bit redundant?*/
     $sql = "SELECT ip_addr_info.ip_addr FROM ip_addr_info WHERE ip_addr = '".$ip."'";
 
-    $result = pg_query($dbconn, $sql) or die('checkIpExists: Query failed'.pg_last_error());
+    $result = pg_query($dbconn, $sql) or die('checkIpExists: Query failed on the ip '.$ip.' with error '.pg_last_error());
     $dataA = pg_fetch_all($result);
     pg_free_result($result);
     return $dataA;
@@ -826,9 +825,11 @@ class GatherTr
       $hopCount++;
 
       // Check if the ip exists
-      $checkIpExists = GatherTr::checkIpExists($hop[0]["ip"]);
-      if (!isset($checkIpExists[0]['ip_addr'])) {
-        $newIpResult = GatherTr::insertNewIp($hop[0]["ip"]);
+      if (!empty($hop[0]["ip"])) {
+        $checkIpExists = GatherTr::checkIpExists($hop[0]["ip"]);
+        if (!isset($checkIpExists[0]['ip_addr'])) {
+          $newIpResult = GatherTr::insertNewIp($hop[0]["ip"]);
+        }
       }
 
       /* Loop hop latencies - Insert TR item */
