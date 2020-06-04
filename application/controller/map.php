@@ -8,7 +8,8 @@
  *
  * @return some kind of JSON object - TODO
  *
- * @author IXmaps.ca (Anto)
+ * @author IXmaps.ca (Colin, Antonio)
+ * @since 2020 Jun
  *
  */
 header("Access-Control-Allow-Origin: *");
@@ -27,6 +28,7 @@ $mtime = $mtime[1] + $mtime[0];
 $starttime = $mtime;
 
 
+
 if (!isset($_POST)) {
   $error = array(
     "error" => "No parameters sent to Map Backend"
@@ -34,7 +36,6 @@ if (!isset($_POST)) {
   echo json_encode($error);
 
 } else {
-  $trHtmlTable = "";
 
   $postArr = json_decode(file_get_contents('php://input'), TRUE);
   $data = json_encode($postArr);

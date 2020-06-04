@@ -53,7 +53,7 @@ class SLog
           $value->lon
         );
 
-        $result = pg_query_params($dbconn, $sql, $hostData) or die('Query failed: incorrect parameters');
+        $result = pg_query_params($dbconn, $sql, $hostData) or die('Slog query failed: incorrect parameters');
 
         //$result = pg_query($dbconn, $sql);
         $cNum++;
@@ -241,7 +241,7 @@ class SLog
     //$sql = "select * from s_log order by id DESC";
     $sql = "SELECT * from s_log Where timestamp >= $1 and timestamp < $2 order by id";
     //echo "<hr/>".$sql."<br/>".$date1." - ".$date2;
-    $result = pg_query_params($dbconn, $sql, array($date1, $date2)) or die('Query failed: incorrect parameters');
+    $result = pg_query_params($dbconn, $sql, array($date1, $date2)) or die('SLog query failed: incorrect parameters');
     $data = pg_fetch_all($result);
     $data_temp=array();
     $data_to_d3=array();

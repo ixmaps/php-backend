@@ -7,7 +7,7 @@
  * the frontend
  *
  * @author IXmaps.ca (Colin, Antonio)
- * @since 2020 Apr
+ * @since 2020 June
  *
  */
 class Traceroute
@@ -73,7 +73,6 @@ class Traceroute
     } // end for
 
     $trIds = array_unique($trIds);
-    // var_dump(count($trIds));die;
 
     unset($trIdsForConstraint);
 
@@ -145,7 +144,7 @@ class Traceroute
       AND at.traceroute_id IN (".$idsStr.")
       order by at.traceroute_id desc, at.hop";
 
-    $result = pg_query($dbconn, $hopSql) or die('Query failed: ' . pg_last_error());
+    $result = pg_query($dbconn, $hopSql) or die('getTracerouteDataForIds query failed: ' . pg_last_error());
     $hopArr = pg_fetch_all($result);
     pg_free_result($result);
 
@@ -155,7 +154,7 @@ class Traceroute
       WHERE traceroute_id IN (".$idsStr.")
       order by traceroute_id desc";
 
-    $result = pg_query($dbconn, $metadataSql) or die('Query failed: ' . pg_last_error());
+    $result = pg_query($dbconn, $metadataSql) or die('getTracerouteDataForIds query failed: ' . pg_last_error());
     $metadataArr = pg_fetch_all($result);
     pg_free_result($result);
 
@@ -265,7 +264,7 @@ class Traceroute
     } else if ($c['constraint3'] == 'zipCodeSubmitter') {
       $table = 'traceroute_traits';
       $field = 'submitter_zip_code';
-    } else if ($c['constraint3'] == 'destHostName') {
+    } else if ($c['constraint3'] == 'destHostname') {
       $table = 'traceroute_traits';
       $field = 'dest_hostname';
     } else if ($c['constraint3'] == 'trId') {
@@ -321,9 +320,9 @@ class Traceroute
 
     // old approach: used only for quick links
     if ($wParam == "") {
-      $result = pg_query($dbconn, $sql) or die('Query failed: ' . pg_last_error());
+      $result = pg_query($dbconn, $sql) or die('getTrIds query failed: ' . pg_last_error());
     } else {
-      $result = pg_query_params($dbconn, $sql, array($wParam)) or die('Query failed: incorrect parameters');
+      $result = pg_query_params($dbconn, $sql, array($wParam)) or die('getTrIds query failed: incorrect parameters');
     }
 
     $data = array();
@@ -439,7 +438,7 @@ class Traceroute
     $result = array();
     $autoC = array();
 
-    $result = pg_query($dbconn, $sql) or die('Query failed: ' . pg_last_error());
+    $result = pg_query($dbconn, $sql) or die('getAutoCompleteData query failed: ' . pg_last_error());
 
     while ($line = pg_fetch_array($result, null, PGSQL_ASSOC)) {
       if ($sField == "ISP") {
