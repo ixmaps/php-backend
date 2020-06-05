@@ -118,15 +118,15 @@ class Traceroute
     * @return array of traceroutes
     *
     */
-  public static function getTracerouteDataForIds($trIds)
+  public static function getTracerouteDataForIds($trIds, $maxTrCount)
   {
-    global $dbconn, $trNumLimit;
+    global $dbconn;
 
     $trsFound = count($trIds);
 
     // if there is more than 1 tr, take a sampling
-    if ($trsFound > $trNumLimit) {
-      $numTrsSampled = $trNumLimit;
+    if ($trsFound > $maxTrCount) {
+      $numTrsSampled = $maxTrCount;
       $trIds = array_rand(array_flip($trIds), $numTrsSampled);
     } else {
       $numTrsSampled = $trsFound;
