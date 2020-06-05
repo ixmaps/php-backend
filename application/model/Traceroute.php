@@ -218,15 +218,19 @@ class Traceroute
     }
 
     // ORIGINATE / CONTAIN / GOVIA / TERMINATE
-    // we ignore the contain, since it does not limit the where conditions
-    if ($c['constraint2'] == 'originate') {
-      // $whereConditions .= " AND annotated_traceroutes.hop = traceroute_traits.first_hop_num";
+    // if param3 is at the traceroute level (instead of hop level), we want to use contains (which means no where constraint)
+    $tracerouteLevelParams = ['submitter', 'zipCodeSubmitter', 'destHostname', 'trId', 'subTimeGreaterThan', 'subTimeLessThan'];
+
+    if ($c['constraint2'] == 'contains' || in_array($c['constraint3'], $tracerouteLevelParams)) {
+      $whereConditions = "";
+
+    } else if ($c['constraint2'] == 'originate') {
       $whereConditions .= " AND annotated_traceroutes.hop = 1";
 
-    } else if($c['constraint2'] == 'terminate') {
+    } else if ($c['constraint2'] == 'terminate') {
       $whereConditions .= " AND annotated_traceroutes.hop = traceroute_traits.last_hop_num";
 
-    } else if($c['constraint2'] == 'goVia') {
+    } else if ($c['constraint2'] == 'goVia') {
       $whereConditions.=" AND (annotated_traceroutes.hop != 1 AND annotated_traceroutes.hop != traceroute_traits.last_hop_num)";
 
     }
