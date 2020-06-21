@@ -19,7 +19,6 @@ if((isset($_REQUEST['trid']) && $_REQUEST['trid']!="") || (isset($_REQUEST['tr_c
   }
 
   $c = GatherTr::getTrContribution($tr_c_id, $trid);
-  //echo "TR Data saved!\n\n";
   // fix json return: assume now not order in the contributions
   for ($i=0; $i < count($c['traceroute_submissions']); $i++) {
     if($c['traceroute_submissions'][$i]['data_type']=="json"){
