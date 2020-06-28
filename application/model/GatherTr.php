@@ -354,9 +354,9 @@ class GatherTr
         $sub_data['protocol'] = strtolower($sub_data['protocol']);
         if ($sub_data['protocol']=="icmp") {
           $protocol = "i";
-        } else if($sub_data['protocol']=="udp"){
+        } else if ($sub_data['protocol']=="udp") {
           $protocol = "u";
-        } else if($sub_data['protocol']=="tcp"){
+        } else if ($sub_data['protocol']=="tcp") {
           $protocol = "t";
         }
       }
@@ -367,8 +367,8 @@ class GatherTr
     // convert timeout to seconds
     $data['timeout'] = round($data['timeout']/1000);
 
-    /*Format array for insert into Traceroute */
-    $trInsertData = array (
+    /* Format array for insert into Traceroute */
+    $trInsertData = array(
       "trData"=>array(
         "dest"=>$data['dest'],
         "dest_ip"=>$data['dest_ip'],
@@ -384,7 +384,7 @@ class GatherTr
         "status"=>$trStatus)
       );
 
-    $hopCount=0;
+    $hopCount = 0;
     $foundFirstValidIp = false;
 
     // hops
