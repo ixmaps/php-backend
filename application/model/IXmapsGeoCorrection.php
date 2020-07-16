@@ -110,7 +110,7 @@ class IXmapsGeoCorrection
     global $dbconn;
 
     // Get closest geodata for lat/long
-    $sql = "SELECT country, region, city, latitude, longitude FROM geolite_city_location ORDER BY location <-> st_setsrid(st_makepoint(".$ipData['long'].",".$ipData['lat']."),4326) LIMIT $limit;";
+    $sql = "SELECT country, region, city, postal_code, latitude, longitude FROM geolite_city_location ORDER BY location <-> st_setsrid(st_makepoint(".$ipData['long'].",".$ipData['lat']."),4326) LIMIT $limit;";
     $result = pg_query($dbconn, $sql) or die('analyzeClosestGeoData failed'.pg_last_error());
     $geodata = pg_fetch_all($result);
     return $geodata;
@@ -122,11 +122,11 @@ class IXmapsGeoCorrection
    * @param string $p_status target p_status for the update
    * @return int
    */
-  public static function updateGeoData($ipData, $p_status = 'F')
+  public static function updateGeoData($ipData, $p_status)
   {
     global $dbconn;
     // Update geo data for ip
-    $sql = "UPDATE ip_addr_info SET mm_country = '".$ipData['mm_country_update']."', mm_region = '".pg_escape_string($ipData['mm_region_update'])."',  mm_city = '".pg_escape_string($ipData['mm_city_update'])."', p_status = '".$p_status."', modified_at = 'NOW()' WHERE ip_addr = '".$ipData['ip_addr']."';";
+    $sql = "UPDATE ip_addr_info SET mm_country = '".$ipData['mm_country_update']."', mm_region = '".pg_escape_string($ipData['mm_region_update'])."',  mm_city = '".pg_escape_string($ipData['mm_city_update'])."', mm_postal = '".pg_escape_string([$ipData['mm_postal_update']])."', p_status = '".$p_status."', modified_at = 'NOW()' WHERE ip_addr = '".$ipData['ip_addr']."';";
 
     $result = pg_query($dbconn, $sql) or die('updateGeoData failed'.pg_last_error());
     pg_free_result($result);

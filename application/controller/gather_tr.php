@@ -42,6 +42,7 @@ $_POST['cl_version'] = "";
 */
 if (isset($_POST['dest_ip']) && $_POST['dest_ip'] != "") {
   $trGatherMessage = "";
+  // inserts into tr_contributions table. Very useful.
   $saveTrResult = GatherTr::saveTrContribution($_POST);
   $tr_c_id = $saveTrResult['tr_c_id'];
 
@@ -51,7 +52,6 @@ if (isset($_POST['dest_ip']) && $_POST['dest_ip'] != "") {
 
   // throws some json of the route into a confusingly named table
   $b = GatherTr::saveTrContributionData($_POST, $tr_c_id);
-  // inserts into tr_contributions table. Very useful.
   $trData = GatherTr::getTrContribution($tr_c_id);
   $trByHop = GatherTr::analyzeIfInconsistentPasses($trData);
 

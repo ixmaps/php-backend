@@ -492,11 +492,11 @@ class DerivedTable
       $num_skipped_hops = $last_hop_num - $num_hops;
 
       $boomerang = false;
-      if ($first_hop_country == $last_hop_country && $num_transited_countries > 0) {
+      if ($first_hop_country == $dest_country && $num_transited_countries > 0) {
         $boomerang = true;
       }
       $boomerang_ca_us_ca = false;
-      if ($first_hop_country == "CA" && $last_hop_country == "CA" && $transits_us == true) {
+      if ($first_hop_country == "CA" && $dest_country == "CA" && $transits_us == true) {
         $boomerang_ca_us_ca = true;
       }
 

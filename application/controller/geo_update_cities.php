@@ -11,7 +11,7 @@
  *
  * @return None (updated table ip_addr_info)
  *
- * @since Updated Apr 2020
+ * @since Updated Jul 2020
  * @author IXmaps.ca (Anto, Colin)
  *
  */
@@ -22,9 +22,12 @@ require_once('../model/IXmapsGeoCorrection.php');
 
 // look for IPs updated by corr-latlong.sh (p_status = G)
 $ipAddrData = IXmapsGeoCorrection::getIpAddrInfo(100, 1);
+$p_status = 'F';
+
 // if no, update some of the ips missing a city (p_status = U, mm_city is null). This is now necessary since Maxmind does not always provide a city...
 if (!$ipAddrData) {
   $ipAddrData = IXmapsGeoCorrection::getIpAddrInfo(100, 5);
+  $p_status = 'U';
 }
 
 if (isset($_GET['m'])) {
@@ -45,6 +48,7 @@ if (!$ipAddrData) {
     $bestMatchCountry = array ();
     $bestMatchRegion = array ();
     $bestMatchCity = array ();
+    $bestMatchPostal = array ();
 
     // Add distance to each match
     foreach ($ipToGeoData as $key1 => $geoLocMatch) {
@@ -56,7 +60,7 @@ if (!$ipAddrData) {
       $ipToGeoData[$key1]['distance'] = $distance;
 
       // Exclude null country names
-      if ($geoLocMatch['region']!="") {
+      if ($geoLocMatch['region'] != "") {
         if (!isset($bestMatchCountry[$geoLocMatch['region']])) {
           $bestMatchRegion[$geoLocMatch['region']] = 1;
         } else {
@@ -65,7 +69,7 @@ if (!$ipAddrData) {
       }
 
       // Exclude null region names
-      if ($geoLocMatch['country']!="") {
+      if ($geoLocMatch['country'] != "") {
         if (!isset($bestMatchCountry[$geoLocMatch['country']])) {
           $bestMatchCountry[$geoLocMatch['country']] = 1;
         } else {
@@ -74,11 +78,20 @@ if (!$ipAddrData) {
       }
 
       // Exclude null city names
-      if ($geoLocMatch['city']!="") {
+      if ($geoLocMatch['city'] != "") {
         if (!isset($bestMatchCity[$geoLocMatch['city']])) {
           $bestMatchCity[$geoLocMatch['city']] = 1;
         } else {
           $bestMatchCity[$geoLocMatch['city']] += 1;
+        }
+      }
+
+      // Exclude null postal_code names
+      if ($geoLocMatch['postal_code'] != "") {
+        if (!isset($bestMatchPostal[$geoLocMatch['postal_code']])) {
+          $bestMatchPostal[$geoLocMatch['postal_code']] = 1;
+        } else {
+          $bestMatchPostal[$geoLocMatch['postal_code']] += 1;
         }
       }
 
@@ -88,17 +101,19 @@ if (!$ipAddrData) {
     arsort($bestMatchCountry);
     arsort($bestMatchRegion);
     arsort($bestMatchCity);
+    arsort($bestMatchPostal);
 
     // add best match
     $ipAddrData[$key]["mm_country_update"] = key($bestMatchCountry);
     $ipAddrData[$key]["mm_region_update"] = key($bestMatchRegion);
     $ipAddrData[$key]["mm_city_update"] = key($bestMatchCity);
+    $ipAddrData[$key]["mm_postal_update"] = key($bestMatchPostal);
 
     // add all matches: for reference
     $ipAddrData[$key]['closest_matches'] = $ipToGeoData;
 
     // update
-    $updateGeoData = IXmapsGeoCorrection::updateGeoData($ipAddrData[$key]);
+    $updateGeoData = IXmapsGeoCorrection::updateGeoData($ipAddrData[$key], $p_status);
 
   } // end for set of ips
   echo "\n"."done\n";
