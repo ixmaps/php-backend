@@ -47,9 +47,9 @@ function getTrsets() {
 function getTrset($trset_name) {
   global $dbconn;
   if ($trset_name == "All targets") {
-    $sql = "select url from trset_target where reachable = true;";
+    $sql = "select url from trset_target where reachable = true order by id;";
   } else {
-    $sql = "select url from trset_target where reachable = true and trset_id = (select id from trset where name='".$trset_name."');";
+    $sql = "select url from trset_target where reachable = true and trset_id = (select id from trset where name='".$trset_name."') order by id;";
   }
 
   $result = pg_query($dbconn, $sql) or die('Trset query failed: ' . pg_last_error());
