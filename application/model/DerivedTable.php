@@ -110,7 +110,7 @@ class DerivedTable
     // origin_asname
     // origin_city
     // origin_country
-    $sqlOrigin = "SELECT tr_contributions.submitter_ip as submitter_ip, ip_addr_info.asnum  as asnum, ip_addr_info.mm_city as mm_city, ip_addr_info.mm_country as mm_country, ip_addr_info.lat as lat, ip_addr_info.long as long FROM tr_contributions LEFT JOIN ip_addr_info on tr_contributions.submitter_ip=ip_addr_info.ip_addr WHERE traceroute_id=".$trId;
+    $sqlOrigin = "SELECT tr_contributions.submitter_ip, ip_addr_info.asnum, ip_addr_info.mm_city, ip_addr_info.mm_country, ip_addr_info.lat, ip_addr_info.long FROM tr_contributions LEFT JOIN ip_addr_info on tr_contributions.submitter_ip=ip_addr_info.ip_addr WHERE traceroute_id=".$trId;
     $result = pg_query($dbconn, $sqlOrigin) or die('Query failed: ' . pg_last_error());
     $originArr = pg_fetch_all($result);
     pg_free_result($result);
@@ -143,6 +143,35 @@ class DerivedTable
       $city_source = $originArr[0]["mm_city"] ? 'ix' : 'mm';
       $country_source = $originArr[0]["mm_country"] ? 'ix' : 'mm';
     }
+
+    // $data = array(
+    //   $origin_asnum,
+    //   $origin_asname,
+    //   $origin_city,
+    //   $origin_country,
+    //   $dest_asnum,
+    //   $dest_asname,
+    //   $dest_city,
+    //   $dest_country
+    // );
+
+    // $sql = "UPDATE traceroute_traits SET (
+    //     origin_asnum,
+    //     origin_asname,
+    //     origin_city,
+    //     origin_country,
+    //     dest_asnum,
+    //     dest_asname,
+    //     dest_city,
+    //     dest_country
+    //   ) = ($1, $2, $3, $4, $5, $6, $7, $8)
+    //   WHERE traceroute_id = ".$trId;
+
+    // $result = pg_query_params($dbconn, $sql, $data);
+    // if ($result === false) {
+    //   echo "traceroute_traits update query failed: " . pg_last_error();
+    // }
+    // pg_free_result($result);
 
 
     /****
@@ -191,35 +220,6 @@ class DerivedTable
       $city_source = $destArr[0]["mm_city"] ? 'ix' : 'mm';
       $country_source = $destArr[0]["mm_country"] ? 'ix' : 'mm';
     }
-
-    $data = array(
-      $origin_asnum,
-      $origin_asname,
-      $origin_city,
-      $origin_country,
-      $dest_asnum,
-      $dest_asname,
-      $dest_city,
-      $dest_country
-    );
-
-    $sql = "UPDATE traceroute_traits SET (
-        origin_asnum,
-        origin_asname,
-        origin_city,
-        origin_country,
-        dest_asnum,
-        dest_asname,
-        dest_city,
-        dest_country
-      ) = ($1, $2, $3, $4, $5, $6, $7, $8)
-      WHERE traceroute_id = ".$trId;
-
-    $result = pg_query_params($dbconn, $sql, $data);
-    if ($result === false) {
-      echo "traceroute_traits update query failed: " . pg_last_error();
-    }
-    pg_free_result($result);
 
 
     /****

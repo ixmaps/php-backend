@@ -144,7 +144,7 @@ class GatherTr
     global $dbconn, $ixmaps_debug_mode;
 
     // Find tr_c_id for a trId
-    if ($trId!=0) {
+    if ($trId != 0) {
       $sql1 = "SELECT tr_contributions.* FROM tr_contributions WHERE traceroute_id=$1;";
       $sql2 = "SELECT tr_contribution_data.* FROM tr_contribution_data WHERE tr_c_id=$1;";
 

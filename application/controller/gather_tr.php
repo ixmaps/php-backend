@@ -80,11 +80,11 @@ if (isset($_POST['dest_ip']) && $_POST['dest_ip'] != "") {
       // Success: tr_flag = 2 or 3
       $trGatherMessage = "Traceroute data saved successfully. ".$publishResult['tot_hops']." Hops were found.";
       $trId = $publishResult['trId'];
+      GatherTr::flagContribution($tr_c_id, $trId, $trData['tr_flag']);
       DerivedTable::updateForTrId($trId);
     }
   }
 
-  GatherTr::flagContribution($tr_c_id, $trId, $trData['tr_flag']);
   $result = array(
     "TRid"=>$trId,
     "tr_c_id"=>$tr_c_id,
