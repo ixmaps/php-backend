@@ -94,6 +94,7 @@ class DerivedTable
   public static function updateForTrId($trId) {
     global $dbconn, $genericMMLatLongs;
 
+    // this check is to determine if this is an insert or an update
     $sql = "SELECT traceroute_id FROM traceroute_traits WHERE traceroute_id=".$trId;
     $result = pg_query($dbconn, $sql) or die('Query insert or update failed: ' . pg_last_error());
     $traitsArr = pg_fetch_all($result);
@@ -109,7 +110,7 @@ class DerivedTable
     // origin_asname
     // origin_city
     // origin_country
-    $sqlOrigin = "SELECT tr_contributions.submitter_ip, ip_addr_info.asnum, ip_addr_info.mm_city, ip_addr_info.mm_country, ip_addr_info.lat, ip_addr_info.long FROM tr_contributions LEFT JOIN ip_addr_info on tr_contributions.submitter_ip=ip_addr_info.ip_addr WHERE traceroute_id=".$trId;
+    $sqlOrigin = "SELECT tr_contributions.submitter_ip as submitter_ip, ip_addr_info.asnum  as asnum, ip_addr_info.mm_city as mm_city, ip_addr_info.mm_country as mm_country, ip_addr_info.lat as lat, ip_addr_info.long as long FROM tr_contributions LEFT JOIN ip_addr_info on tr_contributions.submitter_ip=ip_addr_info.ip_addr WHERE traceroute_id=".$trId;
     $result = pg_query($dbconn, $sqlOrigin) or die('Query failed: ' . pg_last_error());
     $originArr = pg_fetch_all($result);
     pg_free_result($result);
@@ -171,6 +172,7 @@ class DerivedTable
     $dest_asname = null;
     $dest_city = null;
     $dest_country = null;
+
 
     if ($dest_ip_addr) {
       $mm = new IXmapsMaxMind($dest_ip_addr);
@@ -703,8 +705,9 @@ class DerivedTable
         num_aba_hops,
         num_prev_hop_sol_violation_hops,
         num_origin_sol_violation_hops,
-        num_jittery_hops
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44)";
+        num_jittery_hops,
+        updated_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, NOW())";
 
     $result = pg_query_params($dbconn, $sql, $data);
     if ($result === false) {
@@ -735,8 +738,9 @@ class DerivedTable
         num_gl_override_hops,
         num_aba_hops,
         num_prev_hop_sol_violation_hops,
-        num_origin_sol_violation_hops
-      ) = ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
+        num_origin_sol_violation_hops,
+        updated_at
+      ) = ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, NOW())
       WHERE traceroute_id = ".$trId;
 
     $result = pg_query_params($dbconn, $sql, $data);
