@@ -22,13 +22,14 @@ $myIp = $_SERVER['REMOTE_ADDR'];
 $mm = new IXmapsMaxMind($myIp);
 
 $_POST['submitter_ip'] = $myIp;
-$_POST['city'] = "";
 if (!isset($_POST['city']) && $mm->getCity()) {
   $_POST['city'] = $mm->getCity();
+} else {
+  $_POST['country'] = "";
 }
 $_POST['country'] = "";
-if ($mm->getCity()) {
-  $_POST['country'] = $mm->getCity();
+if ($mm->getCountry()) {
+  $_POST['country'] = $mm->getCountry();
 }
 $_POST['submitter_asnum'] = $mm->getASNum();
 $_POST['privacy'] = 8;
