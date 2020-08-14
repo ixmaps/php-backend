@@ -25,7 +25,6 @@
  *
  */
 header("Access-Control-Allow-Origin: *");
-ini_set( "display_errors", 0); // force show errors for debug
 require_once('../config.php');
 require_once('../model/Traceroute.php');
 

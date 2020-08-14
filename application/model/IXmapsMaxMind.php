@@ -36,15 +36,15 @@ class IXmapsMaxMind
     // Could also consider another value to explicitly show whether or not those values exist
     // eg $this->cityRecordExists
 
-    global $MM_dat_dir;
+    global $MMDatDir;
 
     if (filter_var($ip, FILTER_VALIDATE_IP) == false || $ip == "") {
       throw new Exception("Not a valid IP address");
     }
 
     try {
-      $cityReader = new Reader($MM_dat_dir."/GeoLite2-City.mmdb");
-      $asnReader = new Reader($MM_dat_dir."/GeoLite2-ASN.mmdb");
+      $cityReader = new Reader($MMDatDir."/GeoLite2-City.mmdb");
+      $asnReader = new Reader($MMDatDir."/GeoLite2-ASN.mmdb");
     } catch(Exception $e) {
       echo 'Caught exception: ',  $e->getMessage();
     }

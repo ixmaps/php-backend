@@ -56,7 +56,7 @@ class GatherTr
   */
   public static function saveTrContribution($data)
   {
-    global $dbconn, $ixmaps_debug_mode, $pg_error;
+    global $dbconn, $ixmapsDebugMode, $pg_error;
 
     $data['submitter_ip'] = GatherTr::anonymizeIp($data['submitter_ip']);
 
@@ -109,7 +109,7 @@ class GatherTr
   */
   public static function saveTrContributionData($data, $tr_c_id)
   {
-    global $dbconn, $ixmaps_debug_mode;
+    global $dbconn, $ixmapsDebugMode;
 
     foreach ($data['traceroute_submissions'] as $key => $trDataItem) {
 
@@ -141,7 +141,7 @@ class GatherTr
   */
   public static function getTrContribution($tr_c_id, $trId = 0)
   {
-    global $dbconn, $ixmaps_debug_mode;
+    global $dbconn, $ixmapsDebugMode;
 
     // Find tr_c_id for a trId
     if ($trId != 0) {
@@ -329,7 +329,7 @@ class GatherTr
   */
   public static function publishTraceroute($data)
   {
-    global $dbconn, $ixmaps_debug_mode, $gatherTrUri;
+    global $dbconn, $ixmapsDebugMode, $gatherTrUri;
     $publishControl = false;
     $validPublicIPs = 0;
     $trSubString = "";
@@ -513,7 +513,7 @@ class GatherTr
   */
   // public static function getIpForAsn($ip='')
   // {
-  //   global $dbconn, $ixmaps_debug_mode;
+  //   global $dbconn, $ixmapsDebugMode;
   //   $sql = "SELECT asn_netmask.*, asn_carrier.name FROM asn_netmask, asn_carrier WHERE (asn_carrier.num=asn_netmask.asn) AND asn_netmask.netmask >>= inet('".$ip."');";
   //   //echo $sql;
   //   //$trParams = array($ip);

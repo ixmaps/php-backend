@@ -22,13 +22,9 @@ $appRootPath = '/srv/www/website';
 $savePath = $appRootPath.'/gm-temp';
 
 #### MaxMind data and include files
-$MM_geoip_dir = "/srv/www/website/application/geoip";
-$MM_dat_dir = "/home/ixmaps/ix-data/mm-data";
+$MMDatDir = "/home/ixmaps/ix-data/mm-data";
 
-//////////////////////////////////////////////////////////
+$ixmapsDebugMode = true;
 $trNumLimit = 500;
-$ixmaps_debug_mode = true;
-$ixmaps_hands_off_config = array();
-
 $genericMMLatLongs = ['60, -95', '43.6319, -79.3716', '38, -97', '37.751, -97.822', '47, 8', '35, 105'];
 ?>

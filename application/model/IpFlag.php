@@ -29,7 +29,7 @@ class IpFlag
 	}
 
 	public static function getFlagsLogs(){
-		global $dbconn, $ixmaps_debug_mode;
+		global $dbconn, $ixmapsDebugMode;
 
 		$sql = "SELECT * FROM ip_flagged_items ORDER BY id_f DESC";
 		$result = pg_query($dbconn, $sql) or die('Query failed: ' . pg_last_error());
@@ -63,7 +63,7 @@ class IpFlag
 	}
 
 	public static function saveFlags($data){
-		global $dbconn, $ixmaps_debug_mode;
+		global $dbconn, $ixmapsDebugMode;
   		date_default_timezone_set('America/Toronto');
 		$date = date('Y-m-d H:i:s');
 

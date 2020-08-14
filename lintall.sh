@@ -6,3 +6,7 @@ done
 for file in application/controller/*.php; do
   php -l "$file"
 done
+
+for file in application/helpers/*.php; do
+  php -l "$file"
+done
