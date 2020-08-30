@@ -9,7 +9,7 @@
  */
 require_once('../config.php');
 
-class IXmapsIpInfo
+class IXmapsIp2Location
 {
   private $lat;
   private $long;
@@ -29,7 +29,11 @@ class IXmapsIpInfo
       throw new Exception("Not a valid IP address");
     }
 
-    $sql = "SELECT * FROM ipinfo_ip_addr WHERE ip_addr ='".$ip."'";
+    // https://lite.ip2location.com/database/ip-country-region-city-latitude-longitude-zipcode
+
+    // translate to decimal format
+    $ip = ip2long($ip);
+    $sql = "SELECT * FROM ip2location_ip_addr WHERE ip_from <= ".$ip." and ip_to >= ".$ip;
     $result = pg_query($dbconn, $sql) or die('compareASN query failed: ' . pg_last_error());
     $ip = pg_fetch_all($result);
     pg_free_result($result);
@@ -43,7 +47,6 @@ class IXmapsIpInfo
       $this->region = $ip["region"];
       $this->countryCode = $ip["country"];
       $this->postal = $ip["postal"];
-      $this->hostname = $ip["hostname"];
     } catch(Exception $e) {
       $this->lat = NULL;
       $this->long = NULL;
@@ -51,7 +54,6 @@ class IXmapsIpInfo
       $this->region = NULL;
       $this->countryCode = NULL;
       $this->postal = NULL;
-      $this->hostname = NULL;
     }
   }
 
@@ -97,6 +99,14 @@ class IXmapsIpInfo
 
   public function getHostname() {
     return $this->hostname;
+  }
+
+  private function ip2long($ip) {
+    if (is_numeric($ip)) {
+      return sprintf( "%u", floatval($ip) );
+    } else {
+      return sprintf( "%u", floatval(ip2long($ip) ));
+    }
   }
 }
 ?>

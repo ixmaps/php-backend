@@ -13,7 +13,7 @@ compareASNs();
 function compareASNs() {
   global $dbconn;
 
-  $sql = "SELECT * FROM ip_addr_info LIMIT 50000";
+  $sql = "SELECT * FROM ip_addr_info";
   $result = pg_query($dbconn, $sql) or die('compareASN query failed: ' . pg_last_error());
   $ips = pg_fetch_all($result);
   pg_free_result($result);

@@ -30,9 +30,9 @@ function getBadAsns() {
 
   foreach ($ips as $key => $ip) {
     $mm = new IXmapsMaxMind($ip["ip_addr"]);
-    $new_asn = $mm->getAsnum();
-    echo "\n".$new_asn;
-    if (!is_null($new_asn) && $new_asn != -1) {
+    $newAsn = $mm->getAsnum();
+    echo "\n".$newAsn;
+    if (!is_null($newAsn) && $newAsn != -1) {
       $updates++;
     } else {
       $mmMisses++;

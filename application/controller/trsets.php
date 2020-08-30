@@ -6,7 +6,7 @@
  * Input is a post with data object containing 'action' key (and sometimes a 'trset_name' key)
  *
  * @author IXmaps.ca (Colin)
- * @since 2020 June 21
+ * @since 2020 June
  *
  */
 header("Access-Control-Allow-Origin: *");

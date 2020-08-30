@@ -15,6 +15,7 @@ use GeoIp2\Database\Reader;
 
 class IXmapsMaxMind
 {
+  private $ipAddr;
   private $lat;
   private $long;
   private $city;
@@ -50,6 +51,7 @@ class IXmapsMaxMind
     }
 
     try {
+      $this->ipAddr = $ip;
       $cityRecord = $cityReader->city($ip);
       $this->lat = $cityRecord->location->latitude;
       $this->long = $cityRecord->location->longitude;
@@ -60,6 +62,7 @@ class IXmapsMaxMind
       $this->country = $cityRecord->country->name;
       $this->countryCode = $cityRecord->country->isoCode;
     } catch(Exception $e) {
+      $this->ipAdd = NULL;
       $this->lat = NULL;
       $this->long = NULL;
       $this->city = NULL;
@@ -83,6 +86,10 @@ class IXmapsMaxMind
 
     // TODO - do we need to unset or otherwise close the Reader object?
     // eg unset($cityReader);
+  }
+
+  public function getIpAddr() {
+    return $this->ipAddr;
   }
 
   public function getLat() {
