@@ -55,11 +55,11 @@ class IXmapsGeoCorrection
 
   //   $mm = new IXmapsMaxMind();
 
-  //   $columns = array('ip_addr', 'asnum', 'mm_lat', 'mm_long', 'hostname', 'mm_country', 'mm_region', 'mm_city', 'mm_postal', 'mm_area_code', 'mm_dma_code', 'p_status', 'lat', 'long', 'gl_override', 'flagged', 'created_at', 'modified_at', 'updated_asn', 'updated_mm_lat', 'updated_mm_long', 'updated_mm_country', 'updated_mm_region', 'updated_mm_city', 'updated_mm_postal', 'updated_mm_area_code', 'updated_mm_dma_code', 'updated_mm_asn', 'dis_mm_first_updated', 'dis_mm_first_corrected', 'dis_mm_updated_corrected');
+  //   $columns = array('ip_addr', 'asnum', 'mm_lat', 'mm_long', 'hostname', 'mm_country', 'mm_region', 'mm_city', 'mm_postal', 'mm_area_code', 'mm_dma_code', 'p_status', 'lat', 'long', 'gl_override', 'flagged', 'created_at', 'updated_at', 'updated_asn', 'updated_mm_lat', 'updated_mm_long', 'updated_mm_country', 'updated_mm_region', 'updated_mm_city', 'updated_mm_postal', 'updated_mm_area_code', 'updated_mm_dma_code', 'updated_mm_asn', 'dis_mm_first_updated', 'dis_mm_first_corrected', 'dis_mm_updated_corrected');
 
   //   foreach ($data as $key => $ip) {
 
-  //     $sql = "INSERT INTO log_ip_addr_info (ip_addr, asnum, mm_lat, mm_long, hostname, mm_country, mm_region, mm_city, mm_postal, mm_area_code, mm_dma_code, p_status, lat, long, gl_override, flagged, created_at, modified_at, updated_asn, updated_hostname, updated_mm_lat, updated_mm_long, updated_mm_country, updated_mm_region, updated_mm_city, updated_mm_postal, updated_mm_area_code, updated_mm_dma_code, dis_mm_first_updated, dis_mm_first_corrected, dis_mm_updated_corrected) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31);";
+  //     $sql = "INSERT INTO log_ip_addr_info (ip_addr, asnum, mm_lat, mm_long, hostname, mm_country, mm_region, mm_city, mm_postal, mm_area_code, mm_dma_code, p_status, lat, long, gl_override, flagged, created_at, updated_at, updated_asn, updated_hostname, updated_mm_lat, updated_mm_long, updated_mm_country, updated_mm_region, updated_mm_city, updated_mm_postal, updated_mm_area_code, updated_mm_dma_code, dis_mm_first_updated, dis_mm_first_corrected, dis_mm_updated_corrected) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31);";
 
   //     // Get geo data
   //     $geoIp = $mm->getGeoIp($ip['ip_addr']);
@@ -126,7 +126,7 @@ class IXmapsGeoCorrection
   {
     global $dbconn;
     // Update geo data for ip
-    $sql = "UPDATE ip_addr_info SET mm_country = '".$ipData['mm_country_update']."', mm_region = '".pg_escape_string($ipData['mm_region_update'])."',  mm_city = '".pg_escape_string($ipData['mm_city_update'])."', mm_postal = '".pg_escape_string([$ipData['mm_postal_update']])."', p_status = '".$p_status."', modified_at = 'NOW()' WHERE ip_addr = '".$ipData['ip_addr']."';";
+    $sql = "UPDATE ip_addr_info SET mm_country = '".$ipData['mm_country_update']."', mm_region = '".pg_escape_string($ipData['mm_region_update'])."',  mm_city = '".pg_escape_string($ipData['mm_city_update'])."', mm_postal = '".pg_escape_string([$ipData['mm_postal_update']])."', p_status = '".$p_status."', updated_at = 'NOW()' WHERE ip_addr = '".$ipData['ip_addr']."';";
 
     $result = pg_query($dbconn, $sql) or die('updateGeoData failed'.pg_last_error());
     pg_free_result($result);

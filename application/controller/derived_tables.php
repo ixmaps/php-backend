@@ -34,7 +34,7 @@ getTracerouteIdsToUpdate();
 function getTracerouteIdsToUpdate() {
   global $dbconn;
 
-  $sql = "SELECT DISTINCT tr_item.traceroute_id as id FROM tr_item WHERE tr_item.ip_addr IN (SELECT ip_addr FROM ip_addr_info WHERE modified_at > date(current_date - 1) AND created_at < date(current_date - 1))";
+  $sql = "SELECT DISTINCT tr_item.traceroute_id as id FROM tr_item WHERE tr_item.ip_addr IN (SELECT ip_addr FROM ip_addr_info WHERE updated_at > date(current_date - 1) AND created_at < date(current_date - 1))";
   $result = pg_query($dbconn, $sql) or die('getTracerouteIdsToUpdate query failed: ' . pg_last_error());
   $trArr = pg_fetch_all($result);
   pg_free_result($result);

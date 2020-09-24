@@ -17,7 +17,8 @@ class IXmapsIp2Location
   private $region;
   private $countryCode;
   private $postal;
-  private $hostname;
+  private $asnum;
+  private $asname;
 
   /**
    *
@@ -32,21 +33,29 @@ class IXmapsIp2Location
     // https://lite.ip2location.com/database/ip-country-region-city-latitude-longitude-zipcode
 
     // translate to decimal format
-    $ip = ip2long($ip);
+    $ip = $this->ip2long($ip);
     $sql = "SELECT * FROM ip2location_ip_addr WHERE ip_from <= ".$ip." and ip_to >= ".$ip;
     $result = pg_query($dbconn, $sql) or die('compareASN query failed: ' . pg_last_error());
-    $ip = pg_fetch_all($result);
+    $row = pg_fetch_all($result);
     pg_free_result($result);
 
-    $ip = $ip[0];
+    $row = $row[0];
+
+    if (empty($row["asnum"])) {
+      $asVals = $this->determineAsn($ip);
+      $row["asnum"] = $asVals[0];
+      $row["asname"] = $asVals[1];
+    }
 
     try {
-      $this->lat = $ip["lat"];
-      $this->long = $ip["long"];
-      $this->city = $ip["city"];
-      $this->region = $ip["region"];
-      $this->countryCode = $ip["country"];
-      $this->postal = $ip["postal"];
+      $this->lat = $row["lat"];
+      $this->long = $row["long"];
+      $this->city = $row["city"];
+      $this->region = $row["region"];
+      $this->countryCode = $row["country"];
+      $this->postal = $row["postal"];
+      $this->asnum = $row["asnum"];
+      $this->asname = $row["asname"];
     } catch(Exception $e) {
       $this->lat = NULL;
       $this->long = NULL;
@@ -54,6 +63,8 @@ class IXmapsIp2Location
       $this->region = NULL;
       $this->countryCode = NULL;
       $this->postal = NULL;
+      $this->asnum = NULL;
+      $this->asname = NULL;
     }
   }
 
@@ -97,16 +108,23 @@ class IXmapsIp2Location
     return $this->asname;
   }
 
-  public function getHostname() {
-    return $this->hostname;
-  }
-
   private function ip2long($ip) {
     if (is_numeric($ip)) {
       return sprintf( "%u", floatval($ip) );
     } else {
       return sprintf( "%u", floatval(ip2long($ip) ));
     }
+  }
+
+  private function determineAsn($ip) {
+    global $dbconn;
+    // since not all of the ip2_location_ip_addrs have an asn, check if it's available in the ip2_location_asn table
+    $sql = "SELECT * FROM ip2location_asn WHERE ip_from <= ".$ip." and ip_to >= ".$ip;
+    $result = pg_query($dbconn, $sql) or die('determineAsn query failed: ' . pg_last_error());
+    $row = pg_fetch_row($result);
+    pg_free_result($result);
+
+    return [$row[3],$row[4]];
   }
 }
 ?>
