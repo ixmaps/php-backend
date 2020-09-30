@@ -47,6 +47,20 @@ class IXmapsIp2Location
       $row["asname"] = $asVals[1];
     }
 
+    // some cleanup, since we prefer blank values to '-'
+    if ($row["country"] == "-") {
+      $row["country"] = "";
+    }
+    if ($row["city"] == "-") {
+      $row["city"] = "";
+    }
+    if ($row["asnum"] == "-") {
+      $row["asnum"] = NULL;
+    }
+    if ($row["asname"] == "-") {
+      $row["asname"] = "";
+    }
+
     try {
       $this->lat = $row["lat"];
       $this->long = $row["long"];
