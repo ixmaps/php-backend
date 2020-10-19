@@ -1,9 +1,10 @@
 <?php
 /**
  *
- * Class to handle ipinfo ip address values
+ * Class to handle ip2location ip address values
  *
- * Updated Aug 2020
+ * @since Aug 2020
+ * Updated Oct 2020
  * @author IXmaps.ca (Colin)
  *
  */
@@ -48,11 +49,14 @@ class IXmapsIp2Location
     }
 
     // some cleanup, since we prefer blank values to '-'
-    if ($row["country"] == "-") {
+    if ($row["country"] == "-" || $row["country"] == "- ") {
       $row["country"] = "";
     }
     if ($row["city"] == "-") {
       $row["city"] = "";
+    }
+    if ($row["postal"] == "-") {
+      $row["postal"] = "";
     }
     if ($row["asnum"] == "-") {
       $row["asnum"] = NULL;

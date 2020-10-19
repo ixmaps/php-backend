@@ -4,12 +4,13 @@
  * Little script designed to create a table to compare MaxMind values from GeoLite1 and Geolite2
  *
  * Created Sept 2019
+ * Obsolete now, as of Oct 2020 - remove?
  * @author Colin
  *
  */
 
 require_once('../model/IXmapsMaxMind.php');
-require_once('../model/Geolocation.php');
+// require_once('../model/Geolocation.php');
 
 /*
   since most of our IPs were added before we switched to geolite2, we can use this opportunity to see how the lat/long values of the ips in our DB (analogous to geolite1) compare to the lat/long values in geolite2

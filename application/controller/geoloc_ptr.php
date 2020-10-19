@@ -7,11 +7,12 @@
  *
  * @author IXmaps.ca (Colin, Antonio)
  * @since 2018 Jan 1
+ * TODO - update this to use the Geolocation class once it's done
  *
  */
 header('Access-Control-Allow-Origin: *');
 require_once('../config.php');
-require_once('../model/Geolocation.php');
+require_once('../model/Geolocation_legacy.php');
 require_once('../model/TracerouteUtility.php');
 require_once('../model/ParisTraceroute.php');
 require_once('../model/ParisTracerouteFactory.php');

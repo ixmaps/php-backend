@@ -4,160 +4,125 @@
  * This class manages transactions with geolocation sources/databases and services
  * and returns a geolocation object for a given ip
  *
- * It's expected that new geolocation sources will be included as methods
+ * Full overhaul to include other data sources in Oct 2020 - file name is the same, but this
+ * is (currently) fundamentally different than what we used to have
  *
- * @author IXmaps.ca (Antonio, Colin)
- * @since 2018 Jan 1 (last updated Aug 2019)
+ * Short term plan is to use this file as a master geoloc object with all data sources
+ * Long term, this will be opinionated about geoloc, this will determine 'true' geoloc values
+ * from amongst data sources
+ *
+ * @author IXmaps.ca (Colin)
+ * @since Oct 2020
  *
  */
 require_once('../model/IXmapsMaxMind.php');
+require_once('../model/IXmapsIpInfo.php');
+require_once('../model/IXmapsIp2Location.php');
+require_once('../model/IXmapsGeoCorrection.php');
 
 class Geolocation {
-  private $ixmaps_ip_data; //TEMP
-  private $mm;
-  private $ip;         // not sure if we will need this here. It's a bit redundant
-  private $hostname;   // Added for debugging/analysis purposes
-  private $lat;
-  private $long;
-  private $city;
-  private $nsa;
-  private $country;
-  private $asnum;
-  private $asname;
-  private $asn_source;
-  private $geo_source;
+  private $ip;
+
+  private $ixLat;
+  private $ixLong;
+  private $ixCity;
+  private $ixRegion;
+  private $ixCountryCode;
+  private $ixPostal;
+  private $ixASnum;
+  private $ixASname;
+  private $ixHostname;
+
+  private $mmLat;
+  private $mmLong;
+  private $mmCity;
+  private $mmRegion;
+  private $mmRegionCode;
+  private $mmCountry;
+  private $mmCountryCode;
+  private $mmPostal;
+  private $mmASnum;
+  private $mmASname;
+  private $mmHostname;
+
+  private $iiLat;
+  private $iiLong;
+  private $iiCity;
+  private $iiRegion;
+  private $iiCountryCode;
+  private $iiPostal;
+  private $iiHostname;
+
+  private $i2Lat;
+  private $i2Long;
+  private $i2City;
+  private $i2Region;
+  private $i2CountryCode;
+  private $i2Postal;
+  private $i2ASnum;
+  private $i2ASname;
+
+  // TODO - these will be derived values (plus more?)
+  // private $asn_source;
+  // private $geo_source;
 
   /**
    *
    * Creates a Geolocation object for a given IP.
-   * Current Geolocation sources: ixmaps, maxmind.
+   * Current Geolocation sources: ixmaps (ix), maxmind (mm), ipinfo (ii), ip2location (i2)
    *
    * @param inet $ip Ip address in inet/string format
    */
-  function __construct($ip, $debugMode=false) {
+  function __construct($ip) {
+    // TODO - test me
+    if (!filter_var($ip, FILTER_VALIDATE_IP)) {
+      throw new Exception('Not a valid IP address');
+    }
+
     $this->ip = $ip;
+    $ix = $this->fetchIXgeoloc($ip);
     $mm = new IXmapsMaxMind($ip);
+    $ii = new IXmapsIpInfo($ip);
+    $i2 = new IXmapsIp2Location($ip);
 
-    // TODO: validate ip format
-    $ipIsValid = false;
-    if ($ip != "") {
-      $ipIsValid = true;
-    }
+    $this->ixLat = (float)$ix['lat'];
+    $this->ixLong = (float)$ix['long'];
+    $this->ixPostal = $ix['mm_postal'];
+    $this->ixCity = $ix['mm_city'];
+    $this->ixRegion = $ix['mm_region'];
+    $this->ixCountryCode = $ix['mm_country'];
+    $this->ixASnum = $ix['asnum'] == -1 ? NULL : $ix['asnum'];
+    $this->ixASname = $ix['short_name'] ?: $ix['name'];
+    $this->ixHostname = $ix['hostname'];
 
-    // 1. Check if IP exists in IXmaps DB
-    if ($ip != "" && $ip != null) {
-      $this->ixmaps_ip_data = $this->checkIpIxmapsDb($ip, $debugMode);
-    } else {
-      $this->ixmaps_ip_data = null;
-    }
+    $this->mmLat = $mm->getLat();
+    $this->mmLong = $mm->getLong();
+    $this->mmPostal = $mm->getPostalCode();
+    $this->mmCity = $mm->getCity();
+    $this->mmRegion = $mm->getRegion();
+    $this->mmRegionCode = $mm->getRegionCode();
+    $this->mmCountry = $mm->getCountry();
+    $this->mmCountryCode = $mm->getCountryCode();
+    $this->mmASnum = $mm->getASNum();
+    $this->mmASname = $mm->getASName();
+    $this->mmHostname = $mm->getHostname();
 
-    if ($this->ixmaps_ip_data) {
-      // Check if ip has been geo corrected
-      if ($this->ixmaps_ip_data['gl_override'] != null) {
-        if ($debugMode) {
-          echo "\n\t(".$ip.") : In IXmaps DB, geocorrected\n\n";
-        }
-        // Use IXmaps geo data
-        $this->lat = (float)$this->ixmaps_ip_data['lat'];
-        $this->long = (float)$this->ixmaps_ip_data['long'];
-        $this->city = $this->ixmaps_ip_data['mm_city'];
-        $this->country = $this->ixmaps_ip_data['mm_country'];
+    $this->iiLat = $ii->getLat();
+    $this->iiLong = $ii->getLong();
+    $this->iiPostal = $ii->getPostalCode();
+    $this->iiCity = $ii->getCity();
+    $this->iiRegion = $ii->getRegion();
+    $this->iiCountryCode = $ii->getCountryCode();
+    $this->iiHostname = $ii->getHostname();
 
-        // these are never used in the PTR return. Do we need to rethink what this class actually does?
-        if ($this->ixmaps_ip_data['asnum'] != -1) {
-          if ($debugMode) {
-            echo "\n\t\tUsing asnum and asname from IXmaps DB\n\n";
-          }
-          $this->asnum = $this->ixmaps_ip_data['asnum'];
-          $this->asname = $this->ixmaps_ip_data['name']."";
-          $this->hostname = $this->ixmaps_ip_data['hostname'];
-          $this->asn_source = "ixmaps";
-
-        } else {
-          // use MM for asn and asname
-          if ($debugMode) {
-            echo "\n\t\tUsing asnum and asname from MM DB\n\n";
-          }
-          $this->asnum = $mm->getASNum();
-          $this->asname = $mm->getASName();
-          $this->hostname = $mm->getHostname();
-          $this->asn_source = "maxmind";
-
-        }
-        $this->geo_source = "ixmaps";
-      } else {
-        if ($debugMode) {
-          echo "\n\t(".$ip.") : In IXmaps DB, NOT geocorrected\n\n";
-        }
-        // TODO: do something if the ip exists in IXmaps db but it has not been geo-corrected?
-        // using MM for now
-        $this->lat = $mm->getLat();
-        $this->long = $mm->getLong();
-        $this->city = $mm->getCity();
-        $this->country = $mm->getCountryCode();
-        $this->hostname = $mm->getHostname();
-        $this->geo_source = "maxmind";
-
-        if ($mm->getASNum() == null && $mm->getASNum() != -1) {
-          if ($debugMode) {
-            echo "\n\t\tasnum is null in MM but valid in IXmaps db\n\n";
-          }
-          $this->asnum = $this->ixmaps_ip_data['asnum'];
-          $this->asname = $this->ixmaps_ip_data['name'];
-          $this->asn_source = "ixmaps";
-        } else {
-          if ($debugMode) {
-            echo "\n\t\tUsing asnum and asname from MM\n\n";
-          }
-          $this->asnum = $mm->getASNum();
-          $this->asname = $mm->getASName();
-          $this->asn_source = "maxmind";
-        }
-
-      }
-
-    // 2. Check MaxMind data
-    } else if ($mm->getCountryCode()) {
-
-      // Insert new ip in IXmaps Db for logging purposes?
-      // $this->insertNewIpAddress($ip, $this->mm);
-
-      if ($debugMode) {
-        echo "\n\t(".$ip.") : In MM DB\n\n";
-      }
-
-      // Use MM geo data
-      $this->lat = $mm->getLat();
-      $this->long = $mm->getLong();
-      $this->city = $mm->getCity();
-      $this->country = $mm->getCountryCode();
-      $this->asnum = $mm->getASNum();
-      $this->asname = $mm->getASName();
-      $this->geo_source = "maxmind";
-      $this->asn_source = "maxmind";
-      $this->hostname = NULL;
-
-    // 3. Set default geo data
-    } else {
-      if ($debugMode) {
-        echo "\n\t(".$ip.") : Not in IXmaps nor in MM DBs\n\n";
-      }
-      $this->lat = NULL;
-      $this->long = NULL;
-      $this->city = NULL;
-      $this->country = NULL;
-      $this->asnum = NULL;
-      $this->asname = NULL;
-      $this->source = NULL;
-      $this->geo_source = NULL;
-      $this->asn_source = NULL;
-      $this->hostname = NULL;
-    }
-
-    $this->setNsa($this->city);
-
-    /* TODO: 4. check other geo-data sources. */
-
+    $this->i2Lat = $i2->getLat();
+    $this->i2Long = $i2->getLong();
+    $this->i2Postal = $i2->getPostalCode();
+    $this->i2City = $i2->getCity();
+    $this->i2Region = $i2->getRegion();
+    $this->i2CountryCode = $i2->getCountryCode();
+    $this->i2ASnum = $i2->getASnum();
+    $this->i2ASname = $i2->getASname();
   }
 
   /**
@@ -165,95 +130,171 @@ class Geolocation {
     *
     * @param $ip inet ip address
     *
-    * @return $ip_addr array Geo data or Bool false
+    * @return $ip_addr array geo data or bool false
     *
     */
-  private function checkIpIxmapsDb($ip, $debugMode) {
+  private function fetchIXgeoloc($ip) {
     global $dbconn;
 
-    $sql = "SELECT ip_addr_info.hostname, ip_addr_info.asnum, as_users.name, ip_addr_info.lat, ip_addr_info.long, ip_addr_info.mm_country, ip_addr_info.mm_city, ip_addr_info.p_status, ip_addr_info.gl_override FROM ip_addr_info, as_users WHERE (ip_addr_info.asnum = as_users.num) AND ip_addr_info.ip_addr = $1";
+    $sql = "SELECT ip_addr_info.hostname, ip_addr_info.asnum, as_users.name, as_users.short_name, ip_addr_info.lat, ip_addr_info.long, ip_addr_info.mm_country, ip_addr_info.mm_region, ip_addr_info.mm_city, ip_addr_info.mm_postal, ip_addr_info.gl_override FROM ip_addr_info, as_users WHERE (ip_addr_info.asnum = as_users.num) AND ip_addr_info.ip_addr = $1";
 
-    // TODO: add error handling that is consistent with PTR approach
     $params = array($ip);
-    $result = pg_query_params($dbconn, $sql, $params);// or die('checkIxmapsDb: Query failed'.pg_last_error());
-
+    $result = pg_query_params($dbconn, $sql, $params) or die('fetchIXgeoloc: Query failed '.pg_last_error());
     $ip_addr = pg_fetch_all($result);
     pg_free_result($result);
 
     if ($ip_addr) {
       return $ip_addr[0];
-    } else {
-      return false;
     }
+
+    return false;
   }
 
-  /**
-    * Insert New Ip address into IXmaps DB
-    * @param $ip_data array IP, Geodata and asn
-    */
-  // CM: suggest this does not belong in this class
-  private function insertNewIpAddress($ip, $mm){
-    global $dbconn;
-    $sql = "SELECT ip_addr FROM ip_addr_info WHERE ip_addr = $1";
-    $params = $ip;
-    $result = pg_query_params($dbconn, $sql, $params) or die();
-    $id_data = pg_fetch_all($result);
-    if (!$id_data) {
-      $sql = "INSERT INTO ip_addr_info (ip_addr, asnum, mm_lat, mm_long, hostname, mm_country, mm_region, mm_city, mm_postal, lat, long, p_status, gl_override) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)";
-      $params = array($ip, $mm->getASNum(), $mm->getLat(), $mm->getLong(), $mm->getHostname() , $mm->getCountryCode(), $mm->getRegion(), $mm->getCity(), $mm->getPostalCode(), $mm->getLat(), $mm->getLong(), 'x', NULL);
 
-      // TODO: add error handling that is consistent with PTR approach
-      $result = pg_query_params($dbconn, $sql, $params) or die();
-    }
+  public function getIXLat() {
+    return $this->ixLat;
+  }
+  public function getIXLong() {
+    return $this->ixLong;
+  }
+  public function getIXCity() {
+    return $this->ixCity;
+  }
+  public function getIXRegion() {
+    return $this->ixRegion;
+  }
+  public function getIXCountryCode() {
+    return $this->ixCountryCode;
+  }
+  public function getIXPostal() {
+    return $this->ixPostal;
+  }
+  public function getIXASNum() {
+    return $this->ixASnum;
+  }
+  public function getIXASName() {
+    return $this->ixASname;
+  }
+  public function getIXHostname() {
+    return $this->ixHostname;
   }
 
-  // CM: suggest this does not belong in this class
-  private function setNsa($cityName = "") {
-    $nsaCities = ["San Francisco", "Los Angeles", "New York", "Dallas", "Washington", "Ashburn", "Seattle", "San Jose", "San Diego", "Miami", "Boston", "Phoenix", "Salt Lake City", "Nashville", "Denver", "Saint Louis", "Bridgeton", "Bluffdale", "Houston", "Chicago", "Atlanta", "Portland"];
-    if (in_array($cityName, $nsaCities)) {
-      $this->nsa = true;
-    } else {
-      $this->nsa = false;
-    }
+  public function getMMLat() {
+    return $this->mmLat;
+  }
+  public function getMMLong() {
+    return $this->mmLong;
+  }
+  public function getMMCity() {
+    return $this->mmCity;
+  }
+  public function getMMRegion() {
+    return $this->mmRegion;
+  }
+  public function getMMRegionCode() {
+    return $this->mmRegionCode;
+  }
+  public function getMMCountry() {
+    return $this->mmCountry;
+  }
+  public function getMMCountryCode() {
+    return $this->mmCountryCode;
+  }
+  public function getMMPostal() {
+    return $this->mmPostal;
+  }
+  public function getMMASNum() {
+    return $this->mmASnum;
+  }
+  public function getMMASName() {
+    return $this->mmASname;
+  }
+  public function getMMHostname() {
+    return $this->mmHostname;
   }
 
-  public function getHostname() {
-    return $this->hostname;
+  public function getIILat() {
+    return $this->iiLat;
+  }
+  public function getIILong() {
+    return $this->iiLong;
+  }
+  public function getIICity() {
+    return $this->iiCity;
+  }
+  public function getIIRegion() {
+    return $this->iiRegion;
+  }
+  public function getIICountryCode() {
+    return $this->iiCountryCode;
+  }
+  public function getIIPostal() {
+    return $this->iiPostal;
+  }
+  public function getIIHostname() {
+    return $this->iiHostname;
   }
 
-  public function getLat() {
-    return $this->lat;
+  public function getI2Lat() {
+    return $this->i2Lat;
+  }
+  public function getI2Long() {
+    return $this->i2Long;
+  }
+  public function getI2City() {
+    return $this->i2City;
+  }
+  public function getI2Region() {
+    return $this->i2Region;
+  }
+  public function getI2CountryCode() {
+    return $this->i2CountryCode;
+  }
+  public function getI2Postal() {
+    return $this->i2Postal;
+  }
+  public function getI2ASNum() {
+    return $this->i2ASnum;
+  }
+  public function getI2ASName() {
+    return $this->i2ASname;
   }
 
-  public function getLong() {
-    return $this->long;
-  }
 
-  public function getCity() {
-    return $this->city;
-  }
+  // TODO - these will be derived values
+  // public function getHostname() {
+  //   return $this->hostname;
+  // }
 
-  public function getNsa() {
-    return $this->nsa;
-  }
+  // public function getLat() {
+  //   return $this->lat;
+  // }
 
-  public function getCountry() {
-    return $this->country;
-  }
+  // public function getLong() {
+  //   return $this->long;
+  // }
 
-  public function getASNum() {
-    return $this->asnum;
-  }
+  // public function getCity() {
+  //   return $this->city;
+  // }
 
-  public function getASName() {
-    return $this->asname;
-  }
+  // public function getCountry() {
+  //   return $this->country;
+  // }
 
-  public function getAsnSource() {
-    return $this->asn_source;
-  }
+  // public function getASNum() {
+  //   return $this->asnum;
+  // }
 
-  public function getGeoSource() {
-    return $this->geo_source;
-  }
+  // public function getASName() {
+  //   return $this->asname;
+  // }
+
+  // public function getAsnSource() {
+  //   return $this->asn_source;
+  // }
+
+  // public function getGeoSource() {
+  //   return $this->geo_source;
+  // }
 } // end class

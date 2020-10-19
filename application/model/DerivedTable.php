@@ -246,6 +246,7 @@ class DerivedTable
       foreach (array_reverse($tracerouteArr) as $tr => $hop) {
         $rttArr = [$hop["rtt1"], $hop["rtt2"], $hop["rtt3"], $hop["rtt4"]];
         // removing all -1s
+        // NB: min_latency = -1 is still possible, but it won't 'backward infect' the rest of the route
         $filteredHopLats = array_diff($rttArr, [-1]);
         $filteredHopLats = array_diff($filteredHopLats, [NULL]);
         // if there is at least one non -1 value in the hop

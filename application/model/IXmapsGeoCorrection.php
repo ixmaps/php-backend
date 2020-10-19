@@ -103,7 +103,7 @@ class IXmapsGeoCorrection
   // }
 
   /**
-   * Get Closest Geo Data for a given pair of coordinates
+   * Get closest geo data for a given pair of coordinates
    */
   public static function getClosestGeoData($ipData, $limit=5)
   {
@@ -118,7 +118,7 @@ class IXmapsGeoCorrection
 
   /**
    * Updates country, region, and city in ip_addr_info table
-   * @param array $ipData Geodata
+   * @param array $ipData geodata
    * @param string $p_status target p_status for the update
    * @return int
    */
@@ -269,7 +269,7 @@ class IXmapsGeoCorrection
   /**
    * Truth value for hop jitteriness (subjective as hell)
    * @param 'hop' object - TODO: update to a properly fleshed out model
-   * @return boolean if the hop 'is too jittery', return true
+   * @return boolean - if the hop 'is too jittery', return true
    */
   public static function hopHasExcessiveJitter($hop)
   {
