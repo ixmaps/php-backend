@@ -136,7 +136,7 @@ class Geolocation {
   private function fetchIXgeoloc($ip) {
     global $dbconn;
 
-    $sql = "SELECT ip_addr_info.hostname, ip_addr_info.asnum, as_users.name, as_users.short_name, ip_addr_info.lat, ip_addr_info.long, ip_addr_info.mm_country, ip_addr_info.mm_region, ip_addr_info.mm_city, ip_addr_info.mm_postal, ip_addr_info.gl_override FROM ip_addr_info, as_users WHERE (ip_addr_info.asnum = as_users.num) AND ip_addr_info.ip_addr = $1";
+    $sql = "SELECT ip_addr_info.hostname, ip_addr_info.asnum, as_users.name, as_users.short_name, ip_addr_info.lat, ip_addr_info.long, ip_addr_info.mm_country, ip_addr_info.mm_region, ip_addr_info.mm_city, ip_addr_info.mm_postal, ip_addr_info.gl_override FROM ip_addr_info LEFT JOIN as_users ON ip_addr_info.asnum = as_users.num WHERE ip_addr_info.ip_addr = $1";
 
     $params = array($ip);
     $result = pg_query_params($dbconn, $sql, $params) or die('fetchIXgeoloc: Query failed '.pg_last_error());
