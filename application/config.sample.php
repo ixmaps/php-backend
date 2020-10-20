@@ -26,5 +26,6 @@ $MMDatDir = "/home/ixmaps/ix-data/mm-data";
 
 $ixmapsDebugMode = true;
 $trNumLimit = 500;
-$genericMMLatLongs = ['60, -95', '43.6319, -79.3716', '38, -97', '37.751, -97.822', '47, 8', '35, 105'];
+// CA, Toronto, US, US, Europe, China, Germany, Brazil
+$genericMMLatLongs = ['60, -95', '43.6319, -79.3716', '38, -97', '37.751, -97.822', '47, 8', '35, 105', '51, 9', '-10, -55'];
 ?>

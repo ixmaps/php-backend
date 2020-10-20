@@ -27,9 +27,7 @@ function main() {
                 "IX_hostname",
                 "MM_hostname",
                 "II_hostname",
-                // NB: this has been switched from consistent to inconsistent, DB table has not been updated to match
-                "hostname_inconistent",
-                // ditto
+                "hostname_inconsistent",
                 "non_IX_hostname_inconsistent",
                 "IX_asn",
                 "IX_asn_dev",
