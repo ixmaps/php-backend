@@ -15,7 +15,7 @@ class IXmapsGeoCorrection
 
     // select ips to which MM did not assign a city
     } else if ($kind == 'U') {
-      $sql1 = "SELECT ip_addr, asnum, hostname, lat, long, mm_country, mm_region, mm_city FROM ip_addr_info WHERE p_status='U' and mm_lat is not null and mm_lat is not null and mm_long != 0 and mm_long != 0 and (mm_city is null or mm_city = '' LIMIT $limit;";
+      $sql1 = "SELECT ip_addr, asnum, hostname, lat, long, mm_country, mm_region, mm_city FROM ip_addr_info WHERE p_status='U' and mm_lat is not null and mm_lat is not null and mm_long != 0 and mm_long != 0 and (mm_city is null or mm_city = '') LIMIT $limit;";
     } else {
       throw new Exception('Kind specified incorrectly');
     }
