@@ -38,7 +38,7 @@ if (isset($_GET['m'])) {
 
 // check if nothing to do
 if (!$ipAddrData) {
-  echo "\n"."Nothing to do.\n";
+  echo "\nNothing to do at ".date('Y/m/d H:i:s', strtotime('-4 hours'));
 } else {
   // Update geodata
   foreach ($ipAddrData as $key => $ipData) {
@@ -116,5 +116,5 @@ if (!$ipAddrData) {
     $updateGeoData = IXmapsGeoCorrection::updateGeoData($ipAddrData[$key], $p_status);
 
   } // end for set of ips
-  echo "\n"."done\n";
+  echo "\nCompleted at ".date('Y/m/d H:i:s', strtotime('-4 hours'));;
 }
