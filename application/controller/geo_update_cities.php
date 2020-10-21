@@ -22,12 +22,12 @@ require_once('../model/IXmapsGeoCorrection.php');
 
 // look for IPs updated by corr-latlong.sh (p_status = G)
 $ipAddrData = IXmapsGeoCorrection::getIpAddrInfo('G');
-$p_status = 'F';
+$pStatus = 'F';
 
 // if no, update some of the ips missing a city (p_status = U, mm_city is null). This is now necessary since Maxmind does not always provide a city...
 if (!$ipAddrData) {
   $ipAddrData = IXmapsGeoCorrection::getIpAddrInfo('U');
-  $p_status = 'U';
+  $pStatus = 'U';
 }
 
 if (isset($_GET['m'])) {
@@ -38,7 +38,7 @@ if (isset($_GET['m'])) {
 
 // check if nothing to do
 if (!$ipAddrData) {
-  echo "\nNothing to do at ".date('Y/m/d H:i:s', strtotime('-4 hours'));
+  echo "\nNothing to do at ".date('Y/m/d H:i:s', strtotime('-4 hours'))."\n";
 } else {
   // Update geodata
   foreach ($ipAddrData as $key => $ipData) {
@@ -109,12 +109,24 @@ if (!$ipAddrData) {
     $ipAddrData[$key]["mm_city_update"] = key($bestMatchCity);
     $ipAddrData[$key]["mm_postal_update"] = key($bestMatchPostal);
 
+    $ipAddrData[$key]["mm_city_update"] = handleCityExceptions($ipAddrData[$key]["mm_city_update"]);
+    var_dump($ipAddrData[$key]["mm_city_update"]);die;
+
     // add all matches: for reference
     $ipAddrData[$key]['closest_matches'] = $ipToGeoData;
 
     // update
-    $updateGeoData = IXmapsGeoCorrection::updateGeoData($ipAddrData[$key], $p_status);
+    $updateGeoData = IXmapsGeoCorrection::updateGeoData($ipAddrData[$key], $pStatus);
 
   } // end for set of ips
-  echo "\nCompleted at ".date('Y/m/d H:i:s', strtotime('-4 hours'));;
+  echo "\nCompleted at ".date('Y/m/d H:i:s', strtotime('-4 hours'))."\n";
+}
+
+
+function handleCityExceptions($cityName) {
+  if ($cityName == 'Don Mills') {
+    return 'Toronto';
+  }
+
+  return $cityName;
 }
