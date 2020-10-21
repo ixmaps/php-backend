@@ -110,7 +110,6 @@ if (!$ipAddrData) {
     $ipAddrData[$key]["mm_postal_update"] = key($bestMatchPostal);
 
     $ipAddrData[$key]["mm_city_update"] = handleCityExceptions($ipAddrData[$key]["mm_city_update"]);
-    var_dump($ipAddrData[$key]["mm_city_update"]);die;
 
     // add all matches: for reference
     $ipAddrData[$key]['closest_matches'] = $ipToGeoData;
