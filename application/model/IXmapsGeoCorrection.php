@@ -50,7 +50,7 @@ class IXmapsGeoCorrection
   {
     global $dbconn;
     // Update geo data for ip
-    $sql = "UPDATE ip_addr_info SET mm_country = '".$ipData['mm_country_update']."', mm_region = '".pg_escape_string($ipData['mm_region_update'])."',  mm_city = '".pg_escape_string($ipData['mm_city_update'])."', mm_postal = '".pg_escape_string([$ipData['mm_postal_update']])."', p_status = '".$p_Status."', updated_at = 'NOW()' WHERE ip_addr = '".$ipData['ip_addr']."';";
+    $sql = "UPDATE ip_addr_info SET mm_country = '".$ipData['mm_country_update']."', mm_region = '".pg_escape_string($ipData['mm_region_update'])."',  mm_city = '".pg_escape_string($ipData['mm_city_update'])."', mm_postal = '".pg_escape_string([$ipData['mm_postal_update']])."', p_status = '".$pStatus."', updated_at = 'NOW()' WHERE ip_addr = '".$ipData['ip_addr']."';";
 
     $result = pg_query($dbconn, $sql) or die('updateGeoData failed'.pg_last_error());
     pg_free_result($result);
