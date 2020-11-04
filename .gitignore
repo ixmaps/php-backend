@@ -3,3 +3,5 @@ mm-data/
 application/config.php
 application/config.js
 application/helpers/gl_analysis.csv
+vendor/
+composer.phar
