@@ -1,13 +1,16 @@
 <?php
 /**
  *
- * Class to handle ipinfo ip address values
+ * Class to handle interaction with the IpInfo API
  *
- * Updated Aug 2020
+ * Created Nov 2020
  * @author IXmaps.ca (Colin)
  *
  */
 require_once('../config.php');
+require_once('../../vendor/autoload.php');
+use ipinfo\ipinfo\IPinfo;
+
 
 class IXmapsIpInfo
 {
@@ -18,41 +21,31 @@ class IXmapsIpInfo
   private $countryCode;
   private $postal;
   private $hostname;
+  private $asnum;
+  private $asname;
 
-  /**
-   *
-   */
-  function __construct($ip) {
-    global $dbconn;
+  public function __construct($ip) {
+    global $IIAccessToken;
 
-    if (filter_var($ip, FILTER_VALIDATE_IP) == false || $ip == "") {
-      throw new Exception("Not a valid IP address");
-    }
-
-    $sql = "SELECT * FROM ipinfo_ip_addr WHERE ip_addr ='".$ip."'";
-    $result = pg_query($dbconn, $sql) or die('compareASN query failed: ' . pg_last_error());
-    $ip = pg_fetch_all($result);
-    pg_free_result($result);
-
-    $ip = $ip[0];
+    $client = new IPinfo($IIAccessToken);
 
     try {
-      $this->lat = $ip["lat"];
-      $this->long = $ip["long"];
-      $this->city = $ip["city"];
-      $this->region = $ip["region"];
-      $this->countryCode = $ip["country"];
-      $this->postal = $ip["postal"];
-      $this->hostname = $ip["hostname"];
+      $results = $client->getDetails($ip);
+      $this->lat = $results->latitude;
+      $this->long = $results->longitude;
+      $this->city = $results->city;
+      $this->region = $results->region;
+      $this->countryCode = $results->country;
+      $this->postal = $results->postal;
+      $this->hostname = $results->hostname;
+      $this->asnum = $this->determineASNValues($results)[0];
+      $this->asname = $this->determineASNValues($results)[1];
     } catch(Exception $e) {
-      $this->lat = NULL;
-      $this->long = NULL;
-      $this->city = NULL;
-      $this->region = NULL;
-      $this->countryCode = NULL;
-      $this->postal = NULL;
-      $this->hostname = NULL;
+      // should we null all the values? Probably
+      echo "IP not found";
+      // should we log this?
     }
+
   }
 
   public function getLat() {
@@ -71,20 +64,20 @@ class IXmapsIpInfo
     return $this->region;
   }
 
-  public function getRegionCode() {
-    return $this->regionCode;
-  }
-
   public function getPostalCode() {
     return $this->postal;
   }
 
   public function getCountry() {
-    return $this->country;
+    return $this->countryCode;
   }
 
   public function getCountryCode() {
     return $this->countryCode;
+  }
+
+  public function getHostname() {
+    return $this->hostname;
   }
 
   public function getASNum() {
@@ -95,8 +88,14 @@ class IXmapsIpInfo
     return $this->asname;
   }
 
-  public function getHostname() {
-    return $this->hostname;
+  private function determineASNValues($results) {
+    if (isset($results->org)) {
+      $asnDetails = explode(" ", $results->org, 2);
+      $asnum = substr($asnDetails[0], 2);
+      $asname = $asnDetails[1];
+      return [$asnum, $asname];
+    }
+
+    return [NULL, ''];
   }
 }
-?>

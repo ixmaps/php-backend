@@ -24,6 +24,9 @@ $savePath = $appRootPath.'/gm-temp';
 #### MaxMind data and include files
 $MMDatDir = "/home/ixmaps/ix-data/mm-data";
 
+#### IpInfo credentials
+$IIAccessToken = 'fillMeIn';
+
 $ixmapsDebugMode = true;
 $trNumLimit = 500;
 // CA, Toronto, US, US, Europe, China, Germany, Brazil
