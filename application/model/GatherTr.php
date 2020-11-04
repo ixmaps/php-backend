@@ -12,22 +12,6 @@ require_once('../model/IXmapsMaxMind.php');
 
 class GatherTr
 {
-  /**
-    Extract ASN - legacy?
-  */
-  // public static function extractAsn($asnString)
-  // {
-  //   $asnArray = explode(' ', $asnString);
-  //   $asn = $asnArray[0];
-  //   $asn = substr($asn, 2);
-  //   $isp = "";
-
-  //   for ($i=1; $i < count($asnArray); $i++) {
-  //     $isp .= $asnArray[$i]." ";
-  //   }
-  //   $isp = trim($isp);
-  //   return array($asn, $isp);
-  // }
 
   /**
     Anonymize ip

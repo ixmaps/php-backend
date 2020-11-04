@@ -6,7 +6,7 @@
  *
  * Full overhaul to include other data sources in Oct 2020 - this is now legacy (except for PTR? Check this)
  *
- * @author IXmaps.ca (Colin)
+ * @author IXmaps.ca (Colin, Anto)
  * @since Jan 2018
  * Updated Oct 2020
  *
