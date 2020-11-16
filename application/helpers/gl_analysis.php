@@ -6,9 +6,9 @@
 
 chdir(dirname(__FILE__));
 require_once('../config.php');
-require_once('../model/Geolocation_modern.php');
+require_once('../model/Geolocation.php');
 require_once('../model/IXmapsGeoCorrection.php');
-
+die;
 // eventually remake the table with the correct column order?
 
 function main() {

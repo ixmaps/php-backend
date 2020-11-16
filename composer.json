@@ -2,5 +2,11 @@
     "require": {
         "geoip2/geoip2": "~2.0",
         "ipinfo/ipinfo": "^1.1"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "*"
     }
 }
+
+
+

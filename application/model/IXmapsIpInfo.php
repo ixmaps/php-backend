@@ -24,13 +24,13 @@ class IXmapsIpInfo
   private $asnum;
   private $asname;
 
-  public function __construct($ip) {
+  function __construct($ip) {
     global $IIAccessToken;
-
     $client = new IPinfo($IIAccessToken);
 
     try {
       $results = $client->getDetails($ip);
+      $this->ip = $ip;
       $this->lat = $results->latitude;
       $this->long = $results->longitude;
       $this->city = $results->city;
@@ -41,11 +41,12 @@ class IXmapsIpInfo
       $this->asnum = $this->determineASNValues($results)[0];
       $this->asname = $this->determineASNValues($results)[1];
     } catch(Exception $e) {
-      // should we null all the values? Probably
-      echo "IP not found";
-      // should we log this?
+      echo 'Caught IXmapsIpInfo exception: ',  $e->getMessage();
     }
+  }
 
+  public function getIp() {
+    return $this->ip;
   }
 
   public function getLat() {

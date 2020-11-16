@@ -9,7 +9,7 @@
  */
 require_once('../config.php');
 
-class IXmapsIpInfoOld
+class IXmapsIpInfoFromOurDB
 {
   private $lat;
   private $long;
