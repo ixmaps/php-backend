@@ -6,6 +6,7 @@ require_once('../config.php');
 require_once('../model/GatherTr.php');
 require_once('../model/IXmapsIpInfo.php');
 require_once('../model/IXmapsIpInfoFactory.php');
+require_once('../model/Geolocation.php');
 
 
 final class InsertNewIpTest extends TestCase
@@ -55,54 +56,56 @@ final class InsertNewIpTest extends TestCase
     $this->assertEquals($insertReturnResult, 1);
   }
 
-  public function testInsertedIpHasValues(): array
+  public function testInsertedIpHasValues(): Geolocation
   // change this to return array and pass it along with a depends
   {
-    global $dbconn;
+    // global $dbconn;
 
-    $sql = "SELECT * FROM ip_addr_info WHERE ip_addr = '".$this->ii->getIp()."'";
-    $result = pg_query($dbconn, $sql) or die('checkIpExists: Query failed on the ip '.$ip.' with error '.pg_last_error());
-    $row = pg_fetch_all($result);
-    pg_free_result($result);
+    // $sql = "SELECT * FROM ip_addr_info WHERE ip_addr = '".$this->ii->getIp()."'";
+    // $result = pg_query($dbconn, $sql) or die('checkIpExists: Query failed on the ip '.$ip.' with error '.pg_last_error());
+    // $row = pg_fetch_all($result);
+    // pg_free_result($result);
 
-    $this->assertEquals($row[0]['ip_addr'], $this->ii->getIp());
+    $geo = new Geolocation('174.24.170.164');
+
+    $this->assertEquals($geo->getIp(), $this->ii->getIp());
 
     // clean up DB
     $this->completedFlag = true;
 
-    return $row[0];
+    return $geo;
   }
 
   /**
    * @depends testInsertedIpHasValues
    */
-  public function testInsertedIpCityNotNull(array $row): void
+  public function testInsertedIpCityNotNull(Geolocation $geo): void
   {
-    $this->assertNotNull($row['city']);
+    $this->assertNotNull($geo->getCity());
   }
 
   /**
    * @depends testInsertedIpHasValues
    */
-  public function testInsertedIpCountryNotNull(array $row): void
+  public function testInsertedIpCountryNotNull(Geolocation $geo): void
   {
-    $this->assertNotNull($row['country']);
+    $this->assertNotNull($geo->getCountry());
   }
 
   /**
    * @depends testInsertedIpHasValues
    */
-  public function testInsertedIpLatNotNull(array $row): void
+  public function testInsertedIpLatNotNull(Geolocation $geo): void
   {
-    $this->assertNotNull($row['lat']);
+    $this->assertNotNull($geo->getLat());
   }
 
   /**
    * @depends testInsertedIpHasValues
    */
-  public function testInsertedIpLongNotNull(array $row): void
+  public function testInsertedIpLongNotNull(Geolocation $geo): void
   {
-    $this->assertNotNull($row['long']);
+    $this->assertNotNull($geo->getLong());
   }
 
   public function tearDown(): void

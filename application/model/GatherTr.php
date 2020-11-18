@@ -749,7 +749,7 @@ class GatherTr
     global $dbconn, $tr_c_id;
 
     // $mm = new IXmapsMaxMind($ip);
-    $mm = IXmapsIpInfoFactory::build('174.24.170.164');
+    $mm = IXmapsIpInfoFactory::build($ip);
 
     /* TODO: check data types on all $data vars */
     $asn = $mm->getASNum();

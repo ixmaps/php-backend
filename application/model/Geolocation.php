@@ -17,11 +17,24 @@
  */
 require_once('../model/IXmapsMaxMind.php');
 require_once('../model/IXmapsIpInfo.php');
+require_once('../model/IXmapsIpInfoFactory.php');
 require_once('../model/IXmapsIp2Location.php');
 require_once('../model/IXmapsGeoCorrection.php');
 
 class Geolocation {
   private $ip;
+  private $lat;
+  private $long;
+  private $city;
+  private $region;
+  private $countryCode;
+  private $postalCode;
+  private $asnum;
+  private $asname;
+  private $hostname;
+  // TODO - these will be derived values (plus more?)
+  // private $asnSource;
+  // private $geoSource;
 
   private $ixLat;
   private $ixLong;
@@ -51,6 +64,8 @@ class Geolocation {
   private $iiRegion;
   private $iiCountryCode;
   private $iiPostal;
+  private $iiASnum;
+  private $iiASname;
   private $iiHostname;
 
   private $i2Lat;
@@ -62,9 +77,6 @@ class Geolocation {
   private $i2ASnum;
   private $i2ASname;
 
-  // TODO - these will be derived values (plus more?)
-  // private $asn_source;
-  // private $geo_source;
 
   /**
    *
@@ -74,23 +86,38 @@ class Geolocation {
    * @param inet $ip Ip address in inet/string format
    */
   function __construct($ip) {
-    // TODO - test me
     if (!filter_var($ip, FILTER_VALIDATE_IP)) {
       throw new Exception('Not a valid IP address');
     }
 
+    // mostly empty constructor
+    // only the ~10 default values, remove the rest
+    // asn and geosource
+    // factory or service builds with a asnsource / geosource, sets those
+
     $this->ip = $ip;
     $ix = $this->fetchIXgeoloc($ip);
     $mm = new IXmapsMaxMind($ip);
-    $ii = new IXmapsIpInfo($ip);
+    $ii = IXmapsIpInfoFactory::build($ip);
     $i2 = new IXmapsIp2Location($ip);
+
+    // once we decide on geoloc structure, change these all to deriveLat, deriveLong, deriveASnum, etc.
+    $this->lat = (float)$ix['lat'];
+    $this->long = (float)$ix['long'];
+    $this->city = $ix['mm_city'];
+    $this->region = $ix['mm_region'];
+    $this->countryCode = $ix['mm_country'];
+    $this->postalCode = $ix['mm_postal'];
+    $this->asnum = $ix['asnum'] == -1 ? NULL : $ix['asnum'];
+    $this->asname = $ix['short_name'] ?: $ix['name'];
+    $this->hostname = $ix['hostname'];
 
     $this->ixLat = (float)$ix['lat'];
     $this->ixLong = (float)$ix['long'];
-    $this->ixPostal = $ix['mm_postal'];
     $this->ixCity = $ix['mm_city'];
     $this->ixRegion = $ix['mm_region'];
     $this->ixCountryCode = $ix['mm_country'];
+    $this->ixPostal = $ix['mm_postal'];
     $this->ixASnum = $ix['asnum'] == -1 ? NULL : $ix['asnum'];
     $this->ixASname = $ix['short_name'] ?: $ix['name'];
     $this->ixHostname = $ix['hostname'];
@@ -150,6 +177,45 @@ class Geolocation {
     return false;
   }
 
+  public function getIp() {
+    return $this->ip;
+  }
+  public function getLat() {
+    return $this->lat;
+  }
+  public function getLong() {
+    return $this->long;
+  }
+  public function getCity() {
+    return $this->city;
+  }
+  public function getRegion() {
+    return $this->city;
+  }
+  public function getCountry() {
+    return $this->countryCode;
+  }
+  public function getPostalCode() {
+    return $this->postalCode;
+  }
+  public function getASNum() {
+    return $this->asnum;
+  }
+  public function getASName() {
+    return $this->asname;
+  }
+  public function getHostname() {
+    return $this->hostname;
+  }
+
+  // public function getAsnSource() {
+  //   return $this->asnSource;
+  // }
+
+  // public function getGeoSource() {
+  //   return $this->geoSource;
+  // }
+
 
   public function getIXLat() {
     return $this->ixLat;
@@ -200,7 +266,7 @@ class Geolocation {
   public function getMMCountryCode() {
     return $this->mmCountryCode;
   }
-  public function getMMPostal() {
+  public function getMMPostalCode() {
     return $this->mmPostal;
   }
   public function getMMASNum() {
@@ -259,42 +325,4 @@ class Geolocation {
   public function getI2ASName() {
     return $this->i2ASname;
   }
-
-
-  // TODO - these will be derived values
-  // public function getHostname() {
-  //   return $this->hostname;
-  // }
-
-  // public function getLat() {
-  //   return $this->lat;
-  // }
-
-  // public function getLong() {
-  //   return $this->long;
-  // }
-
-  // public function getCity() {
-  //   return $this->city;
-  // }
-
-  // public function getCountry() {
-  //   return $this->country;
-  // }
-
-  // public function getASNum() {
-  //   return $this->asnum;
-  // }
-
-  // public function getASName() {
-  //   return $this->asname;
-  // }
-
-  // public function getAsnSource() {
-  //   return $this->asn_source;
-  // }
-
-  // public function getGeoSource() {
-  //   return $this->geo_source;
-  // }
 } // end class

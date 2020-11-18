@@ -24,7 +24,11 @@ class IXmapsIpInfo
   private $asnum;
   private $asname;
 
-  function __construct($ip) {
+  function __construct() {
+
+  }
+
+  public function hydrate($ip) {
     global $IIAccessToken;
     $client = new IPinfo($IIAccessToken);
 

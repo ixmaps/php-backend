@@ -3,6 +3,7 @@ use PHPUnit\Framework\TestCase;
 
 chdir(dirname(__FILE__));
 require_once('../model/IXmapsIpInfo.php');
+require_once('../model/IXmapsIpInfoFactory.php');
 
 
 final class IXMapsIpInfoTest extends TestCase

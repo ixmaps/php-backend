@@ -187,7 +187,7 @@ class Geolocation {
     return $this->nsa;
   }
 
-  public function getCountry() {
+  public function getCountryCode() {
     return $this->country;
   }
 

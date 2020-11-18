@@ -12,13 +12,15 @@ class IXmapsIpInfoFactory
 {
   public static function build($ip): IXmapsIpInfo
   {
-    if (filter_var($ip, FILTER_VALIDATE_IP) == false || $ip == "") {
-      throw new Exception("Not a valid IP address");
+    if (!filter_var($ip, FILTER_VALIDATE_IP)) {
+      throw new Exception('Not a valid IP address');
     }
 
     // other exceptions to handle?
 
-    return new IXmapsIpInfo($ip);
+    $ii = new IXmapsIpInfo();
+    $ii->hydrate($ip);
+    return $ii;
   }
 
 }
