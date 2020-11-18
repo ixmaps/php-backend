@@ -41,7 +41,7 @@ class Geolocation {
   private $ixCity;
   private $ixRegion;
   private $ixCountryCode;
-  private $ixPostal;
+  private $ixPostalCode;
   private $ixASnum;
   private $ixASname;
   private $ixHostname;
@@ -53,7 +53,7 @@ class Geolocation {
   private $mmRegionCode;
   private $mmCountry;
   private $mmCountryCode;
-  private $mmPostal;
+  private $mmPostalCode;
   private $mmASnum;
   private $mmASname;
   private $mmHostname;
@@ -63,7 +63,7 @@ class Geolocation {
   private $iiCity;
   private $iiRegion;
   private $iiCountryCode;
-  private $iiPostal;
+  private $iiPostalCode;
   private $iiASnum;
   private $iiASname;
   private $iiHostname;
@@ -73,7 +73,7 @@ class Geolocation {
   private $i2City;
   private $i2Region;
   private $i2CountryCode;
-  private $i2Postal;
+  private $i2PostalCode;
   private $i2ASnum;
   private $i2ASname;
 
@@ -117,37 +117,37 @@ class Geolocation {
     $this->ixCity = $ix['mm_city'];
     $this->ixRegion = $ix['mm_region'];
     $this->ixCountryCode = $ix['mm_country'];
-    $this->ixPostal = $ix['mm_postal'];
+    $this->ixPostalCode = $ix['mm_postal'];
     $this->ixASnum = $ix['asnum'] == -1 ? NULL : $ix['asnum'];
     $this->ixASname = $ix['short_name'] ?: $ix['name'];
     $this->ixHostname = $ix['hostname'];
 
     $this->mmLat = $mm->getLat();
     $this->mmLong = $mm->getLong();
-    $this->mmPostal = $mm->getPostalCode();
     $this->mmCity = $mm->getCity();
     $this->mmRegion = $mm->getRegion();
     $this->mmRegionCode = $mm->getRegionCode();
     $this->mmCountry = $mm->getCountry();
     $this->mmCountryCode = $mm->getCountryCode();
+    $this->mmPostalCode = $mm->getPostalCode();
     $this->mmASnum = $mm->getASNum();
     $this->mmASname = $mm->getASName();
     $this->mmHostname = $mm->getHostname();
 
     $this->iiLat = $ii->getLat();
     $this->iiLong = $ii->getLong();
-    $this->iiPostal = $ii->getPostalCode();
     $this->iiCity = $ii->getCity();
     $this->iiRegion = $ii->getRegion();
     $this->iiCountryCode = $ii->getCountryCode();
+    $this->iiPostalCode = $ii->getPostalCode();
     $this->iiHostname = $ii->getHostname();
 
     $this->i2Lat = $i2->getLat();
     $this->i2Long = $i2->getLong();
-    $this->i2Postal = $i2->getPostalCode();
     $this->i2City = $i2->getCity();
     $this->i2Region = $i2->getRegion();
     $this->i2CountryCode = $i2->getCountryCode();
+    $this->i2PostalCode = $i2->getPostalCode();
     $this->i2ASnum = $i2->getASnum();
     $this->i2ASname = $i2->getASname();
   }
@@ -232,8 +232,8 @@ class Geolocation {
   public function getIXCountryCode() {
     return $this->ixCountryCode;
   }
-  public function getIXPostal() {
-    return $this->ixPostal;
+  public function getIXPostalCode() {
+    return $this->ixPostalCode;
   }
   public function getIXASNum() {
     return $this->ixASnum;
@@ -267,7 +267,7 @@ class Geolocation {
     return $this->mmCountryCode;
   }
   public function getMMPostalCode() {
-    return $this->mmPostal;
+    return $this->mmPostalCode;
   }
   public function getMMASNum() {
     return $this->mmASnum;
@@ -294,8 +294,8 @@ class Geolocation {
   public function getIICountryCode() {
     return $this->iiCountryCode;
   }
-  public function getIIPostal() {
-    return $this->iiPostal;
+  public function getIIPostalCode() {
+    return $this->iiPostalCode;
   }
   public function getIIHostname() {
     return $this->iiHostname;
@@ -316,8 +316,8 @@ class Geolocation {
   public function getI2CountryCode() {
     return $this->i2CountryCode;
   }
-  public function getI2Postal() {
-    return $this->i2Postal;
+  public function getI2PostalCode() {
+    return $this->i2PostalCode;
   }
   public function getI2ASNum() {
     return $this->i2ASnum;
