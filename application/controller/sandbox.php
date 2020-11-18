@@ -1,16 +1,19 @@
 <?php
 /**
  *
- * Updated for GeoLite2
  * This code demonstrates how to lookup the country, region, city,
  * postal code, latitude, and longitude by IP Address.
+ * Current data sources: ix, mm, ii, i2
  *
- * Updated Aug 2019
+ * Updated Nov 2020
  * @author Colin, Anto
  *
  */
 
-require_once('../model/IXmapsMaxMind.php');
+
+
+// require_once('../model/IXmapsMaxMind.php');
+require_once ('../model/Geolocation.php');
 
 if (isset($_POST['ip'])) {
   $ip = $_POST['ip'];
@@ -23,23 +26,12 @@ if (isset($_POST['ip'])) {
 // dirty check for localhost - throw in the MM default test value
 // NB - this is broken
 
-$mm = new IXmapsMaxMind($ip);
+$geo = new Geolocation($ip);
 
-echo '<b>Values derived from GeoLite2-City.mmdb</b><br/>';
-echo 'Lat: ' . $mm->getLat() . "<br/>";
-echo 'Long: ' . $mm->getlong() . "<br/>";
+echo '<h3>A Comparison of Data Sources</h3>';
+echo '<div>This service provides a geolocation for the following data sources: IXmaps, Mamxind, IpInfo, IP2location</div>';
+echo '<br>';
 
-echo 'City: ' . $mm->getCity() . "<br/>";
-echo 'Region: ' . $mm->getRegion() . "<br/>";
-echo 'Region code: ' . $mm->getRegionCode() . "<br/>";
-echo 'Postal code: ' . $mm->getPostalCode() . "<br/>";
-echo 'Country: ' . $mm->getCountry() . "<br/>";
-echo 'Country code: ' . $mm->getCountryCode() . "<br/>";
-
-echo 'ASN: ' . $mm->getASNum() . "<br/>";
-echo 'ASN name: ' . $mm->getASName() . "<br/>";
-
-echo '<br/><br/>';
 ?>
 
 <!DOCTYPE html>
@@ -50,9 +42,19 @@ echo '<br/><br/>';
     <title>Locate IP</title>
 
     <STYLE type="text/css">
-      #map_canvas {
-        height: 500px;
-        width: 680px;
+      body {
+        margin: 25px;
+      }
+      #ix-map-canvas, #mm-map-canvas, #ii-map-canvas, #i2-map-canvas {
+        height: 400px;
+        width: 400px;
+        display: inline-block;
+        margin-right: 25px;
+        margin-bottom: 10px;
+      }
+      .sources-container {
+        margin-top: 30px;
+        display: inline-flex;
       }
     </STYLE>
 
@@ -63,19 +65,59 @@ echo '<br/><br/>';
         <?php
         if ($ip != '') {
         ?>
-        var myLatLng = new google.maps.LatLng(<?php echo $mm->getLat().','.$mm->getlong()?>);
-        var mapOptions = {
-          zoom: 6,
-          center: myLatLng,
+
+        var ixLatLng = new google.maps.LatLng(<?php echo $geo->getIXLat().','.$geo->getIXlong()?>);
+        var ixMapOptions = {
+          zoom: 5,
+          center: ixLatLng,
           mapTypeId: google.maps.MapTypeId.ROADMAP
         };
-        var map = new google.maps.Map(document.getElementById('map_canvas'), mapOptions);
-        var ip_ixmaps = new google.maps.LatLng(<?php echo $mm->getLat().','.$mm->getlong()?>);
-        var marker_IXmaps = new google.maps.Marker({
-          position: ip_ixmaps,
-          map: map,
+        var ixMap = new google.maps.Map(document.getElementById('ix-map-canvas'), ixMapOptions);
+        var ixMarker = new google.maps.Marker({
+          position: ixLatLng,
+          map: ixMap,
           title:'<?php echo $ip;?>'
         });
+
+        var mmLatLng = new google.maps.LatLng(<?php echo $geo->getMMLat().','.$geo->getMMlong()?>);
+        var mmMapOptions = {
+          zoom: 5,
+          center: mmLatLng,
+          mapTypeId: google.maps.MapTypeId.ROADMAP
+        };
+        var mmMap = new google.maps.Map(document.getElementById('mm-map-canvas'), mmMapOptions);
+        var mmMarker = new google.maps.Marker({
+          position: mmLatLng,
+          map: mmMap,
+          title:'<?php echo $ip;?>'
+        });
+
+        var iiLatLng = new google.maps.LatLng(<?php echo $geo->getIILat().','.$geo->getIIlong()?>);
+        var iiMapOptions = {
+          zoom: 5,
+          center: iiLatLng,
+          mapTypeId: google.maps.MapTypeId.ROADMAP
+        };
+        var iiMap = new google.maps.Map(document.getElementById('ii-map-canvas'), iiMapOptions);
+        var iiMarker = new google.maps.Marker({
+          position: iiLatLng,
+          map: iiMap,
+          title:'<?php echo $ip;?>'
+        });
+
+        var i2LatLng = new google.maps.LatLng(<?php echo $geo->getI2Lat().','.$geo->getI2long()?>);
+        var i2MapOptions = {
+          zoom: 5,
+          center: i2LatLng,
+          mapTypeId: google.maps.MapTypeId.ROADMAP
+        };
+        var i2Map = new google.maps.Map(document.getElementById('i2-map-canvas'), i2MapOptions);
+        var i2Marker = new google.maps.Marker({
+          position: i2LatLng,
+          map: i2Map,
+          title:'<?php echo $ip;?>'
+        });
+
       <?php } ?>
       }
 
@@ -88,13 +130,70 @@ echo '<br/><br/>';
   <body>
     <div>
       <form action="sandbox.php" method="post">
-        IP: <input name="ip" type="text" value="<?php echo $ip;?>"/> <input type="submit" value="Geocode"/>
+        Enter IP here: <input name="ip" type="text" value="<?php echo $ip;?>"/> <input type="submit" value="Geocode"/>
       </form>
     </div>
-    <div id="map_canvas"></div>
-    <p>
-      This product includes GeoLite2 data created by MaxMind, available from
-      <a href="https://www.maxmind.com">https://www.maxmind.com</a>.
-    </p>
+    <div class="sources-container">
+      <div>
+        <h4>IXmaps</h4>
+        <div id="ix-map-canvas"></div>
+        <div>
+          <div>Lat: <?php echo $geo->getIXLat()?></div>
+          <div>Long: <?php echo $geo->getIXLong()?></div>
+          <div>City: <?php echo $geo->getIXCity()?></div>
+          <div>Region: <?php echo $geo->getIXRegion()?></div>
+          <div>Country: <?php echo $geo->getIXCountryCode()?></div>
+          <div>Postal code: <?php echo $geo->getIXPostalCode()?></div>
+          <div>ASnum: <?php echo $geo->getIXASNum()?></div>
+          <div>ASname: <?php echo $geo->getIXASName()?></div>
+          <div>Hostname: <?php echo $geo->getIXHostname()?></div>
+        </div>
+      </div>
+      <div>
+        <h4>Maxmind</h4>
+        <div id="mm-map-canvas"></div>
+        <div>
+          <div>Lat: <?php echo $geo->getMMLat()?></div>
+          <div>Long: <?php echo $geo->getMMLong()?></div>
+          <div>City: <?php echo $geo->getMMCity()?></div>
+          <div>Region: <?php echo $geo->getMMRegion()?></div>
+          <div>Country: <?php echo $geo->getMMCountryCode()?></div>
+          <div>Postal code: <?php echo $geo->getMMPostalCode()?></div>
+          <div>ASnum: <?php echo $geo->getMMASNum()?></div>
+          <div>ASname: <?php echo $geo->getMMASName()?></div>
+          <div>Hostname: <?php echo $geo->getMMHostname()?></div>
+        </div>
+      </div>
+      <div>
+        <h4>IpInfo</h4>
+        <div id="ii-map-canvas"></div>
+        <div>
+          <div>Lat: <?php echo $geo->getIILat()?></div>
+          <div>Long: <?php echo $geo->getIILong()?></div>
+          <div>City: <?php echo $geo->getIICity()?></div>
+          <div>Region: <?php echo $geo->getIIRegion()?></div>
+          <div>Country: <?php echo $geo->getIICountryCode()?></div>
+          <div>Postal code: <?php echo $geo->getIIPostalCode()?></div>
+          <div>ASnum: N/A</div>
+          <div>ASname: N/A</div>
+          <div>Hostname: N/A</div>
+        </div>
+      </div>
+      <div>
+        <h4>IP2Location</h4>
+        <div id="i2-map-canvas"></div>
+        <div>
+          <div>Lat: <?php echo $geo->getI2Lat()?></div>
+          <div>Long: <?php echo $geo->getI2Long()?></div>
+          <div>City: <?php echo $geo->getI2City()?></div>
+          <div>Region: <?php echo $geo->getI2Region()?></div>
+          <div>Country: <?php echo $geo->getI2CountryCode()?></div>
+          <div>Postal code: <?php echo $geo->getI2PostalCode()?></div>
+          <div>ASnum: <?php echo $geo->getI2ASNum()?></div>
+          <div>ASname: <?php echo $geo->getI2ASName()?></div>
+          <div>Hostname: N/A</div>
+        </div>
+      </div>
+    </div>
   </body>
 </html>
