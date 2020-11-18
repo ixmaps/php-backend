@@ -4,4 +4,4 @@ application/config.php
 application/config.js
 application/helpers/gl_analysis.csv
 vendor/
-phpunit.result.cache
+application/tests/.phpunit.result.cache
