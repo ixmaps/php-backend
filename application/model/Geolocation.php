@@ -74,7 +74,6 @@ class Geolocation {
    * @param inet $ip Ip address in inet/string format
    */
   function __construct($ip) {
-    // TODO - test me
     if (!filter_var($ip, FILTER_VALIDATE_IP)) {
       throw new Exception('Not a valid IP address');
     }

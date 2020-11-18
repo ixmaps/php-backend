@@ -11,8 +11,6 @@
  */
 
 
-
-// require_once('../model/IXmapsMaxMind.php');
 require_once ('../model/Geolocation.php');
 
 if (isset($_POST['ip'])) {
