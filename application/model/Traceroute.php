@@ -37,6 +37,9 @@ class Traceroute
     global $dbconn;
     global $sampleCap;
 
+    ini_set('memory_limit', '256M');
+    $log->search("New memory limit: ".ini_get('memory_limit')."\n");
+
     $trIdsForConstraint = array();
     $constraintNum = 0;
 
@@ -83,6 +86,8 @@ class Traceroute
     $trIds = array_unique($trIds);
 
     unset($trIdsForConstraint);
+
+    ini_set('memory_limit', '128M');
 
     return $trIds;
   }
