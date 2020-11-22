@@ -45,16 +45,18 @@ class Traceroute
 
       // add the constraint to the sql
       $wParams = Traceroute::buildWhere($constraint);
+      $log->search("Loop ".strval($constraintNum+1).": buildWhereWhere");
       $sql .= $wParams[0];
 
       // execute the sql (getting the TR data to return)
       $trIdsForConstraint[$constraintNum] = Traceroute::getTrIds($sql, $wParams[1]);
+      $log->search("Loop ".strval($constraintNum+1).": getTrIds");
 
       $constraintNum++;
 
     } // end foreach
 
-    $log->search("Time after constraints");
+    $log->search("Constraints loop");
 
     // merge sets of ids based on AND/OR conditions
     $trIds = array();

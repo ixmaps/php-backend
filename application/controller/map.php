@@ -65,13 +65,13 @@ if (!isset($_POST)) {
     $trIds = Traceroute::getTracerouteIdsForConstraints($postArr, $log);
   }
 
-  $log->search("Time after tr ids selected");
+  $log->search("Tr ids selected");
 
   if (count($trIds) != 0) {
     $ixMapsData = Traceroute::getTracerouteDataForIds($trIds, $maxTrCount);
   }
 
-  $log->search("Time after data selected");
+  $log->search("Final data selected");
 
   // add total execution time
   $ixMapsData['execTime'] = $log->executionTime();
