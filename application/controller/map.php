@@ -31,14 +31,13 @@ require_once('../model/Traceroute.php');
 $myIp = $_SERVER['REMOTE_ADDR'];
 
 global $trNumLimit;
+global $searchLog;
 
 /* TODO: Refine search of geodata location based on proximity to major city. Reuse other functions  */
 
 /* Performance vars */
-$mtime = microtime();
-$mtime = explode(" ",$mtime);
-$mtime = $mtime[1] + $mtime[0];
-$starttime = $mtime;
+$logfile = fopen($searchLog, "a+") or exit("Unable to open file!");
+$starttime = getNow();
 
 if (!isset($_POST)) {
   $error = array(
@@ -50,6 +49,7 @@ if (!isset($_POST)) {
 
   $postArr = json_decode(file_get_contents('php://input'), TRUE);
 
+  // if the frontend has passed in a max tr to return value, overwrite the default
   $maxTrCount = $trNumLimit;
   if (key(end($postArr)) == "maxTrCount") {
     $maxTrCount = end($postArr)["maxTrCount"];
@@ -66,21 +66,31 @@ if (!isset($_POST)) {
     $trIds = Traceroute::getTracerouteIdsForConstraints($postArr);
   }
 
+  fwrite($logfile, "Found ".count($trIds)." traceroute ids after ".executionTime($starttime)."\n");
+
   if (count($trIds) != 0) {
     $ixMapsData = Traceroute::getTracerouteDataForIds($trIds, $maxTrCount);
   }
 
-  // end calculation of execution time
-  $mtime = microtime();
-  $mtime = explode(" ",$mtime);
-  $mtime = $mtime[1] + $mtime[0];
-  $endtime = $mtime;
-  $totaltime = ($endtime - $starttime);
-  $totaltime = number_format($totaltime, 2);
+  fwrite($logfile, "Time: ".executionTime($starttime)."\n");
 
-  // add exec time
-  $ixMapsData['execTime'] = $totaltime;
+  // add total execution time
+  $ixMapsData['execTime'] = executionTime($starttime);
+
+  fclose($logfile);
 
   echo json_encode($ixMapsData);
+}
+
+function executionTime($starttime) {
+  $endtime = getNow();
+  $totaltime = ($endtime - $starttime);
+  return number_format($totaltime, 2);
+}
+
+function getNow() {
+  $mtime = microtime();
+  $mtime = explode(" ",$mtime);
+  return $mtime[1] + $mtime[0];
 }
 ?>

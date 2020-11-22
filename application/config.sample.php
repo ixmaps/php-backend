@@ -20,9 +20,13 @@ try {
 $webUrl = "https://www.ixmaps.ca";
 $appRootPath = '/srv/www/website';
 $savePath = $appRootPath.'/gm-temp';
+$searchLog = "/home/ixmaps/log/search.log";
 
 #### MaxMind data and include files
 $MMDatDir = "/home/ixmaps/ix-data/mm-data";
+
+#### IpInfo credentials
+$IIAccessToken = 'fillMeIn';
 
 $ixmapsDebugMode = true;
 $trNumLimit = 500;
