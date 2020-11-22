@@ -38,18 +38,18 @@ class TracerouteUtility
     reset($cleanedHops);
 
     // if first hop is not CA
-    if ($firstHop->getCountry() != 'CA') {
+    if ($firstHop->getCountryCode() != 'CA') {
       return false;
     }
 
     // if last hop is not CA
-    if ($lastHop->getCountry() != 'CA') {
+    if ($lastHop->getCountryCode() != 'CA') {
       return false;
     }
 
     foreach ($cleanedHops as $key => $hop) {
       $myHop = new Geolocation($hop["ip"]);
-      if ($myHop->getCountry() == 'US') {
+      if ($myHop->getCountryCode() == 'US') {
         return true;
       }
     }

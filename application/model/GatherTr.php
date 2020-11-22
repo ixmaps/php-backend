@@ -9,6 +9,8 @@
  *
  */
 require_once('../model/IXmapsMaxMind.php');
+require_once('../model/IXmapsIpInfo.php');
+require_once('../model/IXmapsIpInfoFactory.php');
 
 class GatherTr
 {
@@ -735,13 +737,19 @@ class GatherTr
 
 
   /**
-    Insert new IP
-  */
+    * Insert new IP
+    *
+    * @param IP address string
+    *
+    * @return 1 on success, 0 and $errorData on error
+    *
+    */
   public static function insertNewIp($ip)
   {
     global $dbconn, $tr_c_id;
 
     $mm = new IXmapsMaxMind($ip);
+    // $mm = IXmapsIpInfoFactory::build($ip);
 
     /* TODO: check data types on all $data vars */
     $asn = $mm->getASNum();
@@ -750,14 +758,14 @@ class GatherTr
     }
 
     $sql = "INSERT INTO ip_addr_info (ip_addr, asnum, mm_lat, mm_long, hostname, mm_country, mm_region, mm_city, mm_postal, p_status, lat, long, gl_override) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13);";
-    $ipData = array($ip, $asn, $mm->getLat(), $mm->getLong(), $mm->getHostname(), $mm->getCountryCode(), $mm->getRegionCode(), $mm->getCity(), $mm->getPostalCode(), "N", $mm->getLat(), $mm->getLong(), NULL);
+    $ipData = array($ip, $asn, $mm->getLat(), $mm->getLong(), $mm->getHostname(), $mm->getCountryCode(), $mm->getRegion(), $mm->getCity(), $mm->getPostalCode(), "N", $mm->getLat(), $mm->getLong(), NULL);
 
       /* Catch errors in sql statement */
       if (pg_send_query_params($dbconn, $sql, $ipData)) {
         $result = pg_get_result($dbconn);
         if ($result) {
           $state = pg_result_error_field($result, PGSQL_DIAG_SQLSTATE);
-          if ($state!=0) {
+          if ($state != 0) {
             $errorData = array(
               "class"=>"GatherTr",
               "function"=>"insertNewIp",
