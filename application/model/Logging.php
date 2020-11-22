@@ -16,7 +16,8 @@ class Logging
 
     $this->startTime = $this->getNow();
     $this->logFile = fopen($searchLog, "a+") or exit("Unable to open file!");
-    fwrite($this->logFile, "\n");
+    fwrite($this->logFile, "\n".date("Y-m-d H:i:s"));
+    fwrite($this->logFile, "\nMemory limit: ".ini_get('memory_limit')."\n");
   }
 
   public function search($message) {

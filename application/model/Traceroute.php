@@ -35,6 +35,7 @@ class Traceroute
   public static function getTracerouteIdsForConstraints($data, $log)
   {
     global $dbconn;
+    global $sampleCap;
 
     $trIdsForConstraint = array();
     $constraintNum = 0;
@@ -45,16 +46,17 @@ class Traceroute
 
       // add the constraint to the sql
       $wParams = Traceroute::buildWhere($constraint);
-      $log->search("Loop ".strval($constraintNum+1).": buildWhereWhere");
       $sql .= $wParams[0];
+      $log->search("Loop ".strval($constraintNum + 1).": buildWhere ".$sql);
 
       // execute the sql (getting the TR data to return)
       $trIdsForConstraint[$constraintNum] = Traceroute::getTrIds($sql, $wParams[1]);
-      $log->search("Loop ".strval($constraintNum+1).": getTrIds");
+      $log->search("Loop ".strval($constraintNum + 1).": getTrIds");
 
       $constraintNum++;
 
     } // end foreach
+
 
     $log->search("Constraints loop");
 
