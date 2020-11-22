@@ -37,8 +37,8 @@ class Traceroute
     global $dbconn;
     global $sampleCap;
 
+    // we need to bump the memory for the 'contains' and 'goes via' multi-constraint searches
     ini_set('memory_limit', '256M');
-    $log->search("New memory limit: ".ini_get('memory_limit')."\n");
 
     $trIdsForConstraint = array();
     $constraintNum = 0;
@@ -87,6 +87,7 @@ class Traceroute
 
     unset($trIdsForConstraint);
 
+    // reset to the default
     ini_set('memory_limit', '128M');
 
     return $trIds;
