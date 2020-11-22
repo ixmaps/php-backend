@@ -33,6 +33,7 @@ class Traceroute
   public static function getTracerouteIdsForConstraints($data)
   {
     global $dbconn;
+    global $searchLog;
 
     $trIdsForConstraint = array();
     $constraintNum = 0;
@@ -51,6 +52,8 @@ class Traceroute
       $constraintNum++;
 
     } // end foreach
+
+    fwrite($logfile, "Time after constraints loop: ".executionTime($starttime)."\n");
 
     // merge sets of ids based on AND/OR conditions
     $trIds = array();

@@ -66,13 +66,13 @@ if (!isset($_POST)) {
     $trIds = Traceroute::getTracerouteIdsForConstraints($postArr);
   }
 
-  fwrite($logfile, "Found ".count($trIds)." traceroute ids after ".executionTime($starttime)."\n");
+  fwrite($logfile, "Time after tr ids selected: ".executionTime($starttime)."\n");
 
   if (count($trIds) != 0) {
     $ixMapsData = Traceroute::getTracerouteDataForIds($trIds, $maxTrCount);
   }
 
-  fwrite($logfile, "Time: ".executionTime($starttime)."\n");
+  fwrite($logfile, "Time after data selected: ".executionTime($starttime)."\n");
 
   // add total execution time
   $ixMapsData['execTime'] = executionTime($starttime);
