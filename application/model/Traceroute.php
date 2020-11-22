@@ -10,6 +10,8 @@
  * @since 2020 June
  *
  */
+require_once('../model/Logging.php');
+
 class Traceroute
 {
   /**
@@ -30,10 +32,9 @@ class Traceroute
    * @return array of TR ids
    *
    */
-  public static function getTracerouteIdsForConstraints($data)
+  public static function getTracerouteIdsForConstraints($data, $log)
   {
     global $dbconn;
-    global $searchLog;
 
     $trIdsForConstraint = array();
     $constraintNum = 0;
@@ -53,7 +54,7 @@ class Traceroute
 
     } // end foreach
 
-    fwrite($logfile, "Time after constraints loop: ".executionTime($starttime)."\n");
+    $log->search("Time after constraints");
 
     // merge sets of ids based on AND/OR conditions
     $trIds = array();
