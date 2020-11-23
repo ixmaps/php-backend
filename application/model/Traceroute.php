@@ -45,16 +45,28 @@ class Traceroute
 
     // loop over the constraints
     foreach ($data as $constraint) {
-      $sql = "SELECT annotated_traceroutes.traceroute_id FROM annotated_traceroutes, traceroute_traits WHERE annotated_traceroutes.traceroute_id = traceroute_traits.traceroute_id";
 
-      // add the constraint to the sql
-      $wParams = Traceroute::buildWhere($constraint);
-      $sql .= $wParams[0];
-      $log->search("Loop ".strval($constraintNum + 1).": buildWhere ".$sql);
+      // this query is sufficiently common and slow that we make an exception
+      if ($constraint['constraint1'] == "does" &&
+          $constraint['constraint2'] == "goVia" &&
+          $constraint['constraint3'] == "country" &&
+          $constraint['constraint4'] == "US") {
 
-      // execute the sql (getting the TR data to return)
-      $trIdsForConstraint[$constraintNum] = Traceroute::getTrIds($sql, $wParams[1]);
-      $log->search("Loop ".strval($constraintNum + 1).": getTrIds");
+        $sql = "SELECT traceroute_id FROM traceroute_traits WHERE transits_us is true";
+        $trIdsForConstraint[$constraintNum] = Traceroute::getTrIds($sql, "");
+        $log->search("Loop ".strval($constraintNum + 1).": goViaUS");
+
+      } else {
+        $sql = "SELECT annotated_traceroutes.traceroute_id FROM annotated_traceroutes, traceroute_traits WHERE annotated_traceroutes.traceroute_id = traceroute_traits.traceroute_id";
+        // add the constraint to the sql
+        $wParams = Traceroute::buildWhere($constraint);
+        $sql .= $wParams[0];
+        $log->search("Loop ".strval($constraintNum + 1).": buildWhere ".$sql);
+
+        // execute the sql (getting the TR data to return)
+        $trIdsForConstraint[$constraintNum] = Traceroute::getTrIds($sql, $wParams[1]);
+        $log->search("Loop ".strval($constraintNum + 1).": getTrIds");
+      }
 
       $constraintNum++;
 
@@ -336,7 +348,7 @@ class Traceroute
   {
     global $dbconn;
 
-    // old approach: used only for quick links
+    // old approach: used only for quick links and 'goesViaUS' constraint
     if ($wParam == "") {
       $result = pg_query($dbconn, $sql) or die('getTrIds query failed: ' . pg_last_error());
     } else {
