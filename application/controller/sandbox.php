@@ -13,16 +13,14 @@
 
 require_once ('../model/Geolocation.php');
 
+$ip = $_SERVER['REMOTE_ADDR'];
+
+if ($ip == '127.0.0.1') {
+  $ip = '128.101.101.101';
+}
 if (isset($_POST['ip'])) {
   $ip = $_POST['ip'];
-} else {
-  $ip = $_SERVER['REMOTE_ADDR'];
-  if ($ip = '127.0.0.1') {
-    $ip = '128.101.101.101';
-  }
 }
-// dirty check for localhost - throw in the MM default test value
-// NB - this is broken
 
 $geo = new Geolocation($ip);
 
