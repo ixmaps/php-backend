@@ -36,6 +36,9 @@ class MapEntrySearch
   {
     global $dbconn, $debugTrSearch;
 
+    // pump up the memory for this query
+    ini_set('memory_limit', '256M');
+
     // return empty for non params
     if (count($data) == 0) {
       return array(
@@ -116,6 +119,8 @@ class MapEntrySearch
         $trIdCount = $val['total'];
       }
     }
+
+    ini_set('memory_limit', '128M');
 
     return array(
              "results" => $filterResults,
