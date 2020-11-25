@@ -95,61 +95,7 @@ class Geolocation {
     // asn and geosource
     // factory or service builds with a asnsource / geosource, sets those
 
-    $this->ip = $ip;
-    $ix = $this->fetchIXgeoloc($ip);
-    $mm = new IXmapsMaxMind($ip);
-    $ii = IXmapsIpInfoFactory::build($ip);
-    $i2 = new IXmapsIp2Location($ip);
 
-    // once we decide on geoloc structure, change these all to deriveLat, deriveLong, deriveASnum, etc.
-    $this->lat = (float)$ix['lat'];
-    $this->long = (float)$ix['long'];
-    $this->city = $ix['mm_city'];
-    $this->region = $ix['mm_region'];
-    $this->countryCode = $ix['mm_country'];
-    $this->postalCode = $ix['mm_postal'];
-    $this->asnum = $ix['asnum'] == -1 ? NULL : $ix['asnum'];
-    $this->asname = $ix['short_name'] ?: $ix['name'];
-    $this->hostname = $ix['hostname'];
-
-    $this->ixLat = (float)$ix['lat'];
-    $this->ixLong = (float)$ix['long'];
-    $this->ixCity = $ix['mm_city'];
-    $this->ixRegion = $ix['mm_region'];
-    $this->ixCountryCode = $ix['mm_country'];
-    $this->ixPostalCode = $ix['mm_postal'];
-    $this->ixASnum = $ix['asnum'] == -1 ? NULL : $ix['asnum'];
-    $this->ixASname = $ix['short_name'] ?: $ix['name'];
-    $this->ixHostname = $ix['hostname'];
-
-    $this->mmLat = $mm->getLat();
-    $this->mmLong = $mm->getLong();
-    $this->mmCity = $mm->getCity();
-    $this->mmRegion = $mm->getRegion();
-    $this->mmRegionCode = $mm->getRegionCode();
-    $this->mmCountry = $mm->getCountry();
-    $this->mmCountryCode = $mm->getCountryCode();
-    $this->mmPostalCode = $mm->getPostalCode();
-    $this->mmASnum = $mm->getASNum();
-    $this->mmASname = $mm->getASName();
-    $this->mmHostname = $mm->getHostname();
-
-    $this->iiLat = $ii->getLat();
-    $this->iiLong = $ii->getLong();
-    $this->iiCity = $ii->getCity();
-    $this->iiRegion = $ii->getRegion();
-    $this->iiCountryCode = $ii->getCountryCode();
-    $this->iiPostalCode = $ii->getPostalCode();
-    $this->iiHostname = $ii->getHostname();
-
-    $this->i2Lat = $i2->getLat();
-    $this->i2Long = $i2->getLong();
-    $this->i2City = $i2->getCity();
-    $this->i2Region = $i2->getRegion();
-    $this->i2CountryCode = $i2->getCountryCode();
-    $this->i2PostalCode = $i2->getPostalCode();
-    $this->i2ASnum = $i2->getASnum();
-    $this->i2ASname = $i2->getASname();
   }
 
   /**
