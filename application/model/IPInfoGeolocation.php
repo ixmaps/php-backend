@@ -1,15 +1,15 @@
 <?php
 /**
  *
- * IXmaps geolocation model representation (see ip_addr_info in db)
+ * Thin representation of IpInfo ip address to location relationship
  *
- * @author IXmaps.ca (Colin)
  * @since Nov 2020
+ * @author IXmaps.ca (Colin)
  *
  */
 
-class IXmapsGeolocation {
-  private $ip;
+class IPInfoGeolocation
+{
   private $lat;
   private $long;
   private $city;
@@ -19,8 +19,6 @@ class IXmapsGeolocation {
   private $asnum;
   private $asname;
   private $hostname;
-  private $createdAt;
-  private $updatedAt;
 
   function __construct() { }
 
@@ -54,12 +52,6 @@ class IXmapsGeolocation {
   public function setHostname($hostname) {
     $this->hostname = $hostname;
   }
-  public function setCreatedAt($createdAt) {
-    $this->createdAt = $createdAt;
-  }
-  public function setUpdatedAt($updatedAt) {
-    $this->updatedAt = $updatedAt;
-  }
 
   public function getIp() {
     return $this->ip;
@@ -74,13 +66,13 @@ class IXmapsGeolocation {
     return $this->city;
   }
   public function getRegion() {
-    return $this->city;
+    return $this->region;
+  }
+  public function getPostalCode() {
+    return $this->postal;
   }
   public function getCountry() {
     return $this->country;
-  }
-  public function getPostalCode() {
-    return $this->postalCode;
   }
   public function getASNum() {
     return $this->asnum;
@@ -91,11 +83,5 @@ class IXmapsGeolocation {
   public function getHostname() {
     return $this->hostname;
   }
-  public function getCreatedAt() {
-    return $this->createdAt;
-  }
-  public function getUpdatedAt() {
-    return $this->updatedAt;
-  }
 
-} // end class
+}

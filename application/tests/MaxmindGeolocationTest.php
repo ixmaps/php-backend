@@ -10,16 +10,15 @@ use PHPUnit\Framework\TestCase;
 
 chdir(dirname(__FILE__));
 require_once('../config.php');
-require_once('../services/IXmapsGeolocationService.php');
+require_once('../services/MaxmindGeolocationService.php');
 
 
-final class IXmapsGeolocationTest extends TestCase {
+final class MaxmindGeolocationTest extends TestCase {
   private $geoservice;
 
   protected function setUp(): void
   {
-    global $dbconn;
-    $this->geoservice = new IXmapsGeolocationService($dbconn);
+    $this->geoservice = new MaxmindGeolocationService();
   }
 
   public function testGetByIp(): void
@@ -36,22 +35,13 @@ final class IXmapsGeolocationTest extends TestCase {
 
   public function testIpDoesNotExistInDb(): void
   {
-    $this->assertFalse($this->geoservice->getByIp('1.0.0.0'));
-  }
-
-  public function testIpWasCreated(): void
-  {
-    $this->assertTrue($this->geoservice->create('174.24.170.164'));
+    $this->expectException(Exception::class);
+    $this->geoservice->getByIp('0.0.0.1');
   }
 
   public function testCityValueRetrieval(): void
   {
     $this->assertEquals($this->geoservice->getByIp('174.24.170.164')->getCity(), 'Carthage');
-  }
-
-  public function testIpWasDeleted(): void
-  {
-    $this->assertTrue($this->geoservice->deleteByIp('174.24.170.164'));
   }
 
 }

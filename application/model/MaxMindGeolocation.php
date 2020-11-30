@@ -1,26 +1,27 @@
 <?php
 /**
  *
- * IXmaps geolocation model representation (see ip_addr_info in db)
+ * Thin MaxMind data representation of ip address to location relationship
  *
+ * Updated Nov 2020
  * @author IXmaps.ca (Colin)
- * @since Nov 2020
  *
  */
 
-class IXmapsGeolocation {
+class MaxMindGeolocation
+{
   private $ip;
   private $lat;
   private $long;
   private $city;
   private $region;
+  private $regionCode;
   private $country;
+  private $countryCode;
   private $postalCode;
   private $asnum;
   private $asname;
   private $hostname;
-  private $createdAt;
-  private $updatedAt;
 
   function __construct() { }
 
@@ -39,8 +40,14 @@ class IXmapsGeolocation {
   public function setRegion($region) {
     $this->region = $region;
   }
+  public function setRegionCode($regionCode) {
+    $this->regionCode = $regionCode;
+  }
   public function setCountry($country) {
     $this->country = $country;
+  }
+  public function setCountryCode($countryCode) {
+    $this->countryCode = $countryCode;
   }
   public function setPostalCode($postalCode) {
     $this->postalCode = $postalCode;
@@ -53,12 +60,6 @@ class IXmapsGeolocation {
   }
   public function setHostname($hostname) {
     $this->hostname = $hostname;
-  }
-  public function setCreatedAt($createdAt) {
-    $this->createdAt = $createdAt;
-  }
-  public function setUpdatedAt($updatedAt) {
-    $this->updatedAt = $updatedAt;
   }
 
   public function getIp() {
@@ -74,10 +75,16 @@ class IXmapsGeolocation {
     return $this->city;
   }
   public function getRegion() {
-    return $this->city;
+    return $this->region;
+  }
+  public function getRegionCode() {
+    return $this->regionCode;
   }
   public function getCountry() {
     return $this->country;
+  }
+  public function getCountryCode() {
+    return $this->countryCode;
   }
   public function getPostalCode() {
     return $this->postalCode;
@@ -91,11 +98,5 @@ class IXmapsGeolocation {
   public function getHostname() {
     return $this->hostname;
   }
-  public function getCreatedAt() {
-    return $this->createdAt;
-  }
-  public function getUpdatedAt() {
-    return $this->updatedAt;
-  }
-
-} // end class
+}
+?>

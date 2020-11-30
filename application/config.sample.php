@@ -2,6 +2,8 @@
 // turn ON/OFF global php error message
 ini_set( "display_errors", 0);
 
+$timezone = 'America/Toronto';
+
 /* Db configuration */
 $dbname     = 'ixmaps';
 $dbuser     = 'ixmaps';
@@ -22,11 +24,10 @@ $appRootPath = '/srv/www/website';
 $savePath = $appRootPath.'/gm-temp';
 $searchLog = "/home/ixmaps/log/search.log";
 
-#### MaxMind data and include files
+#### Geolocation related stuff
 $MMDatDir = "/home/ixmaps/ix-data/mm-data";
-
-#### IpInfo credentials
 $IIAccessToken = 'fillMeIn';
+$IPStaleDate = 365;
 
 $ixmapsDebugMode = true;
 $trNumLimit = 500;

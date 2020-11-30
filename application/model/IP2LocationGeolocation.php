@@ -1,26 +1,24 @@
 <?php
 /**
  *
- * IXmaps geolocation model representation (see ip_addr_info in db)
+ * Thin model to handle IP2Location ip and location values
  *
- * @author IXmaps.ca (Colin)
  * @since Nov 2020
+ * @author IXmaps.ca (Colin)
  *
  */
 
-class IXmapsGeolocation {
+class IP2LocationGeolocation
+{
   private $ip;
   private $lat;
   private $long;
   private $city;
   private $region;
   private $country;
-  private $postalCode;
+  private $postal;
   private $asnum;
   private $asname;
-  private $hostname;
-  private $createdAt;
-  private $updatedAt;
 
   function __construct() { }
 
@@ -51,15 +49,6 @@ class IXmapsGeolocation {
   public function setASName($asname) {
     $this->asname = $asname;
   }
-  public function setHostname($hostname) {
-    $this->hostname = $hostname;
-  }
-  public function setCreatedAt($createdAt) {
-    $this->createdAt = $createdAt;
-  }
-  public function setUpdatedAt($updatedAt) {
-    $this->updatedAt = $updatedAt;
-  }
 
   public function getIp() {
     return $this->ip;
@@ -74,13 +63,13 @@ class IXmapsGeolocation {
     return $this->city;
   }
   public function getRegion() {
-    return $this->city;
+    return $this->region;
   }
   public function getCountry() {
     return $this->country;
   }
   public function getPostalCode() {
-    return $this->postalCode;
+    return $this->postal;
   }
   public function getASNum() {
     return $this->asnum;
@@ -88,14 +77,5 @@ class IXmapsGeolocation {
   public function getASName() {
     return $this->asname;
   }
-  public function getHostname() {
-    return $this->hostname;
-  }
-  public function getCreatedAt() {
-    return $this->createdAt;
-  }
-  public function getUpdatedAt() {
-    return $this->updatedAt;
-  }
 
-} // end class
+}
