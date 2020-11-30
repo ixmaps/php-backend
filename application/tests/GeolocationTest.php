@@ -16,27 +16,27 @@ final class GeolocationTest extends TestCase
     $this->geoservice = new GeolocationService($dbconn);
   }
 
-  // public function testCannotBeFoundWithInvalidIpAddress(): void
-  // {
-  //   $this->expectException(Exception::class);
+  public function testCannotBeFoundWithInvalidIpAddress(): void
+  {
+    $this->expectException(Exception::class);
 
-  //   $geo = $this->geoservice->getByIp('nonsense');
-  // }
+    $geo = $this->geoservice->getByIp('nonsense');
+  }
 
-  // public function testGetByIpMostRecent(): void
-  // {
-  //   $this->assertEquals('2020-11-23', $this->geoservice->getByIp('192.205.37.77')->getCreatedAt()->format('Y-m-d'));
-  // }
+  public function testGetByIpMostRecent(): void
+  {
+    $this->assertEquals('2020-11-23', $this->geoservice->getByIp('192.205.37.77')->getCreatedAt()->format('Y-m-d'));
+  }
 
-  // public function testGetByIpWithDate(): void
-  // {
-  //   $this->assertEquals('2016-10-16', $this->geoservice->getByIpAndDate('192.205.37.77', '2017-05-05')->getCreatedAt()->format('Y-m-d'));
-  // }
+  public function testGetByIpWithDate(): void
+  {
+    $this->assertEquals('2016-10-16', $this->geoservice->getByIpAndDate('192.205.37.77', '2017-05-05')->getCreatedAt()->format('Y-m-d'));
+  }
 
-  // public function testGetByIpWithAsnsourceIp2(): void
-  // {
-  //   $this->assertEquals('IP2Location', $this->geoservice->getByIp('139.173.18.10')->getASNsource());
-  // }
+  public function testGetByIpWithAsnsourceIp2(): void
+  {
+    $this->assertEquals('IP2Location', $this->geoservice->getByIp('139.173.18.10')->getASNsource());
+  }
 
   public function testIpIsStale(): void
   {

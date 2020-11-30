@@ -38,9 +38,6 @@ class GeolocationService {
     }
     return $this->getByIpAndDate($ip, date("Y-m-d"));
 
-    // START HERE - geosource, asnsource etc
-    // Then work back to create
-
     // TODO
     // if ($geo == false || $geo->getStaleState() == true) {
     //   // this feels wrong... passing in raw data to the service? Or is this actually the right way for this and others?

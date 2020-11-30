@@ -34,18 +34,24 @@ final class IPInfoGeolocationTest extends TestCase {
     $geo = $this->geoservice->getByIp('nonsense');
   }
 
-  public function testIpWasCreated(): void
+  // $this->assertEquals('128.101.101.101', $this->geoservice->getByIp('128.101.101.101')->getIp());
+  public function testIpDoesNotExistInDb(): void
   {
-    $this->assertTrue($this->geoservice->create('174.24.170.164'));
+    $this->assertFalse($this->geoservice->getByIp('1.0.0.0'));
   }
 
-  public function testCityValueRetrieval(): void
-  {
-    $this->assertEquals($this->geoservice->getByIp('174.24.170.164')->getCity(), 'Candor');
-  }
+  // public function testIpWasCreated(): void
+  // {
+  //   $this->assertTrue($this->geoservice->create('174.24.170.164'));
+  // }
 
-  public function testIpWasDeleted(): void
-  {
-    $this->assertTrue($this->geoservice->deleteByIp('174.24.170.164'));
-  }
+  // public function testCityValueRetrieval(): void
+  // {
+  //   $this->assertEquals($this->geoservice->getByIp('174.24.170.164')->getCity(), 'Candor');
+  // }
+
+  // public function testIpWasDeleted(): void
+  // {
+  //   $this->assertTrue($this->geoservice->deleteByIp('174.24.170.164'));
+  // }
 }

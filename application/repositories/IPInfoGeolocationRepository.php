@@ -40,6 +40,11 @@ class IPInfoGeolocationRepository
     $geoData = pg_fetch_object($result);
     pg_free_result($result);
 
+    // null check, ie IP does not exist
+    if ($geoData == false) {
+      return false;
+    }
+
     // If no, we'll call out to their API for the data. TODO, move this to GeolocationService
     // if ($geoData == false) {
     //   $geoData = new IPInfoAPIService($ip);

@@ -10,8 +10,12 @@
  *
  */
 
+require_once('../config.php');
+require_once('../services/IXmapsGeolocationService.php');
+require_once('../services/MaxmindGeolocationService.php');
+require_once('../services/IPInfoGeolocationService.php');
+require_once('../services/IP2LocationGeolocationService.php');
 
-require_once ('../model/Geolocation.php');
 
 if (isset($_POST['ip'])) {
   $ip = $_POST['ip'];
@@ -21,13 +25,22 @@ if (isset($_POST['ip'])) {
     $ip = '128.101.101.101';
   }
 }
-// dirty check for localhost - throw in the MM default test value
-// NB - this is broken
 
-$geo = new Geolocation($ip);
+global $dbconn;
+
+$ixgeoservice = new IXmapsGeolocationService($dbconn);
+$mmgeoservice = new MaxMindGeolocationService($dbconn);
+$iigeoservice = new IPInfoGeolocationService($dbconn);
+$i2geoservice = new IP2LocationGeolocationService($dbconn);
+
+$ixgeo = $ixgeoservice->getByIp($ip);
+$mmgeo = $mmgeoservice->getByIp($ip);
+$iigeo = $iigeoservice->getByIp($ip);
+$i2geo = $i2geoservice->getByIp($ip);
+
 
 echo '<h3>A Comparison of Data Sources</h3>';
-echo '<div>This service provides a geolocation for the following data sources: IXmaps, Mamxind, IpInfo, IP2location</div>';
+echo '<div>This service provides a geolocation for the following data sources: IXmaps, Mamxind, IpInfo, IP2location. Maps and location data shown only when entry exists</div>';
 echo '<br>';
 
 ?>
@@ -61,10 +74,9 @@ echo '<br>';
 
       function initialize() {
         <?php
-        if ($ip != '') {
+        if ($ixgeo) {
         ?>
-
-        var ixLatLng = new google.maps.LatLng(<?php echo $geo->getIXLat().','.$geo->getIXlong()?>);
+        var ixLatLng = new google.maps.LatLng(<?php echo $ixgeo->getLat().','.$ixgeo->getlong()?>);
         var ixMapOptions = {
           zoom: 5,
           center: ixLatLng,
@@ -76,8 +88,12 @@ echo '<br>';
           map: ixMap,
           title:'<?php echo $ip;?>'
         });
+        <?php } ?>
 
-        var mmLatLng = new google.maps.LatLng(<?php echo $geo->getMMLat().','.$geo->getMMlong()?>);
+        <?php
+        if ($mmgeo) {
+        ?>
+        var mmLatLng = new google.maps.LatLng(<?php echo $mmgeo->getLat().','.$mmgeo->getlong()?>);
         var mmMapOptions = {
           zoom: 5,
           center: mmLatLng,
@@ -89,8 +105,12 @@ echo '<br>';
           map: mmMap,
           title:'<?php echo $ip;?>'
         });
+        <?php } ?>
 
-        var iiLatLng = new google.maps.LatLng(<?php echo $geo->getIILat().','.$geo->getIIlong()?>);
+        <?php
+        if ($iigeo) {
+        ?>
+        var iiLatLng = new google.maps.LatLng(<?php echo $iigeo->getLat().','.$iigeo->getlong()?>);
         var iiMapOptions = {
           zoom: 5,
           center: iiLatLng,
@@ -102,8 +122,12 @@ echo '<br>';
           map: iiMap,
           title:'<?php echo $ip;?>'
         });
+        <?php } ?>
 
-        var i2LatLng = new google.maps.LatLng(<?php echo $geo->getI2Lat().','.$geo->getI2long()?>);
+        <?php
+        if ($i2geo) {
+        ?>
+        var i2LatLng = new google.maps.LatLng(<?php echo $i2geo->getLat().','.$i2geo->getlong()?>);
         var i2MapOptions = {
           zoom: 5,
           center: i2LatLng,
@@ -115,8 +139,8 @@ echo '<br>';
           map: i2Map,
           title:'<?php echo $ip;?>'
         });
+        <?php } ?>
 
-      <?php } ?>
       }
 
       var scriptEl = document.createElement('script');
@@ -132,66 +156,82 @@ echo '<br>';
       </form>
     </div>
     <div class="sources-container">
+      <?php
+      if ($ixgeo) {
+      ?>
       <div>
         <h4>IXmaps</h4>
         <div id="ix-map-canvas"></div>
         <div>
-          <div>Lat: <?php echo $geo->getIXLat()?></div>
-          <div>Long: <?php echo $geo->getIXLong()?></div>
-          <div>City: <?php echo $geo->getIXCity()?></div>
-          <div>Region: <?php echo $geo->getIXRegion()?></div>
-          <div>Country: <?php echo $geo->getIXCountryCode()?></div>
-          <div>Postal code: <?php echo $geo->getIXPostalCode()?></div>
-          <div>ASnum: <?php echo $geo->getIXASNum()?></div>
-          <div>ASname: <?php echo $geo->getIXASName()?></div>
-          <div>Hostname: <?php echo $geo->getIXHostname()?></div>
+          <div>Lat: <?php echo $ixgeo->getLat()?></div>
+          <div>Long: <?php echo $ixgeo->getLong()?></div>
+          <div>City: <?php echo $ixgeo->getCity()?></div>
+          <div>Region: <?php echo $ixgeo->getRegion()?></div>
+          <div>Country: <?php echo $ixgeo->getCountry()?></div>
+          <div>Postal code: <?php echo $ixgeo->getPostalCode()?></div>
+          <div>ASnum: <?php echo $ixgeo->getASNum()?></div>
+          <div>ASname: <?php echo $ixgeo->getASName()?></div>
+          <div>Hostname: <?php echo $ixgeo->getHostname()?></div>
         </div>
       </div>
+      <?php
+      }
+      if ($mmgeo) {
+      ?>
       <div>
         <h4>Maxmind</h4>
         <div id="mm-map-canvas"></div>
         <div>
-          <div>Lat: <?php echo $geo->getMMLat()?></div>
-          <div>Long: <?php echo $geo->getMMLong()?></div>
-          <div>City: <?php echo $geo->getMMCity()?></div>
-          <div>Region: <?php echo $geo->getMMRegion()?></div>
-          <div>Country: <?php echo $geo->getMMCountryCode()?></div>
-          <div>Postal code: <?php echo $geo->getMMPostalCode()?></div>
-          <div>ASnum: <?php echo $geo->getMMASNum()?></div>
-          <div>ASname: <?php echo $geo->getMMASName()?></div>
-          <div>Hostname: <?php echo $geo->getMMHostname()?></div>
+          <div>Lat: <?php echo $mmgeo->getLat()?></div>
+          <div>Long: <?php echo $mmgeo->getLong()?></div>
+          <div>City: <?php echo $mmgeo->getCity()?></div>
+          <div>Region: <?php echo $mmgeo->getRegion()?></div>
+          <div>Country: <?php echo $mmgeo->getCountry()?></div>
+          <div>Postal code: <?php echo $mmgeo->getPostalCode()?></div>
+          <div>ASnum: <?php echo $mmgeo->getASNum()?></div>
+          <div>ASname: <?php echo $mmgeo->getASName()?></div>
+          <div>Hostname: <?php echo $mmgeo->getHostname()?></div>
         </div>
       </div>
+      <?php
+      }
+      if ($iigeo) {
+      ?>
       <div>
         <h4>IpInfo</h4>
         <div id="ii-map-canvas"></div>
         <div>
-          <div>Lat: <?php echo $geo->getIILat()?></div>
-          <div>Long: <?php echo $geo->getIILong()?></div>
-          <div>City: <?php echo $geo->getIICity()?></div>
-          <div>Region: <?php echo $geo->getIIRegion()?></div>
-          <div>Country: <?php echo $geo->getIICountryCode()?></div>
-          <div>Postal code: <?php echo $geo->getIIPostalCode()?></div>
-          <div>ASnum: N/A</div>
-          <div>ASname: N/A</div>
-          <div>Hostname: N/A</div>
+          <div>Lat: <?php echo $iigeo->getLat()?></div>
+          <div>Long: <?php echo $iigeo->getLong()?></div>
+          <div>City: <?php echo $iigeo->getCity()?></div>
+          <div>Region: <?php echo $iigeo->getRegion()?></div>
+          <div>Country: <?php echo $iigeo->getCountry()?></div>
+          <div>Postal code: <?php echo $iigeo->getPostalCode()?></div>
+          <div>ASnum: <?php echo $iigeo->getASNum()?></div>
+          <div>ASname: <?php echo $iigeo->getASName()?></div>
+          <div>Hostname: <?php echo $iigeo->getHostname()?></div>
         </div>
       </div>
+      <?php
+      }
+      if ($i2geo) {
+      ?>
       <div>
         <h4>IP2Location</h4>
         <div id="i2-map-canvas"></div>
         <div>
-          <div>Lat: <?php echo $geo->getI2Lat()?></div>
-          <div>Long: <?php echo $geo->getI2Long()?></div>
-          <div>City: <?php echo $geo->getI2City()?></div>
-          <div>Region: <?php echo $geo->getI2Region()?></div>
-          <div>Country: <?php echo $geo->getI2CountryCode()?></div>
-          <div>Postal code: <?php echo $geo->getI2PostalCode()?></div>
-          <div>ASnum: <?php echo $geo->getI2ASNum()?></div>
-          <div>ASname: <?php echo $geo->getI2ASName()?></div>
+          <div>Lat: <?php echo $i2geo->getLat()?></div>
+          <div>Long: <?php echo $i2geo->getLong()?></div>
+          <div>City: <?php echo $i2geo->getCity()?></div>
+          <div>Region: <?php echo $i2geo->getRegion()?></div>
+          <div>Country: <?php echo $i2geo->getCountry()?></div>
+          <div>Postal code: <?php echo $i2geo->getPostalCode()?></div>
+          <div>ASnum: <?php echo $i2geo->getASNum()?></div>
+          <div>ASname: <?php echo $i2geo->getASName()?></div>
           <div>Hostname: N/A</div>
         </div>
       </div>
+      <?php } ?>
     </div>
   </body>
 </html>
