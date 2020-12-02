@@ -35,8 +35,7 @@ final class MaxmindGeolocationTest extends TestCase {
 
   public function testIpDoesNotExistInDb(): void
   {
-    $this->expectException(Exception::class);
-    $this->geoservice->getByIp('0.0.0.1');
+    $this->assertFalse($this->geoservice->getByIp('198.19.23.1'));
   }
 
   public function testCityValueRetrieval(): void

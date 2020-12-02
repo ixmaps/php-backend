@@ -4,16 +4,23 @@ use PHPUnit\Framework\TestCase;
 chdir(dirname(__FILE__));
 require_once('../config.php');
 require_once('../services/GeolocationService.php');
+require_once('../services/IXmapsGeolocationService.php');
+require_once('../services/IPInfoGeolocationService.php');
+require_once('../services/IPInfoAPIService.php');
 
 
 final class GeolocationTest extends TestCase
 {
   private $geoservice;
+  private $completedFlag = false;
 
   protected function setUp(): void
   {
     global $dbconn;
-    $this->geoservice = new GeolocationService($dbconn);
+    $this->db = $dbconn;
+    $this->geoservice = new GeolocationService($this->db);
+    $this->IXgeoservice = new IXmapsGeolocationService($this->db);
+    $this->IIgeoservice = new IPInfoGeolocationService($this->db);
   }
 
   public function testCannotBeFoundWithInvalidIpAddress(): void
@@ -25,7 +32,7 @@ final class GeolocationTest extends TestCase
 
   public function testGetByIpMostRecent(): void
   {
-    $this->assertEquals('2020-11-23', $this->geoservice->getByIp('192.205.37.77')->getCreatedAt()->format('Y-m-d'));
+    $this->assertEquals('2020-12-02', $this->geoservice->getByIp('192.205.37.77')->getCreatedAt()->format('Y-m-d'));
   }
 
   public function testGetByIpWithDate(): void
@@ -42,6 +49,52 @@ final class GeolocationTest extends TestCase
   {
     $this->assertTrue($this->geoservice->getByIpAndDate('192.205.37.77', '2017-05-05')->getStaleStatus());
   }
+
+  public function testIpWasCreated(): void
+  {
+    $this->geoservice->upsert('174.24.170.164');
+    $this->assertEquals('174.24.170.164', $this->geoservice->getByIp('174.24.170.164')->getIp());
+  }
+
+  // public function testIpWasCreatedInIpInfo(): void
+  // {
+  //   $this->assertEquals('174.24.170.164', $this->IIgeoservice->getByIp('174.24.170.164')->getIp());
+
+  //   $this->completedFlag = true;
+  // }
+
+  // public function testIpInfoUpsert(): void
+  // {
+  //   $updatedAtOld = $this->IIgeoservice->getByIp('64.125.14.70')->getUpdatedAt();
+
+  //   $geoData = new IPInfoAPIService('64.125.14.70');
+  //   $this->IIgeoservice->upsert($geoData);
+
+  //   $this->assertNotEqual($updatedAtOld, $this->IIgeoservice->getByIp('64.125.14.70')->getUpdatedAt());
+
+  //   // time to clean up
+  //   $this->completedFlag = true;
+  // }
+
+
+  // public function tearDown(): void
+  // // there must be a better way to do this than with the completedFlag fence
+  // // if not, this must not be a common use case, and that means I'm doing something wrong
+  // {
+  //   if ($this->completedFlag) {
+  //     $this->assertTrue($this->IXgeoservice->deleteByIp('174.24.170.164'));
+  //     $this->assertTrue($this->IIgeoservice->deleteByIp('174.24.170.164'));
+
+  //     $this->completedFlag = false;
+  //   }
+
+  // }
+
+  // public function testIpInsertedIntoIxmapsDb(): void
+  // {
+  //   $this->geoservice->174.24.170.164
+  //   $this->assertTrue($this->geoservice->getByIpAndDate('192.205.37.77', '2017-05-05')->getStaleStatus());
+  // }
 
   // public function testIpWasCreated(): void
   // {

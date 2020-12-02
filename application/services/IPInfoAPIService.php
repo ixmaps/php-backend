@@ -9,20 +9,21 @@
  *
  */
 
+require('../config.php');
 require_once('../../vendor/autoload.php');
 use ipinfo\ipinfo\IPinfo;
 
 class IPInfoAPIService {
-  public $ip_addr;
-  public $lat;
-  public $long;
-  public $city;
-  public $region;
-  public $country;
-  public $postal;
-  public $asnum;
-  public $asname;
-  public $hostname;
+  private $ip;
+  private $lat;
+  private $long;
+  private $city;
+  private $region;
+  private $country;
+  private $postalCode;
+  private $asnum;
+  private $asname;
+  private $hostname;
 
   /**
     * We want to restructure the object returned such that it mirrors our DB
@@ -37,17 +38,47 @@ class IPInfoAPIService {
     } catch (Exception $e) {
       throw new Exception($e);
     }
-    $this->ip_addr = $results->ip;
+    $this->ip = $results->ip;
     $this->lat = $results->latitude;
     $this->long = $results->longitude;
     $this->city = $results->city;
     $this->region = $results->region;
     $this->country = $results->country;
-    $this->postal = $results->postal;
+    $this->postalCode = $results->postal;
     [$this->asnum, $this->asname] = $this->determineASNValues($results);
     $this->hostname = $results->hostname;
   }
 
+  public function getIp() {
+    return $this->ip;
+  }
+  public function getLat() {
+    return $this->lat;
+  }
+  public function getLong() {
+    return $this->long;
+  }
+  public function getCity() {
+    return $this->city;
+  }
+  public function getRegion() {
+    return $this->city;
+  }
+  public function getCountry() {
+    return $this->country;
+  }
+  public function getPostalCode() {
+    return $this->postalCode;
+  }
+  public function getASNum() {
+    return $this->asnum;
+  }
+  public function getASName() {
+    return $this->asname;
+  }
+  public function getHostname() {
+    return $this->hostname;
+  }
 
   /**
     * IpInfo provides AS values as eg "AS3257 GTT Communications Inc.", so we split them here

@@ -19,7 +19,6 @@ class MaxMindGeolocationRepository
 
   public function __construct()
   {
-    // we could finally get rid of this global now, since this should be the only place that uses it
     global $MMDatDir;
 
     try {
@@ -35,21 +34,20 @@ class MaxMindGeolocationRepository
     try {
       $cityRecord = $this->cityReader->city($ip);
     } catch (Exception $e) {
-      throw new Exception($e);
+      $cityRecord = NULL;
     }
-
     try {
       $asnRecord = $this->asnReader->asn($ip);
     } catch (Exception $e) {
-      throw new Exception($e);
+      $asnRecord = NULL;
     }
 
-    try {
-      // built in php function
-      $hostname = gethostbyaddr($ip);
-    } catch (Exception $e) {
-      throw new Exception($e);
+    // we can admit defeat at this point...
+    if (!$cityRecord && !$asnRecord) {
+      return false;
     }
+    // built in php function
+    $hostname = gethostbyaddr($ip);
 
     return $this->hydrate($ip, $cityRecord, $asnRecord, $hostname);
   }
@@ -60,17 +58,33 @@ class MaxMindGeolocationRepository
   private function hydrate($ip, $cityRecord, $asnRecord, $hostname)
   {
     $geo = new MaxMindGeolocation();
+
+    $geo->setLat(NULL);
+    $geo->setLong(NULL);
+    $geo->setCity(NULL);
+    $geo->setRegion(NULL);
+    $geo->setRegionCode(NULL);
+    $geo->setCountry(NULL);
+    $geo->setCountryCode(NULL);
+    $geo->setPostalCode(NULL);
+    $geo->setASNum(NULL);
+    $geo->setASName(NULL);
+
     $geo->setIp($ip);
-    $geo->setLat($cityRecord->location->latitude);
-    $geo->setLong($cityRecord->location->longitude);
-    $geo->setCity($cityRecord->city->name);
-    $geo->setRegion($cityRecord->mostSpecificSubdivision->name);
-    $geo->setRegionCode($cityRecord->mostSpecificSubdivision->isoCode);
-    $geo->setCountry($cityRecord->country->name);
-    $geo->setCountryCode($cityRecord->country->isoCode);
-    $geo->setPostalCode($cityRecord->postal->code);
-    $geo->setASNum($asnRecord->autonomousSystemNumber);
-    $geo->setASName($asnRecord->autonomousSystemOrganization);
+    if ($cityRecord) {
+      $geo->setLat($cityRecord->location->latitude);
+      $geo->setLong($cityRecord->location->longitude);
+      $geo->setCity($cityRecord->city->name);
+      $geo->setRegion($cityRecord->mostSpecificSubdivision->name);
+      $geo->setRegionCode($cityRecord->mostSpecificSubdivision->isoCode);
+      $geo->setCountry($cityRecord->country->name);
+      $geo->setCountryCode($cityRecord->country->isoCode);
+      $geo->setPostalCode($cityRecord->postal->code);
+    }
+    if ($asnRecord) {
+      $geo->setASNum($asnRecord->autonomousSystemNumber);
+      $geo->setASName($asnRecord->autonomousSystemOrganization);
+    }
     $geo->setHostname($hostname);
 
     return $geo;

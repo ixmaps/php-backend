@@ -43,7 +43,18 @@ class IPInfoGeolocationService {
     return $this->repository->create($ip);
   }
 
-  // this one will need an update, perhaps an upsert
+
+  /**
+    *
+    * @param string
+    *
+    * @return Boolean success value
+    */
+  // public function create($createData)
+  public function upsert($ip)
+  {
+    return $this->repository->upsert($ip);
+  }
 
 
   /**

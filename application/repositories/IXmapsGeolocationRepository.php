@@ -45,14 +45,15 @@ class IXmapsGeolocationRepository
   }
 
 
-  public function create($ip)
+  /**
+    * @param $geoData object (from ipinfo api, but other options can be plug/played)
+    *
+    * @return true if insert successful
+    */
+  public function create($geoData)
   {
-    // temp - all of this will be rethought for the canonical ip_addr_info table. Perhaps want to pass createData? Or Model?
-    // TODO - not working, switching to ipinfo
-    $geo = $geoservice->getByIp($ip);
-
     $sql = "INSERT INTO ip_addr_info (ip_addr, asnum, mm_lat, mm_long, hostname, mm_country, mm_region, mm_city, mm_postal, p_status, lat, long, gl_override) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13);";
-    $ipData = array($ip, $geo->getASNum(), $geo->getLat(), $geo->getLong(), $geo->getHostname(), $geo->getCountryCode(), $geo->getRegion(), $geo->getCity(), $geo->getPostalCode(), "N", $geo->getLat(), $geo->getLong(), NULL);
+    $ipData = array($geoData->getIp(), $geoData->getASNum(), $geoData->getLat(), $geoData->getLong(), $geoData->getHostname(), $geoData->getCountry(), $geoData->getRegion(), $geoData->getCity(), $geoData->getPostalCode(), "N", $geoData->getLat(), $geoData->getLong(), NULL);
 
     try {
       $result = pg_query_params($this->db, $sql, $ipData);

@@ -40,7 +40,7 @@ $i2geo = $i2geoservice->getByIp($ip);
 
 
 echo '<h3>A Comparison of Data Sources</h3>';
-echo '<div>This service provides a geolocation for the following data sources: IXmaps, Mamxind, IpInfo, IP2location. Maps and location data shown only when entry exists</div>';
+echo '<div>This service provides a geolocation for the following data sources: IXmaps, Mamxind, IpInfo, IP2location. Maps and location data shown only IP exists in data source.</div>';
 echo '<br>';
 
 ?>

@@ -12,10 +12,6 @@ require_once('../model/IPInfoGeolocation.php');
 require_once('../services/IPInfoAPIService.php');
 
 
-// NB - switch tables when ready: ipinfo_ip_addr_paid -> ipinfo_ip_addr
-
-
-
 class IPInfoGeolocationRepository
 {
   private $db;
@@ -27,10 +23,9 @@ class IPInfoGeolocationRepository
 
   public function getByIp($ip)
   {
-    // TODO: modularize this when we do insert / upsert / update
+    // TODO: rename table
 
-    // First we look in our DB to see if the IP is there
-    $sql = "SELECT * FROM ipinfo_ip_addr_paid WHERE ip_addr = '".$ip."'";
+    $sql = "SELECT * FROM ipinfo_ip_addr WHERE ip_addr = '".$ip."'";
 
     try {
       $result = pg_query($this->db, $sql);
@@ -45,22 +40,14 @@ class IPInfoGeolocationRepository
       return false;
     }
 
-    // If no, we'll call out to their API for the data. TODO, move this to GeolocationService
-    // if ($geoData == false) {
-    //   $geoData = new IPInfoAPIService($ip);
-    //   // TODO: add insert into our DB here, or is that too much magic? If we add insert, we need to switch the create to not use this func!
-    // }
-
     return $this->hydrate($geoData);
   }
 
 
-  public function create($ip)
+  public function create($geoData)
   {
-    $geo = $this->getByIp($ip);
-
-    $sql = "INSERT INTO ipinfo_ip_addr_paid (ip_addr, asnum, asname, lat, long, hostname, country, region, city, postal) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10);";
-    $ipData = array($ip, $geo->getASNum(), $geo->getASName(), $geo->getLat(), $geo->getLong(), $geo->getHostname(), $geo->getCountry(), $geo->getRegion(), $geo->getCity(), $geo->getPostalCode());
+    $sql = "INSERT INTO ipinfo_ip_addr (ip_addr, asnum, asname, lat, long, hostname, country, region, city, postal) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10);";
+    $ipData = array($geoData->getIp(), $geoData->getASNum(), $geoData->getASName(), $geoData->getLat(), $geoData->getLong(), $geoData->getHostname(), $geoData->getCountry(), $geoData->getRegion(), $geoData->getCity(), $geoData->getPostalCode());
 
     try {
       $result = pg_query_params($this->db, $sql, $ipData);
@@ -74,9 +61,49 @@ class IPInfoGeolocationRepository
   }
 
 
+  public function update($geoData)
+  {
+    $sql = "UPDATE ipinfo_ip_addr SET
+    asnum = $1,
+    asname = $2,
+    lat = $3,
+    long = $4,
+    hostname = $5,
+    country = $6,
+    region = $7,
+    city = $8,
+    postal = $9
+    WHERE ip_addr = '".$geoData->getIp()."'";
+    $ipData = array($geoData->getASNum(), $geoData->getASName(), $geoData->getLat(), $geoData->getLong(), $geoData->getHostname(), $geoData->getCountry(), $geoData->getRegion(), $geoData->getCity(), $geoData->getPostalCode());
+
+    try {
+      $result = pg_query_params($this->db, $sql, $ipData);
+      pg_free_result($result);
+      return true;
+    } catch (Exception $e) {
+      throw new Exception($e);
+    }
+
+    return false;
+  }
+
+
+  public function upsert($geoData)
+  {
+    $geo = $this->getByIp($geoData->getIp());
+
+    // if exists, update
+    if ($geo) {
+      return $this->update($geoData);
+    }
+
+    return $this->create($geoData);
+  }
+
+
   public function deleteByIp($ip)
   {
-    $sql = "DELETE FROM ipinfo_ip_addr_paid WHERE ip_addr = '".$ip."'";
+    $sql = "DELETE FROM ipinfo_ip_addr WHERE ip_addr = '".$ip."'";
     try {
       $result = pg_query($this->db, $sql);
       $rowsDeleted = pg_affected_rows($result);
