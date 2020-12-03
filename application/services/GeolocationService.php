@@ -46,24 +46,35 @@ class GeolocationService {
     $geo = $this->hydrate($this->IXgeoservice->getByIpAndDate($ip, $date));
 
 
+    // if doesn't exist
+    // if ($geo == false) {
+    //   $this->createNewIp($ip);
+    //   $geo = $this->hydrate($this->IXgeoservice->getByIpAndDate($ip, $date));
+    // }
+
+    // check if we need a stale update. Performance issue? Better to use a cron?
+    // $this->updateStaleDataIfNeeded($ip)
+
+
+
+
     // if the ip doesn't exist or is stale (and the date is recent enough to warrant a check)
     // is this two tightly coupled? Do we want the controller to make this decision?
     // this is getting convoluted enough that it points to something being wrong structurally
     // TODO: this isn't going to work! How often will most recent eg getByIp be requested? Since requests for TRs for the map will use by date. Do we need a cron as well?
     if ($date == date("Y-m-d") && ($geo == false || $geo->getStaleStatus() == true)) {
       // TODO: we want to add a new non-stale entry to ix and do an update on ipinfo
-      $this->upsert($ip);
+      $this->createNewIp($ip);
       $geo = $this->hydrate($this->IXgeoservice->getByIpAndDate($ip, $date));
     }
 
-    // if the ip doesn't exist in the ipinfo db
-    if ($geo == false) {
-      return false;
-    }
-
+    // if the ip still doesn't exist in the db, eg if ipinfo doesn't have it
     // potential TODO - what about missing values?
     // eg if lat / long / country missing, refresh the data?
     // if lat / long / country still missing, use ip2loc?
+    if ($geo == false) {
+      return false;
+    }
 
     // if we don't have an asn, use ip2loc
     // only do this for most recent, since we don't have backdated values for eg ip2. That is, it would be misleading to show most recent ASN values for a router if the request is for geoloc/asn data from years ago
@@ -86,18 +97,22 @@ class GeolocationService {
     *
     * @return None
     */
-  public function upsert($ip)
+  public function createNewIp($ip)
   {
     $IIgeoservice = new IPInfoGeolocationService($this->db);
     // this feels odd... passing in raw data to a different service? Or is this actually the right way for this and others?
     // this also just feels like a weird place to do this...
     $geoData = new IPInfoAPIService($ip);
+    $IIgeoservice->create($geoData);
     $this->IXgeoservice->create($geoData);
-    $IIgeoservice->upsert($geoData);
   }
 
 
   private function hydrate($ixgeo) {
+    if ($ixgeo == false) {
+      return false;
+    }
+
     $geo = new Geolocation();
     $geo->setIp($ixgeo->getIp());
     $geo->setLat($ixgeo->getLat());

@@ -11,6 +11,7 @@ use PHPUnit\Framework\TestCase;
 chdir(dirname(__FILE__));
 require_once('../config.php');
 require_once('../services/IPInfoGeolocationService.php');
+require_once('../services/IPInfoAPIService.php');
 
 
 final class IPInfoGeolocationTest extends TestCase {
@@ -34,24 +35,18 @@ final class IPInfoGeolocationTest extends TestCase {
     $geo = $this->geoservice->getByIp('nonsense');
   }
 
-  // $this->assertEquals('128.101.101.101', $this->geoservice->getByIp('128.101.101.101')->getIp());
   public function testIpDoesNotExistInDb(): void
   {
     $this->assertFalse($this->geoservice->getByIp('1.0.0.0'));
   }
 
-  // public function testIpWasCreated(): void
-  // {
-  //   $this->assertTrue($this->geoservice->create('174.24.170.164'));
-  // }
+  public function testDuplicateIpCannotBeCreated(): void
+  {
+    $geoData = new IPInfoAPIService('174.24.170.164');
+    $this->expectException(Exception::class);
+    $this->geoservice->create($geoData);
+    // $this->assertEquals('174.24.170.164', $this->geoservice->getByIp('174.24.170.164')->getIp());
+  }
 
-  // public function testCityValueRetrieval(): void
-  // {
-  //   $this->assertEquals($this->geoservice->getByIp('174.24.170.164')->getCity(), 'Candor');
-  // }
 
-  // public function testIpWasDeleted(): void
-  // {
-  //   $this->assertTrue($this->geoservice->deleteByIp('174.24.170.164'));
-  // }
 }

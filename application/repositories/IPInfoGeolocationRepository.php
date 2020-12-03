@@ -54,6 +54,7 @@ class IPInfoGeolocationRepository
       pg_free_result($result);
       return true;
     } catch (Exception $e) {
+      // currently we're throwing on duplicate ip. Perhaps better to return false? Or build out a status code object?
       throw new Exception($e);
     }
 
@@ -88,6 +89,7 @@ class IPInfoGeolocationRepository
   }
 
 
+  // not currently used any more...
   public function upsert($geoData)
   {
     $geo = $this->getByIp($geoData->getIp());
