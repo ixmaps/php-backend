@@ -83,13 +83,15 @@ class IP2LocationGeolocationRepository
     $this->geo->setCity($dbData->city);
     $this->geo->setRegion($dbData->region);
     $this->geo->setCountry($dbData->country);
+    $this->geo->setCountryCode($dbData->country_name);
     $this->geo->setPostalCode($dbData->postal);
     $this->geo->setASNum($dbData->asnum);
     $this->geo->setASName($dbData->asname);
+    $this->geo->setGeoSource("IP2Location");
+    $this->geo->setAsnSource("IP2Location");
 
     return $this->geo;
   }
-
 
   /**
     * Convert ip addresses to numeric

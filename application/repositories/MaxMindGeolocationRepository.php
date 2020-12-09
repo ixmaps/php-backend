@@ -67,17 +67,9 @@ class MaxMindGeolocationRepository
   private function hydrate($ip, $cityRecord, $asnRecord, $hostname)
   {
     $this->geo->setIp($ip);
-    $this->geo->setLat(NULL);
-    $this->geo->setLong(NULL);
-    $this->geo->setCity(NULL);
-    $this->geo->setRegion(NULL);
-    $this->geo->setRegionCode(NULL);
-    $this->geo->setCountry(NULL);
-    $this->geo->setCountryCode(NULL);
-    $this->geo->setPostalCode(NULL);
-    $this->geo->setASNum(NULL);
-    $this->geo->setASName(NULL);
     $this->geo->setHostname($hostname);
+    $this->geo->setGeoSource("MaxMind");
+    $this->geo->setAsnSource("MaxMind");
 
     if ($cityRecord) {
       $this->geo->setLat($cityRecord->location->latitude);

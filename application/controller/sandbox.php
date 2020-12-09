@@ -40,7 +40,13 @@ $IIgeoService = new IPInfoGeolocationService($IIgeoRepo);
 $I2geoRepo = new IP2LocationGeolocationRepository();
 $I2geoService = new IP2LocationGeolocationService($I2geoRepo);
 
-$ixgeo = $IXgeoService->getByIp($ip);
+
+// we only need to try / catch the first one
+try {
+  $ixgeo = $IXgeoService->getByIp($ip);
+} catch (Exception $e) {
+  echo '<h3>Invalid IP address</h3>'; die;
+}
 $mmgeo = $MMgeoService->getByIp($ip);
 $iigeo = $IIgeoService->getByIp($ip);
 $i2geo = $I2geoService->getByIp($ip);

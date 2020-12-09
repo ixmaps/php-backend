@@ -24,7 +24,7 @@ class IXmapsGeolocationService {
     */
   public function getByIp($ip)
   {
-    return $this->repository->getByIpAndDate($ip, date("Y-m-d"));
+    return $this->getByIpAndDate($ip, date("Y-m-d"));
   }
 
   /**

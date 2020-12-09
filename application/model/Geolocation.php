@@ -36,18 +36,22 @@ class Geolocation {
     $this->staleDate = $IPStaleDate;
     $this->staleStatus = false;
 
-    $this->setIp(NULL);
-    $this->setLat(NULL);
-    $this->setLong(NULL);
-    $this->setCity(NULL);
-    $this->setRegion(NULL);
-    $this->setCountry(NULL);
-    $this->setPostalCode(NULL);
-    $this->setASNum(NULL);
-    $this->setASName(NULL);
-    $this->setHostname(NULL);
-    $this->setCreatedAt(NULL);
-    $this->setUpdatedAt(NULL);
+    $this->ip = NULL;
+    $this->lat = NULL;
+    $this->long = NULL;
+    $this->city = NULL;
+    $this->region = NULL;
+    $this->regionCode = NULL;
+    $this->country = NULL;
+    $this->countryCode = NULL;
+    $this->postalCode = NULL;
+    $this->asnum = NULL;
+    $this->asname = NULL;
+    $this->hostname = NULL;
+    $this->createdAt = NULL;
+    $this->updatedAt = NULL;
+    $this->geoSource = NULL;
+    $this->asnSource = NULL;
   }
 
   public function setIp($ip) {

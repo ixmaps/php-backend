@@ -150,6 +150,9 @@ class IPInfoGeolocationRepository
     */
   private function hydrate(Object $geoData)
   {
+    $createdAt = new DateTime($geoData->created_at);
+    $updatedAt = new DateTime($geoData->updated_at);
+
     $this->geo->setIp($geoData->ip_addr);
     $this->geo->setLat($geoData->lat);
     $this->geo->setLong($geoData->long);
@@ -160,6 +163,10 @@ class IPInfoGeolocationRepository
     $this->geo->setASNum($geoData->asnum);
     $this->geo->setASName($geoData->asname);
     $this->geo->setHostname($geoData->hostname);
+    $this->geo->setCreatedAt($createdAt);
+    $this->geo->setUpdatedAt($updatedAt);
+    $this->geo->setGeoSource("IPInfo");
+    $this->geo->setAsnSource("IPInfo");
 
     return $this->geo;
   }

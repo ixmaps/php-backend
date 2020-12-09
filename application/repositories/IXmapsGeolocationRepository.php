@@ -133,6 +133,8 @@ class IXmapsGeolocationRepository
     $this->geo->setHostname($dbData->hostname);
     $this->geo->setCreatedAt($createdAt);
     $this->geo->setUpdatedAt($updatedAt);
+    $this->geo->setGeoSource("IXmaps");
+    $this->geo->setAsnSource("IXmaps");
 
     return $this->geo;
   }

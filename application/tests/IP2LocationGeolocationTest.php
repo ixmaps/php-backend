@@ -19,10 +19,9 @@ final class IP2LocationGeolocationTest extends TestCase {
 
   protected function setUp(): void
   {
-    global $dbconn;
     // $geoRepo = new IP2LocationGeolocationRepository();
 
-    $geoObj = $this->createMock(IP2LocationGeolocation::class);
+    $geoObj = $this->createMock(Geolocation::class);
     $geoObj->method('getIp')
            ->willReturn($this->testIp);
     $geoObj->method('getCity')
@@ -42,7 +41,7 @@ final class IP2LocationGeolocationTest extends TestCase {
 
   public function testIp2ObjectType(): void
   {
-    $this->assertInstanceOf(IP2LocationGeolocation::class, $this->geoService->getByIp($this->testIp));
+    $this->assertInstanceOf(Geolocation::class, $this->geoService->getByIp($this->testIp));
   }
 
   public function testGetByIp(): void
