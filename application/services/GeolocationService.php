@@ -15,12 +15,12 @@ require_once('../model/Geolocation.php');
 
 class GeolocationService {
 
-  function __construct($geoRepo, $IXgeoRepo, $IIgeoRepo, $I2geoRepo) {
+  function __construct($geoRepo, $IXgeoService, $IIgeoService, $I2geoService) {
     $this->geo = new Geolocation();
     $this->repository = $geoRepo;
-    $this->IXgeoService = new IXmapsGeolocationService($IXgeoRepo);
-    $this->IIgeoService = new IPInfoGeolocationService($IIgeoRepo);
-    $this->I2geoService = new IP2LocationGeolocationService($I2geoRepo);
+    $this->IXgeoService = $IXgeoService;
+    $this->IIgeoService = $IIgeoService;
+    $this->I2geoService = $I2geoService;
   }
 
   // TODO: move the hydrate/build to the repo

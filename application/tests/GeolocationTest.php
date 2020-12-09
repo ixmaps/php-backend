@@ -2,13 +2,7 @@
 use PHPUnit\Framework\TestCase;
 
 chdir(dirname(__FILE__));
-require_once('../services/GeolocationService.php');
-require_once('../services/IXmapsGeolocationService.php');     // only used for tear down, remove when mocking properly
-require_once('../services/IPInfoGeolocationService.php');     // only used for tear down, remove when mocking properly
-require_once('../repositories/GeolocationRepository.php');
-require_once('../repositories/IXmapsGeolocationRepository.php');
-require_once('../repositories/IPInfoGeolocationRepository.php');
-require_once('../repositories/IP2LocationGeolocationRepository.php');
+require_once('../services/GeolocationWrapperService.php');
 
 
 final class GeolocationTest extends TestCase
@@ -18,17 +12,8 @@ final class GeolocationTest extends TestCase
 
   protected function setUp(): void
   {
-    $IXgeoRepo = new IXmapsGeolocationRepository();
-    $this->IXgeoService = new IXmapsGeolocationService($IXgeoRepo);
-
-    $IIgeoRepo = new IPInfoGeolocationRepository();
-    $this->IIgeoService = new IPInfoGeolocationService($IIgeoRepo);
-
-    $I2geoRepo = new IP2LocationGeolocationRepository();
-
-    $geoRepo = new GeolocationRepository();
-    // TODO: pass in services instead
-    $this->geoService = new GeolocationService($geoRepo, $IXgeoRepo, $IIgeoRepo, $I2geoRepo);
+    $wrapper = new GeolocationWrapperService();
+    $this->geoService = $wrapper->geolocationService;
   }
 
   public function testCannotBeFoundWithInvalidIpAddress(): void
