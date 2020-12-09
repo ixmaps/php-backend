@@ -3,7 +3,6 @@
  *
  * Generic geolocation model representation
  *
- *
  * @author IXmaps.ca (Colin)
  * @since Oct 2020
  *
@@ -17,7 +16,9 @@ class Geolocation {
   private $long;
   private $city;
   private $region;
+  private $regionCode;
   private $country;
+  private $countryCode;
   private $postalCode;
   private $asnum;
   private $asname;
@@ -64,8 +65,14 @@ class Geolocation {
   public function setRegion($region) {
     $this->region = $region;
   }
+  public function setRegionCode($regionCode) {
+    $this->regionCode = $regionCode;
+  }
   public function setCountry($country) {
     $this->country = $country;
+  }
+  public function setCountryCode($countryCode) {
+    $this->countryCode = $countryCode;
   }
   public function setPostalCode($postalCode) {
     $this->postalCode = $postalCode;
@@ -112,8 +119,14 @@ class Geolocation {
   public function getRegion() {
     return $this->city;
   }
+  public function getRegionCode() {
+    return $this->regionCode;
+  }
   public function getCountry() {
     return $this->country;
+  }
+  public function getCountryCode() {
+    return $this->countryCode;
   }
   public function getPostalCode() {
     return $this->postalCode;

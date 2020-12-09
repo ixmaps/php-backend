@@ -10,6 +10,7 @@
 
 require_once('../config.php');
 require_once('../../vendor/autoload.php');
+require_once('../model/Geolocation.php');
 use GeoIp2\Database\Reader;
 
 class MaxMindGeolocationRepository
@@ -17,11 +18,11 @@ class MaxMindGeolocationRepository
   private $cityReader;
   private $asnReader;
 
-  public function __construct($geo)
+  public function __construct()
   {
     global $MMDatDir;
 
-    $this->geo = $geo;
+    $this->geo = new Geolocation();
 
     try {
       $this->cityReader = new Reader($MMDatDir."/GeoLite2-City.mmdb");

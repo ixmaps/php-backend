@@ -18,11 +18,6 @@ require_once('../repositories/IXmapsGeolocationRepository.php');
 require_once('../repositories/MaxMindGeolocationRepository.php');
 require_once('../repositories/IPInfoGeolocationRepository.php');
 require_once('../repositories/IP2LocationGeolocationRepository.php');
-require_once('../model/IXmapsGeolocation.php');
-require_once('../model/MaxMindGeolocation.php');
-require_once('../model/IPInfoGeolocation.php');
-require_once('../model/IP2LocationGeolocation.php');
-
 
 if (isset($_POST['ip'])) {
   $ip = $_POST['ip'];
@@ -33,24 +28,16 @@ if (isset($_POST['ip'])) {
   }
 }
 
-$IXgeo = new IXmapsGeolocation();
-$IXgeoRepo = new IXmapsGeolocationRepository($IXgeo);
+$IXgeoRepo = new IXmapsGeolocationRepository();
 $IXgeoService = new IXmapsGeolocationService($IXgeoRepo);
 
-$IXgeo = new IXmapsGeolocation();
-$IXgeoRepo = new IXmapsGeolocationRepository($IXgeo);
-$IXgeoService = new IXmapsGeolocationService($IXgeoRepo);
-
-$MMgeo = new MaxMindGeolocation();
-$MMgeoRepo = new MaxMindGeolocationRepository($MMgeo);
+$MMgeoRepo = new MaxMindGeolocationRepository();
 $MMgeoService = new MaxMindGeolocationService($MMgeoRepo);
 
-$IIgeo = new IPInfoGeolocation();
-$IIgeoRepo = new IPInfoGeolocationRepository($IIgeo);
+$IIgeoRepo = new IPInfoGeolocationRepository();
 $IIgeoService = new IPInfoGeolocationService($IIgeoRepo);
 
-$I2geo = new IP2LocationGeolocation();
-$I2geoRepo = new IP2LocationGeolocationRepository($I2geo);
+$I2geoRepo = new IP2LocationGeolocationRepository();
 $I2geoService = new IP2LocationGeolocationService($I2geoRepo);
 
 $ixgeo = $IXgeoService->getByIp($ip);

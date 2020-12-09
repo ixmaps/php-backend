@@ -12,16 +12,13 @@ chdir(dirname(__FILE__));
 require_once('../services/IPInfoAPIService.php');
 require_once('../services/IPInfoGeolocationService.php');
 require_once('../repositories/IPInfoGeolocationRepository.php');
-require_once('../model/IPInfoGeolocation.php');
-
 
 final class IPInfoGeolocationTest extends TestCase {
   private $geoService;
 
   protected function setUp(): void
   {
-    $geo = new IPInfoGeolocation();
-    $geoRepo = new IPInfoGeolocationRepository($geo);
+    $geoRepo = new IPInfoGeolocationRepository();
     $this->geoService = new IPInfoGeolocationService($geoRepo);
   }
 

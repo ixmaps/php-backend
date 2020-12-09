@@ -9,15 +9,16 @@
  */
 
 require_once('../config.php');
+require_once('../model/Geolocation.php');
 
 class IXmapsGeolocationRepository
 {
 
-  function __construct($geo)
+  function __construct()
   {
     global $dbconn;
 
-    $this->geo = $geo;
+    $this->geo = new Geolocation();
     $this->db = $dbconn;
     $this->selectSql = "SELECT ip_addr_info.ip_addr, ip_addr_info.hostname, ip_addr_info.asnum, as_users.name, as_users.short_name, ip_addr_info.lat, ip_addr_info.long, ip_addr_info.mm_country, ip_addr_info.mm_region, ip_addr_info.mm_city, ip_addr_info.mm_postal, ip_addr_info.created_at, ip_addr_info.updated_at FROM ip_addr_info LEFT JOIN as_users ON ip_addr_info.asnum = as_users.num WHERE ip_addr_info.ip_addr = $1";
   }

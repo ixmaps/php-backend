@@ -9,15 +9,16 @@
  */
 
 require_once('../config.php');
+require_once('../model/Geolocation.php');
 
 class IPInfoGeolocationRepository
 {
   private $db;
 
-  public function __construct($geo)
+  public function __construct()
   {
     global $dbconn;
-    $this->geo = $geo;
+    $this->geo = new Geolocation();
     $this->db = $dbconn;
   }
 

@@ -11,15 +11,13 @@ use PHPUnit\Framework\TestCase;
 chdir(dirname(__FILE__));
 require_once('../services/MaxmindGeolocationService.php');
 require_once('../repositories/MaxMindGeolocationRepository.php');
-require_once('../model/MaxmindGeolocation.php');
 
 final class MaxmindGeolocationTest extends TestCase {
   private $geoService;
 
   protected function setUp(): void
   {
-    $geo = new MaxmindGeolocation();
-    $geoRepo = new MaxMindGeolocationRepository($geo);
+    $geoRepo = new MaxMindGeolocationRepository();
     $this->geoService = new MaxmindGeolocationService($geoRepo);
   }
 

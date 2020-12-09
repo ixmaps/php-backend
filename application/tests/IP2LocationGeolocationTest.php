@@ -11,8 +11,6 @@ use PHPUnit\Framework\TestCase;
 chdir(dirname(__FILE__));
 require_once('../repositories/IP2LocationGeolocationRepository.php');
 require_once('../services/IP2LocationGeolocationService.php');
-require_once('../model/IP2LocationGeolocation.php');
-
 
 final class IP2LocationGeolocationTest extends TestCase {
   private $geoservice;
@@ -22,8 +20,7 @@ final class IP2LocationGeolocationTest extends TestCase {
   protected function setUp(): void
   {
     global $dbconn;
-    // $geo = new IP2LocationGeolocation();
-    // $geoRepo = new IP2LocationGeolocationRepository($geo);
+    // $geoRepo = new IP2LocationGeolocationRepository();
 
     $geoObj = $this->createMock(IP2LocationGeolocation::class);
     $geoObj->method('getIp')

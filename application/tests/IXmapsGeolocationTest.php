@@ -13,7 +13,6 @@ require_once('../config.php');
 require_once('../services/IPInfoAPIService.php');
 require_once('../services/IXmapsGeolocationService.php');
 require_once('../repositories/IXmapsGeolocationRepository.php');
-require_once('../model/IXmapsGeolocation.php');
 
 
 final class IXmapsGeolocationTest extends TestCase {
@@ -21,7 +20,6 @@ final class IXmapsGeolocationTest extends TestCase {
 
   protected function setUp(): void
   {
-    $geo = new IXmapsGeolocation();
     $geoRepo = new IXmapsGeolocationRepository($geo);
     $this->geoService = new IXmapsGeolocationService($geoRepo);
   }
