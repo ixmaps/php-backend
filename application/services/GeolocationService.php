@@ -8,18 +8,18 @@
  *
  */
 
-
-require_once('../model/Geolocation.php');
 require_once('../services/IXmapsGeolocationService.php');
 require_once('../services/IPInfoGeolocationService.php');
 require_once('../services/IP2LocationGeolocationService.php');
-require_once('../services/IPInfoAPIService.php');
 
 class GeolocationService {
 
-  public function __construct($dbconn) {
-    $this->db = $dbconn;
-    $this->IXgeoservice = new IXmapsGeolocationService($this->db);
+  function __construct($geo, $geoRepo, $IXgeoRepo, $IIgeoRepo, $I2geoRepo) {
+    $this->geo = $geo;
+    $this->repository = $geoRepo;
+    $this->IXgeoService = new IXmapsGeolocationService($IXgeoRepo);
+    $this->IIgeoService = new IPInfoGeolocationService($IIgeoRepo);
+    $this->I2geoService = new IP2LocationGeolocationService($I2geoRepo);
   }
 
 
@@ -29,32 +29,35 @@ class GeolocationService {
     *
     * @return Geolocation object or null (most recent date)
     */
-  public function getByIp($ip)
+  public function getByIp(string $ip)
   {
-    if (!filter_var($ip, FILTER_VALIDATE_IP)) {
-      throw new Exception('Not a valid IP address');
-    }
     return $this->getByIpAndDate($ip, date("Y-m-d"));
   }
 
-  public function getByIpAndDate($ip, $date)
+  /**
+    *
+    * @param $ip string and $date string
+    *
+    * @return Geolocation object or null (most recent date)
+    */
+  public function getByIpAndDate(string $ip, string $date)
   {
     if (!filter_var($ip, FILTER_VALIDATE_IP)) {
       throw new Exception('Not a valid IP address');
     }
 
-    $geo = $this->hydrate($this->IXgeoservice->getByIpAndDate($ip, $date));
+    $IXgeo = $this->IXgeoService->getByIpAndDate($ip, $date);
+    $this->buildByIXGeo($IXgeo);
 
 
     // if doesn't exist
     // if ($geo == false) {
     //   $this->createNewIp($ip);
-    //   $geo = $this->hydrate($this->IXgeoservice->getByIpAndDate($ip, $date));
+    //   $geo = $this->buildByIXGeo($this->IXgeoService->getByIpAndDate($ip, $date));
     // }
 
     // check if we need a stale update. Performance issue? Better to use a cron?
     // $this->updateStaleDataIfNeeded($ip)
-
 
 
 
@@ -64,27 +67,26 @@ class GeolocationService {
     // TODO: this isn't going to work! How often will most recent eg getByIp be requested? Since requests for TRs for the map will use by date. Do we need a cron as well?
     if ($date == date("Y-m-d") && ($geo == false || $geo->getStaleStatus() == true)) {
       // TODO: we want to add a new non-stale entry to ix and do an update on ipinfo
-      $this->createNewIp($ip);
-      $geo = $this->hydrate($this->IXgeoservice->getByIpAndDate($ip, $date));
+
+      // BROKEN - this will try to create multiple ipinfos if stale. Switch to upsert?
+      $IXgeo = $this->create($ip, $this->IXgeoService, $this->IIgeoService);
+      $this->buildByIXGeo($IXgeo);
     }
 
     // if the ip still doesn't exist in the db, eg if ipinfo doesn't have it
     // potential TODO - what about missing values?
     // eg if lat / long / country missing, refresh the data?
     // if lat / long / country still missing, use ip2loc?
-    if ($geo == false) {
+    if ($this->geo == false) {
       return false;
     }
 
     // if we don't have an asn, use ip2loc
     // only do this for most recent, since we don't have backdated values for eg ip2. That is, it would be misleading to show most recent ASN values for a router if the request is for geoloc/asn data from years ago
-    // TODO - combine with above
+    // TODO - combine with above?
     if ($date == date("Y-m-d") && ($geo->getASNum() == NULL || $geo->getASNum() == -1)) {
-      $I2geoservice = new IP2LocationGeolocationService($this->db);
-      $i2geo = $I2geoservice->getByIp($geo->getIp());
-      $geo->setASNum($i2geo->getASnum());
-      $geo->setASName($i2geo->getASname());
-      $geo->setASNsource('IP2Location');
+      $i2geo = $this->I2geoService->getByIp($geo->getIp());
+      $this->buildByIP2Geo($i2geo);
     }
 
     return $geo;
@@ -95,39 +97,63 @@ class GeolocationService {
     *
     * @param string
     *
-    * @return None
+    * @return IXmapsGeolocation object (!!!)
     */
-  public function createNewIp($ip)
+  public function create($ip)
   {
-    $IIgeoservice = new IPInfoGeolocationService($this->db);
-    // this feels odd... passing in raw data to a different service? Or is this actually the right way for this and others?
-    // this also just feels like a weird place to do this...
-    $geoData = new IPInfoAPIService($ip);
-    $IIgeoservice->create($geoData);
-    $this->IXgeoservice->create($geoData);
+    if (!filter_var($ip, FILTER_VALIDATE_IP)) {
+      throw new Exception('Not a valid IP address');
+    }
+    return $this->repository->create($ip, $this->IXgeoService, $this->IIgeoService);
   }
 
 
-  private function hydrate($ixgeo) {
-    if ($ixgeo == false) {
+  /**
+    *
+    * @param IXmapsGeolocation object
+    *
+    * @return The object (never used, could remove) or false (not used yet)
+    */
+  private function buildByIXGeo($IXgeo) {
+    if ($IXgeo == false) {
       return false;
     }
 
-    $geo = new Geolocation();
-    $geo->setIp($ixgeo->getIp());
-    $geo->setLat($ixgeo->getLat());
-    $geo->setLong($ixgeo->getLong());
-    $geo->setCity($ixgeo->getCity());
-    $geo->setRegion($ixgeo->getRegion());
-    $geo->setCountry($ixgeo->getCountry());
-    $geo->setPostalCode($ixgeo->getPostalCode());
-    $geo->setASNum($ixgeo->getASNum());
-    $geo->setASName($ixgeo->getASName());
-    $geo->setHostname($ixgeo->getHostname());
-    $geo->setCreatedAt($ixgeo->getCreatedAt());
-    $geo->setUpdatedAt($ixgeo->getUpdatedAt());
+    $this->geo->setGeoSource('IXmaps');
+    $this->geo->setASNsource('IXmaps');
+    $this->geo->setIp($IXgeo->getIp());
+    $this->geo->setLat($IXgeo->getLat());
+    $this->geo->setLong($IXgeo->getLong());
+    $this->geo->setCity($IXgeo->getCity());
+    $this->geo->setRegion($IXgeo->getRegion());
+    $this->geo->setCountry($IXgeo->getCountry());
+    $this->geo->setPostalCode($IXgeo->getPostalCode());
+    $this->geo->setASNum($IXgeo->getASNum());
+    $this->geo->setASName($IXgeo->getASName());
+    $this->geo->setHostname($IXgeo->getHostname());
+    $this->geo->setCreatedAt($IXgeo->getCreatedAt());
+    $this->geo->setUpdatedAt($IXgeo->getUpdatedAt());
 
-    return $geo;
+    return $this->geo;
+  }
+
+
+  /**
+    *
+    * @param IP2LocationGeolocation object
+    *
+    * @return The object (never used, could remove) or false (not used yet)
+    */
+  private function buildByIP2Geo($IP2geo) {
+    if ($IP2geo == false) {
+      return false;
+    }
+
+    $this->geo->setASNsource('IP2Location');
+    $this->geo->setASNum($IP2geo->getASNum());
+    $this->geo->setASName($IP2geo->getASName());
+
+    return $this->geo;
   }
 
 } // end class

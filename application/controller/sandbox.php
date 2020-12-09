@@ -10,11 +10,18 @@
  *
  */
 
-require_once('../config.php');
 require_once('../services/IXmapsGeolocationService.php');
-require_once('../services/MaxmindGeolocationService.php');
+require_once('../services/MaxMindGeolocationService.php');
 require_once('../services/IPInfoGeolocationService.php');
 require_once('../services/IP2LocationGeolocationService.php');
+require_once('../repositories/IXmapsGeolocationRepository.php');
+require_once('../repositories/MaxMindGeolocationRepository.php');
+require_once('../repositories/IPInfoGeolocationRepository.php');
+require_once('../repositories/IP2LocationGeolocationRepository.php');
+require_once('../model/IXmapsGeolocation.php');
+require_once('../model/MaxMindGeolocation.php');
+require_once('../model/IPInfoGeolocation.php');
+require_once('../model/IP2LocationGeolocation.php');
 
 
 if (isset($_POST['ip'])) {
@@ -26,17 +33,30 @@ if (isset($_POST['ip'])) {
   }
 }
 
-global $dbconn;
+$IXgeo = new IXmapsGeolocation();
+$IXgeoRepo = new IXmapsGeolocationRepository($IXgeo);
+$IXgeoService = new IXmapsGeolocationService($IXgeoRepo);
 
-$ixgeoservice = new IXmapsGeolocationService($dbconn);
-$mmgeoservice = new MaxMindGeolocationService($dbconn);
-$iigeoservice = new IPInfoGeolocationService($dbconn);
-$i2geoservice = new IP2LocationGeolocationService($dbconn);
+$IXgeo = new IXmapsGeolocation();
+$IXgeoRepo = new IXmapsGeolocationRepository($IXgeo);
+$IXgeoService = new IXmapsGeolocationService($IXgeoRepo);
 
-$ixgeo = $ixgeoservice->getByIp($ip);
-$mmgeo = $mmgeoservice->getByIp($ip);
-$iigeo = $iigeoservice->getByIp($ip);
-$i2geo = $i2geoservice->getByIp($ip);
+$MMgeo = new MaxMindGeolocation();
+$MMgeoRepo = new MaxMindGeolocationRepository($MMgeo);
+$MMgeoService = new MaxMindGeolocationService($MMgeoRepo);
+
+$IIgeo = new IPInfoGeolocation();
+$IIgeoRepo = new IPInfoGeolocationRepository($IIgeo);
+$IIgeoService = new IPInfoGeolocationService($IIgeoRepo);
+
+$I2geo = new IP2LocationGeolocation();
+$I2geoRepo = new IP2LocationGeolocationRepository($I2geo);
+$I2geoService = new IP2LocationGeolocationService($I2geoRepo);
+
+$ixgeo = $IXgeoService->getByIp($ip);
+$mmgeo = $MMgeoService->getByIp($ip);
+$iigeo = $IIgeoService->getByIp($ip);
+$i2geo = $I2geoService->getByIp($ip);
 
 
 echo '<h3>A Comparison of Data Sources</h3>';

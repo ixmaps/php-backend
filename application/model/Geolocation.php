@@ -34,7 +34,19 @@ class Geolocation {
     global $IPStaleDate;
     $this->staleDate = $IPStaleDate;
     $this->staleStatus = false;
-    $this->geoSource = 'IXmaps';
+
+    $this->setIp(NULL);
+    $this->setLat(NULL);
+    $this->setLong(NULL);
+    $this->setCity(NULL);
+    $this->setRegion(NULL);
+    $this->setCountry(NULL);
+    $this->setPostalCode(NULL);
+    $this->setASNum(NULL);
+    $this->setASName(NULL);
+    $this->setHostname(NULL);
+    $this->setCreatedAt(NULL);
+    $this->setUpdatedAt(NULL);
   }
 
   public function setIp($ip) {
@@ -71,7 +83,7 @@ class Geolocation {
     $this->createdAt = $createdAt;
     // NB: we're using the createdAt as the metric to determine if an ip is stale
     // We might want to consider interpretation of updatedAt
-    if (date_diff(Utility::getNow(), $createdAt)->format('%a') > $this->staleDate) {
+    if ($createdAt && date_diff(Utility::getNow(), $createdAt)->format('%a') > $this->staleDate) {
       $this->staleStatus = true;
     }
   }

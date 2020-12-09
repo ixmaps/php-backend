@@ -8,11 +8,9 @@
  *
  */
 
-require_once('../repositories/IpInfoGeolocationRepository.php');
-
 class IPInfoGeolocationService {
-  public function __construct($dbconn) {
-    $this->repository = new IPInfoGeolocationRepository($dbconn);
+  public function __construct($geoRepo) {
+    $this->repository = $geoRepo;
   }
 
 
@@ -20,9 +18,9 @@ class IPInfoGeolocationService {
     *
     * @param string
     *
-    * @return Geolocation object or null
+    * @return IPInfoGeolocation object or false
     */
-  public function getByIp($ip)
+  public function getByIp(string $ip)
   {
     if (!filter_var($ip, FILTER_VALIDATE_IP)) {
       throw new Exception('Not a valid IP address');
@@ -35,12 +33,12 @@ class IPInfoGeolocationService {
     *
     * @param string
     *
-    * @return Boolean success value
+    * @return IPInfoGeolocation object or false
     */
-  // public function create($createData)
-  public function create($ip)
+  // public function create(string $ip)
+  public function create($geoData)
   {
-    return $this->repository->create($ip);
+    return $this->repository->create($geoData);
   }
 
 
@@ -50,8 +48,9 @@ class IPInfoGeolocationService {
     *
     * @return Boolean success value
     */
-  // public function create($createData)
-  public function upsert($ip)
+  // not currently used - TBD on the general GeolocationService. TODO
+  // public function upsert(string $ip)
+  public function upsert($geoData)
   {
     return $this->repository->upsert($ip);
   }
@@ -63,7 +62,7 @@ class IPInfoGeolocationService {
     *
     * @return Boolean success value (false if ip does not exist in db)
     */
-  public function deleteByIp($ip)
+  public function deleteByIp(string $ip)
   {
     return $this->repository->deleteByIp($ip);
   }

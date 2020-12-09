@@ -1,25 +1,35 @@
 <?php
 /**
- *
- * Repository for IP2Location geolocation - handles interaction with the IP2Location data objects ()
- *
- * @author IXmaps.ca (Colin)
- * @since Nov 2020
- *
- */
+  *
+  * Repository for IP2Location geolocation - handles interaction with the IP2Location data objects
+  *
+  * @author IXmaps.ca (Colin)
+  * @since Nov 2020
+  *
+  */
 
+require_once('../config.php');
 require_once('../model/IP2LocationGeolocation.php');
 
 class IP2LocationGeolocationRepository
 {
   private $db;
 
-  public function __construct($db)
+  public function __construct($geo)
   {
-    $this->db = $db;
+    global $dbconn;
+    $this->geo = $geo;
+    $this->db = $dbconn;
   }
 
-
+  /**
+    * Convert ip addresses to numeric
+    *
+    * @param inet $ip
+    *
+    * @return long
+    *
+    */
   public function getByIp($ip)
   {
     $ipLong = $this->ip2long($ip);
@@ -65,20 +75,19 @@ class IP2LocationGeolocationRepository
   /**
     * turns raw db data into a Geolocation object
     */
-  private function hydrate($ip, Object $dbData)
+  private function hydrate(string $ip, Object $dbData)
   {
-    $geo = new IP2LocationGeolocation();
-    $geo->setIp($ip);
-    $geo->setLat($dbData->lat);
-    $geo->setLong($dbData->long);
-    $geo->setCity($dbData->city);
-    $geo->setRegion($dbData->region);
-    $geo->setCountry($dbData->country);
-    $geo->setPostalCode($dbData->postal);
-    $geo->setASNum($dbData->asnum);
-    $geo->setASName($dbData->asname);
+    $this->geo->setIp($ip);
+    $this->geo->setLat($dbData->lat);
+    $this->geo->setLong($dbData->long);
+    $this->geo->setCity($dbData->city);
+    $this->geo->setRegion($dbData->region);
+    $this->geo->setCountry($dbData->country);
+    $this->geo->setPostalCode($dbData->postal);
+    $this->geo->setASNum($dbData->asnum);
+    $this->geo->setASName($dbData->asname);
 
-    return $geo;
+    return $this->geo;
   }
 
 
@@ -101,14 +110,24 @@ class IP2LocationGeolocationRepository
   /**
     * Since not all of the ip2_location_ip_addrs have an asn, check if it's available in the ip2_location_asn table
     *
+    * @param inet $ip
+    *
+    * @return Array size 2 with asnum string and asname string
+    *
     */
-  private function determineAsn($ip) {
-    $sql = "SELECT * FROM ip2location_asn WHERE ip_from <= ".$ip." and ip_to >= ".$ip;
-    // TODO, fix this garbage old sql
-    $result = pg_query($this->db, $sql) or die('determineAsn query failed: ' . pg_last_error());
-    $row = pg_fetch_row($result);
+  public function determineAsn($ip) {
+    $ipLong = $this->ip2long($ip);
+    $sql = "SELECT * FROM ip2location_asn WHERE ip_from <= '".$ipLong."' and ip_to >= '".$ipLong."'";
+    try {
+      $result = pg_query($this->db, $sql);
+    } catch (Exception $e) {
+      throw new Exception($e);
+    }
+
+    $asnData = pg_fetch_object($result);
     pg_free_result($result);
 
-    return [$row[3],$row[4]];
+    return [$asnData->asn, $asnData->as];
+
   }
 }

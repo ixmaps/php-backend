@@ -1,4 +1,4 @@
-<?php
+ <?php
 /**
  *
  * Service for IP2Location geolocation
@@ -8,11 +8,9 @@
  *
  */
 
-require_once('../repositories/IP2LocationGeolocationRepository.php');
-
 class IP2LocationGeolocationService {
-  public function __construct($db) {
-    $this->repository = new IP2LocationGeolocationRepository($db);
+  public function __construct($geoRepo) {
+    $this->repository = $geoRepo;
   }
 
   /**
@@ -21,7 +19,7 @@ class IP2LocationGeolocationService {
     *
     * @return Geolocation object or null
     */
-  public function getByIp($ip)
+  public function getByIp(string $ip)
   {
     if (!filter_var($ip, FILTER_VALIDATE_IP)) {
       throw new Exception('Not a valid IP address');

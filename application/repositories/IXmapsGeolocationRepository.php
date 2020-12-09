@@ -8,18 +8,17 @@
  *
  */
 
-require_once('../model/IXmapsGeolocation.php');
-require_once('../services/IPInfoGeolocationService.php');
-
+require_once('../config.php');
 
 class IXmapsGeolocationRepository
 {
-  private $db;
-  private $selectSql;
 
-  public function __construct($db)
+  function __construct($geo)
   {
-    $this->db = $db;
+    global $dbconn;
+
+    $this->geo = $geo;
+    $this->db = $dbconn;
     $this->selectSql = "SELECT ip_addr_info.ip_addr, ip_addr_info.hostname, ip_addr_info.asnum, as_users.name, as_users.short_name, ip_addr_info.lat, ip_addr_info.long, ip_addr_info.mm_country, ip_addr_info.mm_region, ip_addr_info.mm_city, ip_addr_info.mm_postal, ip_addr_info.created_at, ip_addr_info.updated_at FROM ip_addr_info LEFT JOIN as_users ON ip_addr_info.asnum = as_users.num WHERE ip_addr_info.ip_addr = $1";
   }
 
@@ -28,17 +27,17 @@ class IXmapsGeolocationRepository
     *
     * @return most recently added IX Geolocation for the ip
     */
-  public function getByIp($ip)
+  public function getByIp(string $ip)
   {
     return $this->selectByIp($this->selectSql, array($ip));
   }
 
   /**
-    * @param $ip string, $date string
+    * @param $ip string, $date string or form Y-m-d
     *
     * @return IX Geolocation object closest to date
     */
-  public function getByIpAndDate($ip, $date) {
+  public function getByIpAndDate(string $ip, string $date) {
     $sql = $this->selectSql." ORDER BY abs(extract(epoch from (created_at - $2))) LIMIT 1";
 
     return $this->selectByIp($sql, array($ip, $date));
@@ -48,7 +47,7 @@ class IXmapsGeolocationRepository
   /**
     * @param $geoData object (from ipinfo api, but other options can be plug/played)
     *
-    * @return true if insert successful
+    * @return hydrated IXmapsGeolocation object
     */
   public function create($geoData)
   {
@@ -57,15 +56,22 @@ class IXmapsGeolocationRepository
 
     try {
       $result = pg_query_params($this->db, $sql, $ipData);
+
+      return $this->getByIp($geoData->getIp());
+
       pg_free_result($result);
-      return true;
+
     } catch (Exception $e) {
       throw new Exception($e);
     }
   }
 
-
-  public function deleteByIp($ip)
+  /**
+    * @param string $ip
+    *
+    * @return Bool on success/failure
+    */
+  public function deleteByIp(string $ip)
   {
     $sql = "DELETE FROM ip_addr_info WHERE ip_addr = '".$ip."'";
     try {
@@ -83,8 +89,12 @@ class IXmapsGeolocationRepository
     return true;
   }
 
-
-  private function selectByIp($sql, $params) {
+  /**
+    * @param string $sql, Array $params
+    *
+    * @return IXmapsGeoloction object or false
+    */
+  private function selectByIp(string $sql, Array $params) {
     try {
       $result = pg_query_params($this->db, $sql, $params);
     } catch (Exception $e) {
@@ -93,7 +103,6 @@ class IXmapsGeolocationRepository
     $geoData = pg_fetch_object($result);
     pg_free_result($result);
 
-    // null check, ie IP does not exist
     if ($geoData == false) {
       return false;
     }
@@ -111,20 +120,19 @@ class IXmapsGeolocationRepository
     $createdAt = new DateTime($dbData->created_at);
     $updatedAt = new DateTime($dbData->updated_at);
 
-    $geo = new IXmapsGeolocation();
-    $geo->setIp($dbData->ip_addr);
-    $geo->setLat($dbData->lat);
-    $geo->setLong($dbData->long);
-    $geo->setCity($dbData->mm_city);
-    $geo->setRegion($dbData->mm_region);
-    $geo->setCountry($dbData->mm_country);
-    $geo->setPostalCode($dbData->mm_postal);
-    $geo->setASNum($dbData->asnum);
-    $geo->setASName($asname);
-    $geo->setHostname($dbData->hostname);
-    $geo->setCreatedAt($createdAt);
-    $geo->setUpdatedAt($updatedAt);
+    $this->geo->setIp($dbData->ip_addr);
+    $this->geo->setLat($dbData->lat);
+    $this->geo->setLong($dbData->long);
+    $this->geo->setCity($dbData->mm_city);
+    $this->geo->setRegion($dbData->mm_region);
+    $this->geo->setCountry($dbData->mm_country);
+    $this->geo->setPostalCode($dbData->mm_postal);
+    $this->geo->setASNum($dbData->asnum);
+    $this->geo->setASName($asname);
+    $this->geo->setHostname($dbData->hostname);
+    $this->geo->setCreatedAt($createdAt);
+    $this->geo->setUpdatedAt($updatedAt);
 
-    return $geo;
+    return $this->geo;
   }
 }

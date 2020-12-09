@@ -8,7 +8,7 @@
  *
  */
 
-require_once('../model/MaxMindGeolocation.php');
+require_once('../config.php');
 require_once('../../vendor/autoload.php');
 use GeoIp2\Database\Reader;
 
@@ -17,9 +17,11 @@ class MaxMindGeolocationRepository
   private $cityReader;
   private $asnReader;
 
-  public function __construct()
+  public function __construct($geo)
   {
     global $MMDatDir;
+
+    $this->geo = $geo;
 
     try {
       $this->cityReader = new Reader($MMDatDir."/GeoLite2-City.mmdb");
@@ -29,6 +31,12 @@ class MaxMindGeolocationRepository
     }
   }
 
+  /**
+    * @param $ip string
+    *
+    * @return MM Geolocation object
+    *
+    */
   public function getByIp($ip)
   {
     try {
@@ -57,37 +65,35 @@ class MaxMindGeolocationRepository
     */
   private function hydrate($ip, $cityRecord, $asnRecord, $hostname)
   {
-    $geo = new MaxMindGeolocation();
+    $this->geo->setIp($ip);
+    $this->geo->setLat(NULL);
+    $this->geo->setLong(NULL);
+    $this->geo->setCity(NULL);
+    $this->geo->setRegion(NULL);
+    $this->geo->setRegionCode(NULL);
+    $this->geo->setCountry(NULL);
+    $this->geo->setCountryCode(NULL);
+    $this->geo->setPostalCode(NULL);
+    $this->geo->setASNum(NULL);
+    $this->geo->setASName(NULL);
+    $this->geo->setHostname($hostname);
 
-    $geo->setLat(NULL);
-    $geo->setLong(NULL);
-    $geo->setCity(NULL);
-    $geo->setRegion(NULL);
-    $geo->setRegionCode(NULL);
-    $geo->setCountry(NULL);
-    $geo->setCountryCode(NULL);
-    $geo->setPostalCode(NULL);
-    $geo->setASNum(NULL);
-    $geo->setASName(NULL);
-
-    $geo->setIp($ip);
     if ($cityRecord) {
-      $geo->setLat($cityRecord->location->latitude);
-      $geo->setLong($cityRecord->location->longitude);
-      $geo->setCity($cityRecord->city->name);
-      $geo->setRegion($cityRecord->mostSpecificSubdivision->name);
-      $geo->setRegionCode($cityRecord->mostSpecificSubdivision->isoCode);
-      $geo->setCountry($cityRecord->country->name);
-      $geo->setCountryCode($cityRecord->country->isoCode);
-      $geo->setPostalCode($cityRecord->postal->code);
+      $this->geo->setLat($cityRecord->location->latitude);
+      $this->geo->setLong($cityRecord->location->longitude);
+      $this->geo->setCity($cityRecord->city->name);
+      $this->geo->setRegion($cityRecord->mostSpecificSubdivision->name);
+      $this->geo->setRegionCode($cityRecord->mostSpecificSubdivision->isoCode);
+      $this->geo->setCountry($cityRecord->country->name);
+      $this->geo->setCountryCode($cityRecord->country->isoCode);
+      $this->geo->setPostalCode($cityRecord->postal->code);
     }
     if ($asnRecord) {
-      $geo->setASNum($asnRecord->autonomousSystemNumber);
-      $geo->setASName($asnRecord->autonomousSystemOrganization);
+      $this->geo->setASNum($asnRecord->autonomousSystemNumber);
+      $this->geo->setASName($asnRecord->autonomousSystemOrganization);
     }
-    $geo->setHostname($hostname);
 
-    return $geo;
-
+    return $this->geo;
   }
+
 }

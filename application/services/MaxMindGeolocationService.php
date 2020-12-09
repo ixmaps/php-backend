@@ -1,25 +1,25 @@
 <?php
 /**
- *
- * Service for MaxMind geolocation
- *
- * @author IXmaps.ca (Colin)
- * @since Nov 2020
- *
- */
+  *
+  * Service for MaxMind geolocation
+  *
+  * @author IXmaps.ca (Colin)
+  * @since Nov 2020
+  *
+  */
 
-require_once('../repositories/MaxMindGeolocationRepository.php');
+
 
 class MaxMindGeolocationService {
-  public function __construct() {
-    $this->repository = new MaxMindGeolocationRepository();
+  public function __construct($geoRepo) {
+    $this->repository = $geoRepo;
   }
 
   /**
     *
     * @param string
     *
-    * @return MaxMind Geolocation object or null
+    * @return MaxMind Geolocation object or false
     */
   public function getByIp($ip)
   {

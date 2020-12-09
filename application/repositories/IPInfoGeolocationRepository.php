@@ -8,23 +8,26 @@
  *
  */
 
-require_once('../model/IPInfoGeolocation.php');
-require_once('../services/IPInfoAPIService.php');
-
+require_once('../config.php');
 
 class IPInfoGeolocationRepository
 {
   private $db;
 
-  public function __construct($db)
+  public function __construct($geo)
   {
-    $this->db = $db;
+    global $dbconn;
+    $this->geo = $geo;
+    $this->db = $dbconn;
   }
 
-  public function getByIp($ip)
+  /**
+    * @param $ip string
+    *
+    * @return most recently added IX Geolocation for the ip
+    */
+  public function getByIp(string $ip)
   {
-    // TODO: rename table
-
     $sql = "SELECT * FROM ipinfo_ip_addr WHERE ip_addr = '".$ip."'";
 
     try {
@@ -44,6 +47,11 @@ class IPInfoGeolocationRepository
   }
 
 
+  /**
+    * @param $geoData object from ipinfo api (TODO, lock this down)
+    *
+    * @return hydrated IPInfoGeolocation object or false
+    */
   public function create($geoData)
   {
     $sql = "INSERT INTO ipinfo_ip_addr (ip_addr, asnum, asname, lat, long, hostname, country, region, city, postal) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10);";
@@ -52,9 +60,11 @@ class IPInfoGeolocationRepository
     try {
       $result = pg_query_params($this->db, $sql, $ipData);
       pg_free_result($result);
-      return true;
+
+      return $this->getByIp($geoData->getIp());
+
     } catch (Exception $e) {
-      // currently we're throwing on duplicate ip. Perhaps better to return false? Or build out a status code object?
+      // currently we're throwing on duplicate ip eg. Perhaps better to return false? Or build out a status code object?
       throw new Exception($e);
     }
 
@@ -62,6 +72,11 @@ class IPInfoGeolocationRepository
   }
 
 
+  /**
+    * @param $geoData object from ipinfo api
+    *
+    * @return hydrated IPInfoGeolocation object or false
+    */
   public function update($geoData)
   {
     $sql = "UPDATE ipinfo_ip_addr SET
@@ -80,7 +95,9 @@ class IPInfoGeolocationRepository
     try {
       $result = pg_query_params($this->db, $sql, $ipData);
       pg_free_result($result);
-      return true;
+
+      return $this->getByIp($geoData->getIp());
+
     } catch (Exception $e) {
       throw new Exception($e);
     }
@@ -89,7 +106,7 @@ class IPInfoGeolocationRepository
   }
 
 
-  // not currently used any more...
+  // not currently used...
   public function upsert($geoData)
   {
     $geo = $this->getByIp($geoData->getIp());
@@ -103,7 +120,12 @@ class IPInfoGeolocationRepository
   }
 
 
-  public function deleteByIp($ip)
+  /**
+    * @param string
+    *
+    * @return Bool on success/failure
+    */
+  public function deleteByIp(string $ip)
   {
     $sql = "DELETE FROM ipinfo_ip_addr WHERE ip_addr = '".$ip."'";
     try {
@@ -121,24 +143,24 @@ class IPInfoGeolocationRepository
     return true;
   }
 
+
   /**
     * turns raw db data into a Geolocation object
     */
   private function hydrate(Object $geoData)
   {
-    $geo = new IPInfoGeolocation();
-    $geo->setIp($geoData->ip_addr);
-    $geo->setLat($geoData->lat);
-    $geo->setLong($geoData->long);
-    $geo->setCity($geoData->city);
-    $geo->setRegion($geoData->region);
-    $geo->setCountry($geoData->country);
-    $geo->setPostalCode($geoData->postal);
-    $geo->setASNum($geoData->asnum);
-    $geo->setASName($geoData->asname);
-    $geo->setHostname($geoData->hostname);
+    $this->geo->setIp($geoData->ip_addr);
+    $this->geo->setLat($geoData->lat);
+    $this->geo->setLong($geoData->long);
+    $this->geo->setCity($geoData->city);
+    $this->geo->setRegion($geoData->region);
+    $this->geo->setCountry($geoData->country);
+    $this->geo->setPostalCode($geoData->postal);
+    $this->geo->setASNum($geoData->asnum);
+    $this->geo->setASName($geoData->asname);
+    $this->geo->setHostname($geoData->hostname);
 
-    return $geo;
+    return $this->geo;
   }
 
 }
