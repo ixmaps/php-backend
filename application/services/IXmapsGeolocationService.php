@@ -22,7 +22,7 @@ class IXmapsGeolocationService {
     *
     * @return Geolocation object or null
     */
-  public function getByIp($ip)
+  public function getByIp(string $ip)
   {
     return $this->getByIpAndDate($ip, date("Y-m-d"));
   }
@@ -33,7 +33,7 @@ class IXmapsGeolocationService {
     *
     * @return Geolocation object or null
     */
-  public function getByIpAndDate($ip, $date)
+  public function getByIpAndDate(string $ip, $date)
   {
     if (!filter_var($ip, FILTER_VALIDATE_IP)) {
       throw new Exception('Not a valid IP address');
@@ -62,9 +62,21 @@ class IXmapsGeolocationService {
     *
     * @return Boolean success value (false if ip does not exist in db)
     */
-  public function deleteByIp($ip)
+  public function deleteByIp(string $ip)
   {
     return $this->repository->deleteByIp($ip);
+  }
+
+
+  /**
+    *
+    * @param string
+    *
+    * @return Boolean success value (false if ip does not exist in db)
+    */
+  public function deleteByIpAndCreatedAt(string $ip, $date)
+  {
+    return $this->repository->deleteByIpAndCreatedAt($ip, $date);
   }
 
 

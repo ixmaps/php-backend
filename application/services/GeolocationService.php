@@ -23,14 +23,12 @@ class GeolocationService {
     $this->I2geoService = $I2geoService;
   }
 
-  // TODO: move the hydrate/build to the repo
-
 
   /**
     *
     * @param string
     *
-    * @return Geolocation object or null (most recent date)
+    * @return Geolocation object or false (most recent date)
     */
   public function getByIp(string $ip)
   {
@@ -41,7 +39,7 @@ class GeolocationService {
     *
     * @param $ip string and $date string
     *
-    * @return Geolocation object or null (most recent date)
+    * @return Geolocation object or false
     */
   public function getByIpAndDate(string $ip, string $date)
   {
@@ -50,44 +48,26 @@ class GeolocationService {
     }
 
     $IXgeo = $this->IXgeoService->getByIpAndDate($ip, $date);
-    $this->buildByIXGeo($IXgeo);
 
-    // if doesn't exist
-    // if ($geo == false) {
-    //   $this->createNewIp($ip);
-    //   $geo = $this->buildByIXGeo($this->IXgeoService->getByIpAndDate($ip, $date));
-    // }
-
-    // check if we need a stale update. Performance issue? Better to use a cron?
-    // $this->updateStaleDataIfNeeded($ip)
-
-    // if the ip doesn't exist or is stale (and the date is recent enough to warrant a check)
-    // is this two tightly coupled? Do we want the controller to make this decision?
-    // this is getting convoluted enough that it points to something being wrong structurally
-    // TODO: this isn't going to work! How often will most recent eg getByIp be requested? Since requests for TRs for the map will use by date. Do we need a cron as well?
-    // if ($date == date("Y-m-d") && ($geo == false || $geo->getStaleStatus() == true)) {
-    //   // TODO: we want to add a new non-stale entry to ix and do an update on ipinfo
-
-    //   // BROKEN - this will try to create multiple ipinfos if stale. Switch to upsert?
-    //   $IXgeo = $this->create($ip, $this->IXgeoService, $this->IIgeoService);
-    //   $this->buildByIXGeo($IXgeo);
-    // }
-
+    // handle non-existent and stale ips
+    if ($IXgeo == false || $date == date("Y-m-d") && $IXgeo->getStaleStatus() == true) {
+      $IXgeo = $this->upsert($ip);
+    }
     // if the ip still doesn't exist in the db, eg if ipinfo doesn't have it
-    // potential TODO - what about missing values?
-    // eg if lat / long / country missing, refresh the data?
-    // if lat / long / country still missing, use ip2loc?
-    if ($this->geo == false) {
+    if ($IXgeo == false) {
       return false;
     }
+    // potential TODO - what about missing values?
+    // eg if lat / long / country missing, refresh the data?
+    // if $IXgeo still missing, use ip2loc instead of returning false? What constitutes success?
+
+    $this->buildByIXGeo($IXgeo);
 
     // if we don't have an asn, use ip2loc
     // only do this for most recent, since we don't have backdated values for eg ip2. That is, it would be misleading to show most recent ASN values for a router if the request is for geoloc/asn data from years ago
-    // TODO - combine with above?
-
     if ($date == date("Y-m-d") && ($this->geo->getASNum() == NULL || $this->geo->getASNum() == -1)) {
-      $i2geo = $this->I2geoService->getByIp($ip);
-      $this->buildByIP2Geo($i2geo);
+      $IP2geo = $this->I2geoService->getByIp($ip);
+      $this->buildByIP2Geo($IP2geo);
     }
 
     return $this->geo;
@@ -95,6 +75,7 @@ class GeolocationService {
 
 
   /**
+    * Insert ix and ii
     *
     * @param string
     *
@@ -108,8 +89,23 @@ class GeolocationService {
     return $this->repository->create($ip, $this->IXgeoService, $this->IIgeoService);
   }
 
+  /**
+    * Insert ix and upsert ii
+    *
+    * @param string
+    *
+    * @return IXmapsGeolocation object (!!!)
+    */
+  public function upsert($ip)
+  {
+    if (!filter_var($ip, FILTER_VALIDATE_IP)) {
+      throw new Exception('Not a valid IP address');
+    }
+    return $this->repository->upsert($ip, $this->IXgeoService, $this->IIgeoService);
+  }
 
-  // TODO: think about moving these to the repo
+
+  // TODO: think about moving these to the repo as a hydrate
 
   /**
     *

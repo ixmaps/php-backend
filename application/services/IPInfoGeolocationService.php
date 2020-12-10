@@ -48,11 +48,9 @@ class IPInfoGeolocationService {
     *
     * @return Boolean success value
     */
-  // not currently used - TBD on the general GeolocationService. TODO
-  // public function upsert(string $ip)
   public function upsert($geoData)
   {
-    return $this->repository->upsert($ip);
+    return $this->repository->upsert($geoData);
   }
 
 

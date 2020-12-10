@@ -106,8 +106,6 @@ class IPInfoGeolocationRepository
     return false;
   }
 
-
-  // not currently used...
   public function upsert($geoData)
   {
     $geo = $this->getByIp($geoData->getIp());

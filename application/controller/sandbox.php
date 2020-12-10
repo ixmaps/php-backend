@@ -19,14 +19,16 @@ require_once('../repositories/MaxMindGeolocationRepository.php');
 require_once('../repositories/IPInfoGeolocationRepository.php');
 require_once('../repositories/IP2LocationGeolocationRepository.php');
 
+$ip = $_SERVER['REMOTE_ADDR'];
+
+// randomish value to replace localhost
+if ($ip = '127.0.0.1') {
+  $ip = '128.101.101.101';
+}
 if (isset($_POST['ip'])) {
   $ip = $_POST['ip'];
-} else {
-  $ip = $_SERVER['REMOTE_ADDR'];
-  if ($ip = '127.0.0.1') {
-    $ip = '128.101.101.101';
-  }
 }
+
 
 $IXgeoRepo = new IXmapsGeolocationRepository();
 $IXgeoService = new IXmapsGeolocationService($IXgeoRepo);
@@ -41,7 +43,7 @@ $I2geoRepo = new IP2LocationGeolocationRepository();
 $I2geoService = new IP2LocationGeolocationService($I2geoRepo);
 
 
-// we only need to try / catch the first one
+// we only need to try / catch the first one, eg if user enters a non-ipaddress
 try {
   $ixgeo = $IXgeoService->getByIp($ip);
 } catch (Exception $e) {

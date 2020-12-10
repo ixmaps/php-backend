@@ -42,8 +42,8 @@ class IP2LocationGeolocationRepository
     $geoData = pg_fetch_object($result);
     pg_free_result($result);
 
-    // null check, ie IP does not exist
-    if ($geoData == false) {
+    // nullish check, ie IP does not really exist in any useful capacity
+    if ($geoData->lat == "0" && $geoData->long == "0" && $geoData->asnum == NULL) {
       return false;
     }
 

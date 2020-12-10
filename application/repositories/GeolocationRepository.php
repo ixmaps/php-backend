@@ -20,15 +20,41 @@ class GeolocationRepository
     * @param string
     *
     * @return IXmapsGeolocation object (WARNING: big gotcha potential. IXmapsGeolocation, and *not* Geolocation!)
+    * or false if the data is too junky
+    *
     */
   public function create(string $ip, $IXgeoService, $IIgeoService)
   {
-    // this feels odd... passing in raw data to a different service? Or is this actually the right way for this and others?
-    // this also just feels like a weird place to do this...
     $geoData = new IPInfoAPIService($ip);
 
-    // these should be returning objects - create
+    if ($geoData->getLat() == NULL && $geoData->getLat() == NULL && $geoData->getASNum() == NULL){
+      return false;
+    }
+
     $IIgeoService->create($geoData);
+    return $IXgeoService->create($geoData);
+  }
+
+  /**
+    * Insert into ip_addr_info and upsert for ipinfo_ip_addr
+    *
+    * @param string
+    *
+    * @return IXmapsGeolocation object (WARNING: big gotcha potential. IXmapsGeolocation, and *not* Geolocation!)
+    * or false if the data is too junky
+    *
+    */
+  public function upsert(string $ip, $IXgeoService, $IIgeoService)
+  {
+    $geoData = new IPInfoAPIService($ip);
+
+    if ($geoData->getLat() == NULL && $geoData->getLat() == NULL && $geoData->getASNum() == NULL){
+      return false;
+    }
+
+    // only insert / upsert if there is some kind of useful data
+
+    $IIgeoService->upsert($geoData);
     return $IXgeoService->create($geoData);
   }
 

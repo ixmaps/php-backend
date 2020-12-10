@@ -58,7 +58,7 @@ class IXmapsGeolocationRepository
     try {
       $result = pg_query_params($this->db, $sql, $ipData);
 
-      return $this->getByIp($geoData->getIp());
+      return $this->getByIpAndDate($geoData->getIp(), date('Y-m-d'));
 
       pg_free_result($result);
 
@@ -89,6 +89,32 @@ class IXmapsGeolocationRepository
 
     return true;
   }
+
+
+  /**
+    * @param string $ip
+    *
+    * @return Bool on success/failure
+    */
+  public function deleteByIpAndCreatedAt(string $ip, string $date)
+  {
+    $sql = "DELETE FROM ip_addr_info WHERE ip_addr = '".$ip."' and created_at >= '".$date."'::date and created_at < ('".$date."'::date + '1 day'::interval)";
+
+    try {
+      $result = pg_query($this->db, $sql);
+      $rowsDeleted = pg_affected_rows($result);
+    } catch (Exception $e) {
+      throw new Exception($e);
+    }
+    pg_free_result($result);
+
+    if ($rowsDeleted == 0) {
+      return false;
+    }
+
+    return true;
+  }
+
 
   /**
     * @param string $sql, Array $params
