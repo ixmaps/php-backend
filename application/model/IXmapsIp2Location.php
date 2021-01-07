@@ -42,12 +42,6 @@ class IXmapsIp2Location
 
     $row = $row[0];
 
-    if (empty($row["asnum"])) {
-      $asVals = $this->determineAsn($ip);
-      $row["asnum"] = $asVals[0];
-      $row["asname"] = $asVals[1];
-    }
-
     // some cleanup, since we prefer blank values to '-'
     if ($row["country"] == "-" || $row["country"] == "- ") {
       $row["country"] = "";
@@ -132,17 +126,6 @@ class IXmapsIp2Location
     } else {
       return sprintf( "%u", floatval(ip2long($ip) ));
     }
-  }
-
-  private function determineAsn($ip) {
-    global $dbconn;
-    // since not all of the ip2_location_ip_addrs have an asn, check if it's available in the ip2_location_asn table
-    $sql = "SELECT * FROM ip2location_asn WHERE ip_from <= ".$ip." and ip_to >= ".$ip;
-    $result = pg_query($dbconn, $sql) or die('determineAsn query failed: ' . pg_last_error());
-    $row = pg_fetch_row($result);
-    pg_free_result($result);
-
-    return [$row[3],$row[4]];
   }
 }
 ?>
