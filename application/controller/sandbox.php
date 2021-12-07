@@ -5,7 +5,7 @@
  * postal code, latitude, and longitude by IP Address.
  * Current data sources: ix, mm, ii, i2
  *
- * Updated Nov 2020
+ * Updated Nov 2021
  * @author Colin, Anto
  *
  */

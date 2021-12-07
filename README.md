@@ -1,4 +1,4 @@
-s## A set of scripts running on the IXmaps backend
+## A set of scripts running on the IXmaps backend
 
 #### They are used, among other things:
 - to act as an API for the geolocation of submitted Paris Traceroutes from CIRA
