@@ -27,6 +27,8 @@ $MMDatDir = "/home/ixmaps/ix-data/mm-data";
 
 #### IpInfo credentials
 $IIAccessToken = 'fillMeIn';
+// ip goes stale after 1 day
+$ipStaleDate = 1;
 
 $ixmapsDebugMode = true;
 $trNumLimit = 500;
