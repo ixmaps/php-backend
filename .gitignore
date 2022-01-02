@@ -5,4 +5,3 @@ application/config.js
 application/helpers/gl_analysis.csv
 vendor/
 application/tests/.phpunit.result.cache
-log/ipinfo.log

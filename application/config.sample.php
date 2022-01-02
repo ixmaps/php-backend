@@ -21,14 +21,13 @@ $webUrl = "https://www.ixmaps.ca";
 $appRootPath = '/srv/www/website';
 $savePath = $appRootPath.'/gm-temp';
 $searchLog = "/home/ixmaps/log/search.log";
+$ipinfoLog = "/home/ixmaps/log/ipinfo.log";
 
 #### MaxMind data and include files
 $MMDatDir = "/home/ixmaps/ix-data/mm-data";
 
 #### IpInfo credentials
 $IIAccessToken = 'fillMeIn';
-// ip goes stale after 1 day
-$ipStaleDate = 1;
 
 $ixmapsDebugMode = true;
 $trNumLimit = 500;
