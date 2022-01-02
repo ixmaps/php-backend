@@ -31,6 +31,7 @@ class IXmapsIpInfo
   public function hydrate($ip) {
     global $dbconn;
     global $IIAccessToken;
+    global $ipinfoLog;
 
     // CDM: this is a bit of a hack put in on 20211207. Instead of *always* looking it up (why?!),
     // look if we have it in the table first. Then log if we need to look it up.
@@ -61,8 +62,7 @@ class IXmapsIpInfo
       $results = $client->getDetails($ip);
 
       $message = date("Y-m-d H:i:s")."\nRequesting and hydrating an IPinfo object for ".$ip;
-      $logfile = "../../log/ipinfo.log";
-      error_log("\n".$message."\n", 3, $logfile);
+      error_log("\n".$message."\n", 3, $ipinfoLog);
 
       try {
         $this->ip = $ip;
