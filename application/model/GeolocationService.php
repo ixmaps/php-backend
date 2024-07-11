@@ -57,11 +57,6 @@ class GeolocationService {
     // $geolocation->setASName($mmIpData['asname']);
     // $geolocation->setAsnSource('maxmind');
 
-
-
-
-
-
     if (!geolocationData) {
       $geolocationData = $this->maxmindRepository->fetchByIp($ipAddress);
     }

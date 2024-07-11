@@ -62,7 +62,7 @@ class IXmapsMaxMind
       $this->country = $cityRecord->country->name;
       $this->countryCode = $cityRecord->country->isoCode;
     } catch(Exception $e) {
-      $this->ipAdd = NULL;
+      $this->ipAddr = NULL;
       $this->lat = NULL;
       $this->long = NULL;
       $this->city = NULL;

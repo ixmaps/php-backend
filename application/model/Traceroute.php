@@ -383,7 +383,7 @@ class Traceroute
     if ($myCity == "") {
       $myCity = "--";
     }
-    $myCity = utf8_encode($myCity);
+    $myCity = mb_convert_encoding($myCity, 'UTF-8', 'ISO-8859-1');
 
     $sql = "INSERT INTO s_log (timestamp, log, ip, city) VALUES (NOW(), '".$data_json."', '".$myIp."', '".$myCity."');";
     pg_query($dbconn, $sql) or die('Error! Insert Log failed: ' . pg_last_error());
@@ -427,7 +427,8 @@ class Traceroute
     $tTable = "ip_addr_info";
     $tOrder = "";
     $tWhere = "";
-    $tSelect = "SELECT";
+    $tSelect = "SELECT distinct";
+    $tLimit = "";
 
     if ($sField == "country") {
       $tColumn = "mm_country";
@@ -447,24 +448,22 @@ class Traceroute
       $tWhere = "WHERE short_name is not null";
       $tOrder = "name";
     } else if ($sField == "submitter") {
-      $tSelect = "SELECT distinct";
       $tTable = "traceroute";
       $tColumn = "submitter";
       $tOrder = "submitter";
     } else if ($sField == "destHostname") {
-      $tSelect = "SELECT distinct";
       $tTable = "traceroute";
       $tColumn = "dest";
       $tOrder = $tColumn;
     } else if ($sField == "subTimeGreaterThan" || "subTimeLessThan") {
-      $tSelect = "SELECT distinct";
       $tTable = "traceroute";
       $tColumn = "to_char(sub_time, 'YYYY-MM-DD')";
-      $tOrder = "to_char asc";
+      $tOrder = "to_char desc";
+      $tLimit = "LIMIT 10";
     }
 
     // loading all approach
-    $sql = "$tSelect $tColumn FROM $tTable $tWhere ORDER BY $tOrder";
+    $sql = "$tSelect $tColumn FROM $tTable $tWhere ORDER BY $tOrder $tLimit";
     $result = array();
     $autoC = array();
 

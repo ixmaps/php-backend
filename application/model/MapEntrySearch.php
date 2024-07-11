@@ -62,16 +62,16 @@ class MapEntrySearch
         $constraintWhereParams = Traceroute::buildWhere($constraint);
         $sqlCount = $sqlBase.$constraintWhereParams[0]; // add where conditions
 
-        $constrtaintCount = 0;
+        $constraintCount = 0;
         $result = pg_query_params($dbconn, $sqlCount, array($constraintWhereParams[1])) or die('countTrResults: Query failed: incorrect parameters');
         $trCountArr = pg_fetch_all($result);
         pg_free_result($result);
         if ($trCountArr !== false) {
-          $constrtaintCount = count($trCountArr);
+          $constraintCount = count($trCountArr);
         }
 
         // sql for intersect statements
-        if ($constrtaintCount != 0) {
+        if ($constraintCount != 0) {
           $constraintNum++;
           $intersectWhereParams = Traceroute::buildWhere($constraint, $constraintNum);
           $sqlIntersectArray[] = $sqlBase.$intersectWhereParams[0]; // add sql where
@@ -79,7 +79,7 @@ class MapEntrySearch
         }
 
         $filterResults[$constraintKind] = array(
-          "total" => $constrtaintCount,
+          "total" => $constraintCount,
           "constraint" => $constraint
         );
       } // end for each
